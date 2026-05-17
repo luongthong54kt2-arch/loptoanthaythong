@@ -81,7 +81,8 @@ export default function UserMgmt() {
   }
 
   // Gọi API tạo người dùng (Giữ nguyên vì đã chuẩn)
-  const handleCreateUser = async () => {
+  // THAY BẰNG ĐOẠN NÀY
+const handleCreateUser = async () => {
     if (!form.email || !form.password || !form.name) {
       return toast.error('Vui lòng nhập đầy đủ Email, Mật khẩu và Tên')
     }
@@ -91,21 +92,31 @@ export default function UserMgmt() {
 
     setCreating(true)
     try {
-      const res = await fetch('/api/create-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: { data: { name: form.name } }
       })
-      
-      const data = await res.json()
-      if (!data.ok) throw new Error(data.error || 'Tạo người dùng thất bại')
+      if (signUpError) throw signUpError
+
+      const userId = signUpData.user?.id
+      if (!userId) throw new Error('Không lấy được ID người dùng vừa tạo')
+
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: userId,
+        email: form.email,
+        name: form.name,
+        role: form.role,
+        active: true
+      }, { onConflict: 'id' })
+      if (profileError) throw profileError
 
       toast.success('🎉 Đã tạo người dùng thành công!')
       setModalOpen(false)
       setForm(EMPTY_FORM)
-      loadProfiles() 
+      loadProfiles()
     } catch (e: any) {
-      toast.error(e.message)
+      toast.error(e.message || 'Tạo người dùng thất bại')
     } finally {
       setCreating(false)
     }
