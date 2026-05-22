@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react'
 import { Printer, Users, RefreshCw, GraduationCap, QrCode, Palette } from 'lucide-react'
-import { useDataStore } from '@/store/dataStore'
+import { supabase } from '@/lib/supabase'
 
 // ── Themes ──────────────────────────────────────────────────
 const THEMES = {
@@ -21,7 +21,10 @@ function StudentCard({ student, centerName, classInfo, theme }: {
   const t        = THEMES[theme]
   const initials = student.full_name?.split(' ').slice(-2).map((w: string) => w[0]).join('').toUpperCase() || 'HS'
   const url      = `${window.location.origin}/progress?code=${student.student_code}`
-  const qrSrc    = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(url)}&bgcolor=ffffff&color=${t.qrColor}&margin=4`
+
+  // ✅ FIX 3: Dùng quickchart.io thay vì api.qrserver.com
+  //    quickchart.io ổn định hơn, miễn phí, không giới hạn
+  const qrSrc = `https://quickchart.io/qr?text=${encodeURIComponent(url)}&size=100&margin=2&dark=${t.qrColor}&light=ffffff`
 
   return (
     <div className="student-card" style={{
@@ -51,10 +54,7 @@ function StudentCard({ student, centerName, classInfo, theme }: {
           }}>
             THẺ HỌC VIÊN
           </div>
-          <div style={{
-            color: '#fff', fontSize: '10px', fontWeight: 900,
-            lineHeight: 1.2, maxWidth: '45mm',
-          }}>
+          <div style={{ color: '#fff', fontSize: '10px', fontWeight: 900, lineHeight: 1.2, maxWidth: '45mm' }}>
             {centerName || 'TRUNG TÂM'}
           </div>
           {classInfo?.subject && (
@@ -71,8 +71,7 @@ function StudentCard({ student, centerName, classInfo, theme }: {
           border: '1.5px solid rgba(255,255,255,0.4)',
           borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontSize: '9px', fontWeight: 900,
-          flexShrink: 0,
+          color: '#fff', fontSize: '9px', fontWeight: 900, flexShrink: 0,
         }}>
           {initials}
         </div>
@@ -80,31 +79,26 @@ function StudentCard({ student, centerName, classInfo, theme }: {
 
       {/* Body */}
       <div style={{
-        flex: 1, padding: '2.5mm 4mm 2.5mm 4mm',
+        flex: 1, padding: '2.5mm 4mm',
         display: 'flex', gap: '3mm', alignItems: 'stretch',
       }}>
-
         {/* Info */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1.2mm' }}>
           <div style={{ fontSize: '11.5px', fontWeight: 900, color: '#111827', lineHeight: 1.25 }}>
             {student.full_name}
           </div>
-          <div style={{
-            fontSize: '8px', fontFamily: 'monospace',
-            fontWeight: 700, color: '#6b7280', letterSpacing: '1px',
-          }}>
+          <div style={{ fontSize: '8px', fontFamily: 'monospace', fontWeight: 700, color: '#6b7280', letterSpacing: '1px' }}>
             {student.student_code}
           </div>
+          {/* ✅ FIX 4: fallback class_name → name */}
           {classInfo && (
             <div style={{ fontSize: '7.5px', color: '#374151', fontWeight: 600, marginTop: '0.5mm' }}>
-              {classInfo.class_name}
+              {classInfo.class_name || classInfo.name}
             </div>
           )}
           {student.grade && (
             <div style={{ fontSize: '7px', color: '#9ca3af' }}>Khối {student.grade}</div>
           )}
-
-          {/* Accent bar */}
           <div style={{
             marginTop: '2mm', height: '1.2mm', width: '50%',
             borderRadius: '1mm', background: t.gradient, opacity: 0.5,
@@ -129,23 +123,41 @@ function StudentCard({ student, centerName, classInfo, theme }: {
 
 // ── Main Page ────────────────────────────────────────────────
 export default function StudentCards() {
-  const { classes, students, enrollments, loadClasses, loadStudents, loadEnrollments } = useDataStore()
+  const [classes, setClasses]   = useState<any[]>([])
+  const [students, setStudents] = useState<any[]>([])
+  const [enrollments, setEnrollments] = useState<any[]>([])
   const [selectedClass, setSelectedClass] = useState('')
   const [centerName, setCenterName]       = useState('')
   const [theme, setTheme]                 = useState<ThemeKey>('teal')
   const [loading, setLoading]             = useState(true)
+  const [error, setError]                 = useState('')
 
+  // ✅ FIX 1+2: void + catch + Supabase trực tiếp → không bao giờ spinner mãi
   useEffect(() => {
-    Promise.all([loadClasses(), loadStudents(), loadEnrollments()])
-      .finally(() => setLoading(false))
+    const load = async () => {
+      try {
+        const [{ data: cls }, { data: stu }, { data: enr }] = await Promise.all([
+          supabase.from('classes').select('*').eq('status', 'active').order('class_name'),
+          supabase.from('students').select('*').eq('status', 'active'),
+          supabase.from('enrollments').select('*').eq('status', 'active'),
+        ])
+        setClasses(cls || [])
+        setStudents(stu || [])
+        setEnrollments(enr || [])
+      } catch (e: any) {
+        setError('Không tải được dữ liệu: ' + e.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    void load()
   }, [])
 
-  const activeClasses = classes.filter(c => c.status === 'active')
-  const classInfo     = classes.find(c => c.id === selectedClass)
+  const classInfo = classes.find(c => c.id === selectedClass)
 
   const enrolledStudents = selectedClass
     ? enrollments
-        .filter(e => e.class_id === selectedClass && e.status === 'active')
+        .filter(e => e.class_id === selectedClass)
         .map(e => students.find(s => s.id === e.student_id))
         .filter(Boolean)
         .sort((a: any, b: any) => a.full_name.localeCompare(b.full_name))
@@ -153,17 +165,12 @@ export default function StudentCards() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-
-      {/* Print styles */}
       <style>{`
         @media print {
           .no-print { display: none !important; }
           body { background: white !important; margin: 0; }
           @page { size: A4 portrait; margin: 8mm; }
-          .print-area {
-            padding: 0 !important;
-            background: white !important;
-          }
+          .print-area { padding: 0 !important; background: white !important; }
           .cards-grid {
             display: grid !important;
             grid-template-columns: repeat(2, 85.6mm) !important;
@@ -204,11 +211,8 @@ export default function StudentCards() {
         {/* Config sidebar */}
         <div className="no-print w-72 shrink-0 space-y-4 sticky top-24">
 
-          {/* Center name */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">
-              Tên trung tâm
-            </label>
+            <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Tên trung tâm</label>
             <input
               value={centerName}
               onChange={e => setCenterName(e.target.value)}
@@ -218,37 +222,36 @@ export default function StudentCards() {
             />
           </div>
 
-          {/* Class select */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">
-              Chọn lớp
-            </label>
+            <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Chọn lớp</label>
             {loading ? (
               <div className="flex items-center gap-2 text-gray-400 text-sm py-2">
                 <RefreshCw className="w-4 h-4 animate-spin" /> Đang tải...
               </div>
+            ) : error ? (
+              <p className="text-red-500 text-xs py-2">{error}</p>
             ) : (
               <select
                 value={selectedClass}
                 onChange={e => setSelectedClass(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold
-                  focus:border-teal-500 outline-none transition"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold focus:border-teal-500 outline-none transition"
               >
                 <option value="">— Chọn lớp —</option>
-                {activeClasses.map(c => (
-                  <option key={c.id} value={c.id}>{c.class_name} ({c.subject})</option>
+                {classes.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {/* ✅ FIX 4: fallback class_name → name */}
+                    {c.class_name || c.name} {c.subject ? `(${c.subject})` : ''}
+                  </option>
                 ))}
               </select>
             )}
             {selectedClass && (
               <div className="mt-3 flex items-center gap-2 text-teal-700 text-sm font-bold bg-teal-50 px-3 py-2.5 rounded-xl border border-teal-100">
-                <Users className="w-4 h-4" />
-                {enrolledStudents.length} học sinh
+                <Users className="w-4 h-4" /> {enrolledStudents.length} học sinh
               </div>
             )}
           </div>
 
-          {/* Color theme */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
             <label className="block text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider flex items-center gap-1.5">
               <Palette className="w-3.5 h-3.5" /> Màu thẻ
@@ -275,7 +278,6 @@ export default function StudentCards() {
             </div>
           </div>
 
-          {/* QR info */}
           <div className="bg-gradient-to-br from-teal-50 to-teal-100/50 border border-teal-100 rounded-2xl p-4">
             <div className="flex items-start gap-2.5">
               <QrCode className="w-4 h-4 text-teal-600 mt-0.5 shrink-0" />
@@ -309,9 +311,8 @@ export default function StudentCards() {
             <>
               <p className="no-print text-sm text-gray-500 mb-5 font-medium">
                 Xem trước <span className="font-bold text-gray-700">{enrolledStudents.length}</span> thẻ
-                <span className="text-gray-400"> · Kích thước in thực tế: 85.6 × 54mm · 2 thẻ/hàng trên A4</span>
+                <span className="text-gray-400"> · 85.6 × 54mm · 2 thẻ/hàng trên A4</span>
               </p>
-
               <div className="cards-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, 85.6mm)',

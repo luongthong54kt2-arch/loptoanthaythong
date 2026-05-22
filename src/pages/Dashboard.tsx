@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Users, BookOpen, CalendarCheck, Banknote, TrendingUp } from 'lucide-react'
 import { useDataStore } from '@/store/dataStore'
 import { useAuthStore } from '@/store/authStore'
+import { supabase } from '@/lib/supabase'
 import { fmtVNDShort, fmt } from '@/lib/helpers'
 import type { LucideIcon } from 'lucide-react'
 
@@ -39,19 +40,46 @@ function StatCard({ icon: Icon, label, value, sub, color = 'teal' }: StatCardPro
 
 export default function Dashboard() {
   const { profile, isAdmin } = useAuthStore()
-  const { classes, students, attendance, payments, loadClasses, loadStudents, loadAttendance, loadPayments } = useDataStore()
-  const [loaded, setLoaded] = useState(false)
+  const { classes, students, payments, loadClasses, loadStudents, loadPayments } = useDataStore()
 
-  useEffect(() => {
-    void Promise.all([loadClasses(), loadStudents(), loadAttendance(), loadPayments()])
-      .finally(() => setLoaded(true))
-  }, [loadClasses, loadStudents, loadAttendance, loadPayments])
+  const [loaded, setLoaded]       = useState(false)
+  const [todayAtt, setTodayAtt]   = useState(0)
+  const [recentPays, setRecentPays] = useState<any[]>([])
+
+  // ✅ FIX 1: deps [] → chỉ chạy 1 lần khi mount, không loop
+  // ✅ FIX 3: loadAttendance() cần params → fetch trực tiếp Supabase cho Dashboard
+  const loadDashboard = useCallback(async () => {
+    try {
+      const todayStr = new Date().toISOString().slice(0, 10)
+
+      await Promise.all([
+        loadClasses(),
+        loadStudents(),
+        loadPayments(),
+        // ✅ FIX 3: Fetch điểm danh hôm nay trực tiếp, không qua store
+        supabase
+          .from('attendance')
+          .select('id', { count: 'exact', head: true })
+          .eq('date', todayStr)
+          .then(({ count }) => setTodayAtt(count ?? 0)),
+        // ✅ FIX 2: Lấy 5 thanh toán gần nhất dùng đúng field `date`
+        supabase
+          .from('payments')
+          .select('id, amount, method, date, student_id, students(full_name)')
+          .order('date', { ascending: false })
+          .limit(5)
+          .then(({ data }) => setRecentPays(data || [])),
+      ])
+    } finally {
+      setLoaded(true)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { void loadDashboard() }, [loadDashboard])
 
   const activeClasses  = classes.filter(c => c.status === 'active').length
   const activeStudents = students.filter(s => s.status === 'active').length
   const totalRevenue   = payments.reduce((s, p) => s + (p.amount ?? 0), 0)
-  const todayStr       = new Date().toISOString().slice(0, 10)
-  const todayAtt       = attendance.filter(a => a.date === todayStr).length
 
   if (!loaded) return (
     <div className="flex items-center justify-center h-64">
@@ -72,12 +100,11 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard icon={BookOpen}      label="Lớp đang mở"      value={activeClasses}              sub="lớp học đang hoạt động" color="teal"  />
-        <StatCard icon={Users}         label="Học sinh"          value={activeStudents}             sub="đang theo học"          color="green" />
-        <StatCard icon={CalendarCheck} label="Điểm danh hôm nay" value={todayAtt}                  sub="bản ghi hôm nay"        color="amber" />
-        
+        <StatCard icon={BookOpen}      label="Lớp đang mở"      value={activeClasses}             sub="lớp học đang hoạt động" color="teal"  />
+        <StatCard icon={Users}         label="Học sinh"          value={activeStudents}            sub="đang theo học"          color="green" />
+        <StatCard icon={CalendarCheck} label="Điểm danh hôm nay" value={todayAtt}                 sub="bản ghi hôm nay"        color="amber" />
         {isAdmin() && (
-          <StatCard icon={Banknote}      label="Tổng thu"          value={fmtVNDShort(totalRevenue)}  sub="tổng doanh thu"         color="teal"  />
+          <StatCard icon={Banknote}    label="Tổng thu"          value={fmtVNDShort(totalRevenue)} sub="tổng doanh thu"         color="teal"  />
         )}
       </div>
 
@@ -88,22 +115,24 @@ export default function Dashboard() {
               <TrendingUp className="w-5 h-5 text-teal-600" />
               Học phí gần đây
             </h3>
-            {payments.length === 0 ? (
+            {recentPays.length === 0 ? (
               <p className="text-gray-400 text-sm text-center py-8">Chưa có dữ liệu</p>
             ) : (
               <div className="space-y-3">
-                {payments.slice(0, 5).map(p => {
-                  const student = students.find(s => s.id === p.student_id)
-                  return (
-                    <div key={p.id} className="flex items-center justify-between py-2 border-b border-teal-50">
-                      <div>
-                        <p className="font-semibold text-sm text-gray-800">{student?.full_name ?? '—'}</p>
-                        <p className="text-xs text-gray-400">{fmt(p.paid_at)} · {p.method === 'transfer' ? '🏦' : '💵'}</p>
-                      </div>
-                      <span className="font-bold text-green-600 text-sm">{fmtVNDShort(p.amount)}</span>
+                {recentPays.map(p => (
+                  <div key={p.id} className="flex items-center justify-between py-2 border-b border-teal-50">
+                    <div>
+                      <p className="font-semibold text-sm text-gray-800">
+                        {p.students?.full_name ?? '—'}
+                      </p>
+                      {/* ✅ FIX 2: dùng p.date thay vì p.paid_at */}
+                      <p className="text-xs text-gray-400">
+                        {p.date ? fmt(p.date) : '—'} · {p.method === 'transfer' ? '🏦' : '💵'}
+                      </p>
                     </div>
-                  )
-                })}
+                    <span className="font-bold text-green-600 text-sm">{fmtVNDShort(p.amount)}</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -118,14 +147,19 @@ export default function Dashboard() {
             <p className="text-gray-400 text-sm text-center py-8">Chưa có lớp học</p>
           ) : (
             <div className="space-y-3">
-              {classes.slice(0, 5).map(c => (
+              {classes.filter(c => c.status === 'active').slice(0, 5).map(c => (
                 <div key={c.id} className="flex items-center justify-between py-2 border-b border-teal-50">
                   <div>
-                    <p className="font-semibold text-sm text-gray-800">{(c as any).class_name || (c as any).name}</p>
-                    <p className="text-xs text-gray-400">{c.description}</p>
+                    <p className="font-semibold text-sm text-gray-800">
+                      {(c as any).class_name || (c as any).name}
+                    </p>
+                    {/* ✅ FIX 4: c.description không có trong schema → dùng subject + schedule */}
+                    <p className="text-xs text-gray-400">
+                      {[(c as any).subject, (c as any).schedule].filter(Boolean).join(' · ') || '—'}
+                    </p>
                   </div>
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${c.status === 'active' ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-500'}`}>
-                    {c.status === 'active' ? 'Đang mở' : 'Đóng'}
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">
+                    Đang mở
                   </span>
                 </div>
               ))}
