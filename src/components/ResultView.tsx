@@ -242,6 +242,20 @@ const ResultView: React.FC<ResultViewProps> = ({
           </div>
         </div>
 
+        {/* ✅ FIX: Link xem lại đề thi PDF */}
+        {(submission as any).examPdfUrl && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
+            <span className="text-2xl">📄</span>
+            <div>
+              <p className="font-bold text-blue-800 mb-1">Xem lại đề thi</p>
+              <a href={(submission as any).examPdfUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700 transition">
+                📎 Mở đề thi ↗
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* Xem lại bài làm */}
         {exam && (
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -360,7 +374,7 @@ const MultipleChoiceReview: React.FC<{
             </div>
           )}
 
-          {question.options && (
+          {displayOptions.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {question.options.map((opt: QuestionOption) => {
                 const isUserAnswer = userAnswer?.toUpperCase() === opt.letter.toUpperCase();
@@ -425,35 +439,49 @@ const TrueFalseReview: React.FC<{
   breakdown?: { correctCount: number; points: number; answeredCount?: number; totalStatements?: number };
 }> = ({ question, userAnswer, correctAnswer, showCorrectAnswers, showExplanations, breakdown }) => {
 
-  // ✅ Parse đáp án học sinh
+  // ✅ FIX: Parse đáp án học sinh – hỗ trợ JSON {"a":true,"b":false} VÀ format cũ "a:T,b:F"
   let userAnswers: Record<string, string> = {};
   if (userAnswer) {
-    if (userAnswer.includes(':')) {
+    if (userAnswer.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(userAnswer);
+        // ✅ FIX: map cả false → 'F', không bỏ qua
+        Object.keys(parsed).forEach(k => {
+          userAnswers[k.toLowerCase()] = parsed[k] ? 'T' : 'F';
+        });
+      } catch { /* ignore */ }
+    } else if (userAnswer.includes(':')) {
       userAnswer.split(',').forEach(p => {
         const [l, v] = p.split(':');
         if (l && v) userAnswers[l.trim().toLowerCase()] = v.trim();
       });
     } else {
-      try {
-        const parsed = JSON.parse(userAnswer);
-        Object.keys(parsed).forEach(k => {
-          if (parsed[k]) userAnswers[k.toLowerCase()] = 'T';
-        });
-      } catch {
-        userAnswer.split(',').forEach(s => {
-          const l = s.trim().toLowerCase();
-          if (l) userAnswers[l] = 'T';
-        });
-      }
+      userAnswer.split(',').forEach(s => {
+        const l = s.trim().toLowerCase();
+        if (l) userAnswers[l] = 'T';
+      });
     }
   }
 
-  const correctStatements = correctAnswer.toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+  // ✅ FIX: Parse correctAnswer – hỗ trợ JSON {"a":true,"b":false} VÀ "a,c" (comma-separated)
+  let correctMap: Record<string, boolean> = {};
+  try {
+    const parsedCA = JSON.parse(correctAnswer || '{}');
+    Object.keys(parsedCA).forEach(k => { correctMap[k.toLowerCase()] = !!parsedCA[k]; });
+  } catch {
+    correctAnswer.toLowerCase().split(',').map(s => s.trim()).filter(Boolean)
+      .forEach(l => { correctMap[l] = true; });
+  }
 
-  // ✅ Dùng breakdown từ scoringService (đã được tính sẵn) thay vì re-compute
+  // ✅ FIX: Khi options rỗng (PDF exam tạo bởi PDFExamCreator), tạo options tổng hợp a/b/c/d
+  const displayOptions = (question.options && question.options.length > 0)
+    ? question.options
+    : ['a', 'b', 'c', 'd'].map(l => ({ letter: l, text: l.toUpperCase() }));
+
+  // Dùng breakdown từ scoringService (đã được tính sẵn)
   const correctCount = breakdown?.correctCount ?? 0;
   const earnedPoints = breakdown?.points ?? 0;
-  const totalStatements = breakdown?.totalStatements ?? (question.options?.length ?? 4);
+  const totalStatements = breakdown?.totalStatements ?? (displayOptions.length ?? 4);
 
   const allCorrect = correctCount === totalStatements;
   const partialCorrect = correctCount > 0 && !allCorrect;
@@ -479,7 +507,7 @@ const TrueFalseReview: React.FC<{
             <MathText html={question.text || ''} block />
           </div>
 
-          {/* ✅ Badge điểm đúng sai */}
+          {/* Badge điểm đúng sai */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span className="px-2 py-1 bg-teal-100 text-teal-700 rounded-lg text-xs font-bold">
               ✅ Đúng / Sai
@@ -506,8 +534,8 @@ const TrueFalseReview: React.FC<{
             </div>
           )}
 
-          {/* ✅ Bảng đúng/sai đẹp */}
-          {question.options && (
+          {/* ✅ Bảng đúng/sai – dùng displayOptions, correctMap, userAnswers đã fix */}
+          {displayOptions.length > 0 && (
             <div className="rounded-xl border-2 border-teal-200 overflow-hidden shadow-sm">
               <div className="grid grid-cols-[1fr_60px_60px_60px] bg-teal-600 text-white text-xs font-bold">
                 <div className="px-4 py-2.5">Mệnh đề</div>
@@ -516,9 +544,9 @@ const TrueFalseReview: React.FC<{
                 {showCorrectAnswers && <div className="py-2.5 text-center bg-teal-800">Kết quả</div>}
               </div>
               <div className="divide-y divide-teal-100">
-                {question.options.map((opt: QuestionOption) => {
+                {displayOptions.map((opt: QuestionOption) => {
                   const key = opt.letter.toLowerCase();
-                  const shouldBeTrue = correctStatements.includes(key);
+                  const shouldBeTrue = correctMap[key] ?? false;
                   const userVal = userAnswers[key];
                   const isCorrectStatement = showCorrectAnswers
                     ? (userVal === 'T' && shouldBeTrue) || (userVal === 'F' && !shouldBeTrue)
@@ -534,7 +562,7 @@ const TrueFalseReview: React.FC<{
                         <span className="w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-black flex-shrink-0">
                           {opt.letter.toLowerCase()}
                         </span>
-                        <div className="flex-1"><MathText html={opt.text || ''} /></div>
+                        <div className="flex-1"><MathText html={opt.text || opt.letter} /></div>
                       </div>
                       <div className="text-center py-3">
                         <span className={`px-2 py-0.5 rounded text-xs font-bold ${

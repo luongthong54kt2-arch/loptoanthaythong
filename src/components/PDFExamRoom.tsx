@@ -239,6 +239,8 @@ const PDFExamRoom: React.FC<PDFExamRoomProps> = ({
   const timerRed = timeLeft <= 5 * 60;
 
   const [leftPanel, setLeftPanel] = useState<'exam' | 'solution'>('exam');
+  // ✅ FIX MOBILE: Tab điều hướng riêng cho mobile (PDF | Bài làm)
+  const [mobileTab, setMobileTab] = useState<'pdf' | 'answer'>('pdf');
 
   const { splitPct, dragHandleProps, containerRef, snapTo } = useHorizontalSplit(62);
   const sessionIdRef = useRef(generateSessionId());
@@ -384,12 +386,14 @@ const PDFExamRoom: React.FC<PDFExamRoomProps> = ({
 
         const formattedSubmission = {
           ...submission,
-          student: student, // Truyền lại đối tượng học sinh
+          student: student,
           percentage: breakdown.percentage || 0,
           totalScore: submission.score || breakdown.totalScore || 0,
           correctCount: totalCorrect,
           wrongCount: totalQ - totalCorrect,
-          totalQuestions: totalQ
+          totalQuestions: totalQ,
+          // ✅ FIX 3: Truyền link PDF để ResultView hiển thị nút "Xem lại đề thi"
+          examPdfUrl: pdfUrl || drivePdfUrl || undefined,
         };
 
         onSubmitted(formattedSubmission);
@@ -489,13 +493,30 @@ const PDFExamRoom: React.FC<PDFExamRoomProps> = ({
         </div>
       )}
 
+      {/* ══ Mobile tab bar: chọn xem Đề thi hay Bài làm ══ */}
+      <div className="sm:hidden flex bg-white border-b border-gray-200 shrink-0">
+        <button onClick={() => setMobileTab('pdf')}
+          className={`flex-1 py-2.5 text-sm font-semibold border-b-2 transition
+            ${mobileTab === 'pdf' ? 'border-teal-500 text-teal-700 bg-teal-50' : 'border-transparent text-gray-500'}`}>
+          📄 Đề thi
+        </button>
+        <button onClick={() => setMobileTab('answer')}
+          className={`flex-1 py-2.5 text-sm font-semibold border-b-2 transition
+            ${mobileTab === 'answer' ? 'border-teal-500 text-teal-700 bg-teal-50' : 'border-transparent text-gray-500'}`}>
+          ✏️ Bài làm {totalAnswered > 0 ? `(${totalAnswered}/${totalQ})` : ''}
+        </button>
+      </div>
+
       {/* ══ Layout chính ══ */}
       <div ref={containerRef} className="flex-1 flex flex-row overflow-hidden"
         onPointerMove={dragHandleProps.onPointerMove}
         onPointerUp={dragHandleProps.onPointerUp}>
 
         {/* ── Panel trái: Đề thi hoặc Lời giải ── */}
-        <div className="overflow-hidden shrink-0 flex flex-col" style={{ width: `${splitPct}%` }}>
+        {/* ✅ MOBILE: ẩn panel trái khi đang xem tab "Bài làm", show full-width */}
+        <div
+          className={`overflow-hidden shrink-0 flex flex-col ${mobileTab === 'answer' ? 'hidden sm:flex' : 'flex'}`}
+          style={{ width: typeof window !== 'undefined' && window.innerWidth < 640 ? '100%' : `${splitPct}%` }}>
 
           {/* Lời giải (sau khi nộp) */}
           {isSubmitted && leftPanel === 'solution' && hasSolution ? (
@@ -507,7 +528,23 @@ const PDFExamRoom: React.FC<PDFExamRoomProps> = ({
           ) : (
             // Đề thi
             finalExamUrl ? (
-              <iframe src={finalExamUrl} className="w-full h-full border-0 bg-white" title="Đề thi PDF" allow="autoplay" />
+              <>
+                {/* ✅ MOBILE: dùng Google Docs Viewer – hiển thị PDF trên mọi trình duyệt */}
+                <iframe
+                  src={`https://docs.google.com/viewer?url=${encodeURIComponent(
+                    (pdfUrl || drivePdfUrl || '').replace('#toolbar=0','')
+                  )}&embedded=true`}
+                  className="w-full h-full border-0 bg-white sm:hidden"
+                  title="Đề thi PDF"
+                />
+                {/* Desktop: Supabase/Drive URL trực tiếp */}
+                <iframe src={finalExamUrl} className="hidden sm:block w-full h-full border-0 bg-white" title="Đề thi PDF" allow="autoplay" />
+                {/* Fallback link nếu iframe vẫn không load được */}
+                <a href={pdfUrl || drivePdfUrl} target="_blank" rel="noopener noreferrer"
+                  className="sm:hidden absolute bottom-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs px-4 py-2 rounded-full shadow-lg font-semibold z-10">
+                  Không xem được? → Mở đề thi ↗
+                </a>
+              </>
             ) : pdfBase64 ? (
               <embed src={`data:application/pdf;base64,${pdfBase64}`} type="application/pdf" className="w-full h-full bg-white" title="Đề thi PDF" />
             ) : (
@@ -522,8 +559,8 @@ const PDFExamRoom: React.FC<PDFExamRoomProps> = ({
           )}
         </div>
 
-        {/* ── Drag handle ── */}
-        <div className="shrink-0 relative select-none touch-none z-20 flex flex-col" style={{ width: '24px' }}
+        {/* ── Drag handle – ẩn trên mobile ── */}
+        <div className="hidden sm:flex shrink-0 relative select-none touch-none z-20 flex-col" style={{ width: '24px' }}
           onPointerDown={dragHandleProps.onPointerDown}
           onPointerMove={dragHandleProps.onPointerMove}
           onPointerUp={dragHandleProps.onPointerUp}>
@@ -545,7 +582,8 @@ const PDFExamRoom: React.FC<PDFExamRoomProps> = ({
         </div>
 
         {/* ── Panel phải: Bài làm ── */}
-        <div className="flex-1 overflow-y-auto bg-white min-w-0">
+        {/* ✅ MOBILE: ẩn panel phải khi đang xem tab "Đề thi" */}
+        <div className={`flex-1 overflow-y-auto bg-white min-w-0 ${mobileTab === 'pdf' ? 'hidden sm:block' : 'block'}`}>
           <AnswerPanel
             mcQuestions={mcQuestions}
             tfQuestions={tfQuestions}
