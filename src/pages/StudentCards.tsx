@@ -181,56 +181,58 @@ export default function StudentCards() {
     <div className="min-h-screen bg-gray-100 print-root">
       <style>{`
   @media print {
-    /* 1. Ẩn các phần tử không cần thiết */
-    .no-print { display: none !important; }
+    /* 1. ÉP BUỘC TẤT CẢ CÁC THẺ PHẢI HIỂN THỊ TRÀN TRANG (QUAN TRỌNG NHẤT) */
+    * {
+      overflow: visible !important;
+    }
 
-    /* 2. RESET CHIỀU CAO & ÉP KIỂU BLOCK CHO TẤT CẢ CONTAINER BÊN NGOÀI */
-    /* Phải có #root hoặc #__next (tuỳ framework bạn dùng) để phá vỡ giới hạn height 100% của React */
-    html, body, #root, #__next, .print-root {
+    /* 2. GỠ BỎ MỌI GIỚI HẠN CHIỀU CAO CỦA REACT/NEXTJS */
+    html, body, #root, #__next {
       height: auto !important;
       min-height: auto !important;
-      overflow: visible !important;
-      display: block !important;
+      position: static !important;
       background: white !important;
       margin: 0 !important;
       padding: 0 !important;
     }
 
-    /* 3. GỠ BỎ LỚP FLEX Ở CÁC WRAPPER TRUNG GIAN */
-    .print-layout, .print-area {
+    /* 3. ẨN CÁC PHẦN TỬ KHÔNG CẦN THIẾT */
+    .no-print { display: none !important; }
+
+    /* 4. PHÁ VỠ CẤU TRÚC FLEXBOX/GRID CỦA CÁC THẺ BAO NGOÀI */
+    .print-root, .print-layout, .print-area {
       display: block !important;
       width: 100% !important;
       max-width: none !important;
-      padding: 0 !important;
       margin: 0 !important;
+      padding: 0 !important;
+      background: white !important;
     }
 
     @page { 
       size: A4 portrait; 
-      margin: 8mm; 
+      margin: 10mm; 
     }
 
-    /* 4. CHUYỂN GRID THÀNH FLEX-WRAP KHI IN CÁC THẺ */
-    /* Grid đôi khi gây lỗi ngắt trang trên một số trình duyệt. Flex-wrap hoạt động ổn định hơn 100% */
+    /* 5. ÉP DANH SÁCH THẺ THÀNH FLEX-WRAP ĐỂ TỰ ĐỘNG RỚT XUỐNG TRANG DƯỚI */
     .cards-grid {
       display: flex !important;
       flex-wrap: wrap !important;
-      gap: 6mm !important;
+      gap: 5mm !important;
       justify-content: flex-start !important;
     }
 
-    /* 5. CẤU HÌNH CHO TỪNG THẺ ĐỂ KHÔNG BỊ CẮT NỬA TRÊN/DƯỚI TRANG */
+    /* 6. BẢO VỆ TỪNG THẺ KHÔNG BỊ CẮT LÀM ĐÔI GIỮA 2 TRANG */
     .student-card {
       box-shadow: none !important;
       border: 0.4mm solid #e5e7eb !important;
-      page-break-inside: avoid !important; /* Dành cho trình duyệt cũ */
-      break-inside: avoid !important;      /* Dành cho trình duyệt mới */
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
   }
 `}</style>
-
       {/* Header */}
       <div className="no-print bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
         <div className="flex items-center gap-3">
