@@ -50,7 +50,7 @@ function StudentCard({ student, centerName, classInfo, theme }) {
           <div style={{ 
             color: '#fff', 
             fontSize: '14px', // TĂNG SIZE: từ 12px -> 14px
-            fontWeight: 900, lineHeight: 1.2, maxWidth: '45mm' 
+            fontWeight: 900, lineHeight: 1.2, maxWidth: '55mm' 
           }}>
             {centerName || 'LỚP TOÁN THẦY LĨNH'}
           </div>
