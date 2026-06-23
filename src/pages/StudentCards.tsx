@@ -180,49 +180,56 @@ export default function StudentCards() {
   return (
     <div className="min-h-screen bg-gray-100 print-root">
       <style>{`
-        @media print {
-          .no-print { display: none !important; }
+  @media print {
+    /* 1. Ẩn các phần tử không cần thiết */
+    .no-print { display: none !important; }
 
-          /*html, body {
-            background: white !important;
-            margin: 0 !important;
-            height: auto !important;
-            overflow: visible !important;
-          }*/
-          html, body { height: auto !important; overflow: visible !important;overflow: visible !important; }
-.print-layout { display: block !important; }
-          @page { size: A4 portrait; margin: 8mm; }
+    /* 2. RESET CHIỀU CAO & ÉP KIỂU BLOCK CHO TẤT CẢ CONTAINER BÊN NGOÀI */
+    /* Phải có #root hoặc #__next (tuỳ framework bạn dùng) để phá vỡ giới hạn height 100% của React */
+    html, body, #root, #__next, .print-root {
+      height: auto !important;
+      min-height: auto !important;
+      overflow: visible !important;
+      display: block !important;
+      background: white !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
 
-          /* Gỡ flex / min-height của các wrapper để cho phép chia nhiều trang */
-          .print-root { min-height: 0 !important; background: white !important; }
-          .min-h-screen { min-height: 0 !important; }
-          .print-layout {
-            display: block !important;   /* flex -> block: fix chính khiến chỉ in 1 trang */
-            max-width: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            overflow: visible !important;
-          }
+    /* 3. GỠ BỎ LỚP FLEX Ở CÁC WRAPPER TRUNG GIAN */
+    .print-layout, .print-area {
+      display: block !important;
+      width: 100% !important;
+      max-width: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
 
-          .print-area { padding: 0 !important; background: white !important; min-width: 0 !important; }
+    @page { 
+      size: A4 portrait; 
+      margin: 8mm; 
+    }
 
-          .cards-grid {
-            display: block !important;
-            grid-template-columns: repeat(2, 85.6mm) !important;
-            gap: 6mm !important;
-          }
+    /* 4. CHUYỂN GRID THÀNH FLEX-WRAP KHI IN CÁC THẺ */
+    /* Grid đôi khi gây lỗi ngắt trang trên một số trình duyệt. Flex-wrap hoạt động ổn định hơn 100% */
+    .cards-grid {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 6mm !important;
+      justify-content: flex-start !important;
+    }
 
-          .student-card {
-            box-shadow: none !important;
-            border: 0.4mm solid #e5e7eb !important;
-            break-inside: avoid !important;
-            page-break-inside: avoid !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            display: inline-flex !important;
-          }
-        }
-      `}</style>
+    /* 5. CẤU HÌNH CHO TỪNG THẺ ĐỂ KHÔNG BỊ CẮT NỬA TRÊN/DƯỚI TRANG */
+    .student-card {
+      box-shadow: none !important;
+      border: 0.4mm solid #e5e7eb !important;
+      page-break-inside: avoid !important; /* Dành cho trình duyệt cũ */
+      break-inside: avoid !important;      /* Dành cho trình duyệt mới */
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  }
+`}</style>
 
       {/* Header */}
       <div className="no-print bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
