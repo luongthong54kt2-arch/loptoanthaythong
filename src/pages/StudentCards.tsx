@@ -49,10 +49,10 @@ function StudentCard({ student, centerName, classInfo, theme }) {
           </div>
           <div style={{ 
             color: '#fff', 
-            fontSize: '17px', // TĂNG SIZE: từ 12px -> 14px
+            fontSize: '16px', // TĂNG SIZE: từ 12px -> 14px
             fontWeight: 900, lineHeight: 1.2, maxWidth: '45mm' 
           }}>
-            {centerName || 'TRUNG TÂM'}
+            {centerName || 'LỚP TOÁN THẦY LĨNH'}
           </div>
           {classInfo?.subject && (
             <div style={{ 
