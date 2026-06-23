@@ -42,7 +42,7 @@ function StudentCard({ student, centerName, classInfo, theme }) {
           <div style={{
             color: 'rgba(255,255,255,0.65)',
             fontSize: '7px', fontWeight: 700,
-            letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '1.2mm',
+            letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '1.2mm',
           }}>
             THẺ HỌC VIÊN
           </div>
