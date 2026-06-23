@@ -41,16 +41,25 @@ function StudentCard({ student, centerName, classInfo, theme }) {
         <div style={{ flex: 1 }}>
           <div style={{
             color: 'rgba(255,255,255,0.65)',
-            fontSize: '7px', fontWeight: 700,
-            letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '1.2mm',
+            fontSize: '8px', // TĂNG SIZE: từ 7px -> 8px
+            fontWeight: 700,
+            letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '1.2mm',
           }}>
             THẺ HỌC VIÊN
           </div>
-          <div style={{ color: '#fff', fontSize: '12px', fontWeight: 900, lineHeight: 1.2, maxWidth: '45mm' }}>
+          <div style={{ 
+            color: '#fff', 
+            fontSize: '14px', // TĂNG SIZE: từ 12px -> 14px
+            fontWeight: 900, lineHeight: 1.2, maxWidth: '45mm' 
+          }}>
             {centerName || 'TRUNG TÂM'}
           </div>
           {classInfo?.subject && (
-            <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: '8.5px', marginTop: '1.2mm', fontWeight: 600 }}>
+            <div style={{ 
+              color: 'rgba(255,255,255,0.75)', 
+              fontSize: '10px', // TĂNG SIZE: từ 8.5px -> 10px
+              marginTop: '1.2mm', fontWeight: 600 
+            }}>
               {classInfo.subject}
             </div>
           )}
@@ -58,12 +67,14 @@ function StudentCard({ student, centerName, classInfo, theme }) {
 
         {/* Avatar circle */}
         <div style={{
-          width: '12mm', height: '12mm',
+          width: '13mm', height: '13mm', // Nới rộng vòng tròn một chút để chứa chữ to hơn
           background: 'rgba(255,255,255,0.18)',
           border: '1.5px solid rgba(255,255,255,0.4)',
           borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontSize: '11px', fontWeight: 900, flexShrink: 0,
+          color: '#fff', 
+          fontSize: '12.5px', // TĂNG SIZE: từ 11px -> 12.5px
+          fontWeight: 900, flexShrink: 0,
         }}>
           {initials}
         </div>
@@ -76,19 +87,31 @@ function StudentCard({ student, centerName, classInfo, theme }) {
       }}>
         {/* Info */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1.4mm' }}>
-          <div style={{ fontSize: '13.5px', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
+          <div style={{ 
+            fontSize: '15px', // TĂNG SIZE: từ 13.5px -> 15px
+            fontWeight: 900, color: '#0f172a', lineHeight: 1.2 
+          }}>
             {student.full_name}
           </div>
-          <div style={{ fontSize: '9.5px', fontFamily: 'monospace', fontWeight: 700, color: '#4b5563', letterSpacing: '0.8px' }}>
+          <div style={{ 
+            fontSize: '10.5px', // TĂNG SIZE: từ 9.5px -> 10.5px
+            fontFamily: 'monospace', fontWeight: 700, color: '#4b5563', letterSpacing: '0.8px' 
+          }}>
             {student.student_code}
           </div>
           {classInfo && (
-            <div style={{ fontSize: '9px', color: '#1f2937', fontWeight: 700, marginTop: '0.3mm' }}>
+            <div style={{ 
+              fontSize: '10px', // TĂNG SIZE: từ 9px -> 10px
+              color: '#1f2937', fontWeight: 700, marginTop: '0.3mm' 
+            }}>
               {classInfo.class_name || classInfo.name}
             </div>
           )}
           {student.grade && (
-            <div style={{ fontSize: '8px', color: '#6b7280', fontWeight: 600 }}>Khối {student.grade}</div>
+            <div style={{ 
+              fontSize: '9px', // TĂNG SIZE: từ 8px -> 9px
+              color: '#6b7280', fontWeight: 600 
+            }}>Khối {student.grade}</div>
           )}
           <div style={{
             marginTop: '2mm', height: '1.2mm', width: '50%',
@@ -103,7 +126,10 @@ function StudentCard({ student, centerName, classInfo, theme }) {
           paddingLeft: '2mm', borderLeft: '0.3mm solid #e2e8f0',
         }}>
           <img src={qrSrc} alt="QR" style={{ width: '22mm', height: '22mm', display: 'block' }} />
-          <div style={{ fontSize: '6px', color: '#6b7280', fontWeight: 700, textAlign: 'center', lineHeight: 1.4 }}>
+          <div style={{ 
+            fontSize: '7px', // TĂNG SIZE: từ 6px -> 7px
+            color: '#6b7280', fontWeight: 700, textAlign: 'center', lineHeight: 1.4 
+          }}>
             Scan xem<br />tiến trình
           </div>
         </div>
@@ -111,7 +137,6 @@ function StudentCard({ student, centerName, classInfo, theme }) {
     </div>
   )
 }
-
 export default function StudentCards() {
   const [classes, setClasses]         = useState([])
   const [students, setStudents]       = useState([])
