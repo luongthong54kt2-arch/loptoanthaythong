@@ -120,19 +120,21 @@ function StudentCard({ student, centerName, classInfo, theme }) {
         </div>
 
         {/* QR */}
-        <div style={{
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', gap: '1mm',
-          paddingLeft: '2mm', borderLeft: '0.3mm solid #e2e8f0',
-        }}>
-          <img src={qrSrc} alt="QR" style={{ width: '22mm', height: '22mm', display: 'block' }} />
-          <div style={{ 
-            fontSize: '7px', // TĂNG SIZE: từ 6px -> 7px
-            color: '#6b7280', fontWeight: 700, textAlign: 'center', lineHeight: 1.4 
-          }}>
-            Scan xem<br />tiến trình
-          </div>
-        </div>
+<div style={{
+  display: 'flex', flexDirection: 'column',
+  alignItems: 'center', justifyContent: 'center', gap: '1mm',
+  paddingLeft: '2mm', borderLeft: '0.3mm solid #e2e8f0',
+}}>
+  <img src={qrSrc} alt="QR" style={{ width: '22mm', height: '22mm', display: 'block' }} />
+  
+  {/* Thêm className="no-print" vào thẻ div dưới đây */}
+  <div className="no-print" style={{ 
+    fontSize: '7px', 
+    color: '#6b7280', fontWeight: 700, textAlign: 'center', lineHeight: 1.4 
+  }}>
+    Scan xem<br />tiến trình
+  </div>
+</div>
       </div>
     </div>
   )
