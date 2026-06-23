@@ -164,7 +164,7 @@ export default function StudentCards() {
             height: auto !important;
             overflow: visible !important;
           }*/
-          html, body { height: auto !important; overflow: visible !important; }
+          html, body { height: auto !important; overflow: visible !important;overflow: visible !important; }
 .print-layout { display: block !important; }
           @page { size: A4 portrait; margin: 8mm; }
 
@@ -176,12 +176,13 @@ export default function StudentCards() {
             max-width: none !important;
             padding: 0 !important;
             margin: 0 !important;
+            overflow: visible !important;
           }
 
           .print-area { padding: 0 !important; background: white !important; min-width: 0 !important; }
 
           .cards-grid {
-            display: grid !important;
+            display: block !important;
             grid-template-columns: repeat(2, 85.6mm) !important;
             gap: 6mm !important;
           }
@@ -193,6 +194,7 @@ export default function StudentCards() {
             page-break-inside: avoid !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            display: inline-flex !important;
           }
         }
       `}</style>
