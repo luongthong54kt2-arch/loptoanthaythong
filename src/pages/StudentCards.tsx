@@ -158,13 +158,14 @@ export default function StudentCards() {
         @media print {
           .no-print { display: none !important; }
 
-          html, body {
+          /*html, body {
             background: white !important;
             margin: 0 !important;
             height: auto !important;
             overflow: visible !important;
-          }
-
+          }*/
+          html, body { height: auto !important; overflow: visible !important; }
+.print-layout { display: block !important; }
           @page { size: A4 portrait; margin: 8mm; }
 
           /* Gỡ flex / min-height của các wrapper để cho phép chia nhiều trang */
