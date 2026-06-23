@@ -108,6 +108,11 @@ const ExamRoom: React.FC<ExamRoomProps> = ({ room, exam, student, existingSubmis
   const closesAtStr = (room as any).closes_at || room.closesAt;
   const closesAtMs = closesAtStr ? new Date(closesAtStr).getTime() : null;
 
+  // ✅ FIX: Chỉ xáo phương án khi phòng BẬT xáo trộn (settings.shuffle === true).
+  // Trước đây QuestionCard luôn xáo phương án A/B/C/D bất kể cài đặt phòng,
+  // khiến phòng "không xáo" vẫn bị đảo vị trí đáp án.
+  const shuffleEnabled = (room as any).settings?.shuffle === true;
+
   const [timeLeft, setTimeLeft] = useState(() => {
     if (closesAtMs) return Math.max(0, Math.floor((closesAtMs - Date.now()) / 1000));
     return limit * 60;
@@ -384,7 +389,15 @@ const ExamRoom: React.FC<ExamRoomProps> = ({ room, exam, student, existingSubmis
                 </div>
                 <div className="space-y-4">
                   {group.questions.map(({ q, displayNum }) => (
-                    <QuestionCard key={q.number} question={q} displayNum={displayNum} userAnswer={userAnswers[q.number]} onChange={(ans) => handleAnswerChange(q.number, ans)} shuffleSeed={shuffleSeed + q.number} />
+                    <QuestionCard
+                      key={q.number}
+                      question={q}
+                      displayNum={displayNum}
+                      userAnswer={userAnswers[q.number]}
+                      onChange={(ans) => handleAnswerChange(q.number, ans)}
+                      shuffleSeed={shuffleSeed + q.number}
+                      shuffleEnabled={shuffleEnabled}
+                    />
                   ))}
                 </div>
               </div>
@@ -424,7 +437,7 @@ export default ExamRoom;
 // QUESTION CARD & OTHERS
 // ============================================================
 
-const QuestionCard: React.FC<any> = ({ question, displayNum, userAnswer, onChange, shuffleSeed = 0 }) => {
+const QuestionCard: React.FC<any> = ({ question, displayNum, userAnswer, onChange, shuffleSeed = 0, shuffleEnabled = false }) => {
   const qType = question.type || 'multiple_choice';
   const isAnswered = qType === 'true_false' ? isTFFullyAnswered(userAnswer, question.options || []) : qType === 'writing' ? hasEssayAnswer(userAnswer) : !!userAnswer;
   const questionImages = question.images || [];
@@ -441,6 +454,8 @@ const QuestionCard: React.FC<any> = ({ question, displayNum, userAnswer, onChang
 
   const shuffledOptions = useMemo(() => {
     if (!question.options) return [];
+    // ✅ FIX: Phòng KHÔNG bật xáo trộn → giữ nguyên thứ tự phương án gốc.
+    if (!shuffleEnabled) return question.options;
     if (qType === 'multiple_choice') return seededShuffle(question.options, shuffleSeed);
     if (qType === 'true_false') {
       const dOpt = question.options.find((o: any) => o.letter.toLowerCase() === 'd');
@@ -449,7 +464,7 @@ const QuestionCard: React.FC<any> = ({ question, displayNum, userAnswer, onChang
       return dOpt ? [...shuffled, dOpt] : shuffled;
     }
     return question.options;
-  }, [question.options, qType, shuffleSeed]);
+  }, [question.options, qType, shuffleSeed, shuffleEnabled]);
 
   // ✅ Định dạng Icon và Label theo loại câu hỏi
   const TypeBadge = {
