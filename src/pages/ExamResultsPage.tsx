@@ -24,65 +24,30 @@ export default function ExamResultsPage() {
   }, [roomId])
 
   const loadAllData = async () => {
-  setLoading(true)
-  try {
-    // 1. Lấy thông tin phòng, đề thi VÀ class_id (hoặc mã lớp tương ứng của phòng)
-    const { data: roomData } = await supabase
-      .from('exam_rooms')
-      // 🛑 Hãy đổi 'class_id' thành tên cột lưu ID lớp trong bảng exam_rooms của bạn nếu có
-      .select('*, exams(title, data)') 
-      .eq('id', roomId)
-      .single()
+    setLoading(true)
+    try {
+      const { data: roomData } = await supabase
+        .from('exam_rooms')
+        .select('*, exams(title, data)')
+        .eq('id', roomId)
+        .single()
 
-    setRoom(roomData)
-    setExam(roomData.exams)
+      setRoom(roomData)
+      setExam(roomData.exams)
 
-    // 2. Lấy tất cả học sinh dựa vào class_id của phòng thi đó
-    const { data: allStudents } = await supabase
-      .from('students')
-      .select('id, full_name, student_code')
-      // 🛑 Thay 'class_id' bằng cột liên kết lớp học của bạn
-      .eq('class_id', roomData?.class_id) 
+      const { data: subs } = await supabase
+        .from('exam_submissions')
+        .select('*, students(full_name, student_code)')
+        .eq('room_id', roomId)
+        .order('submitted_at', { ascending: false })
 
-    // 3. Lấy tất cả bài nộp của phòng này
-    const { data: subs } = await supabase
-      .from('exam_submissions')
-      .select('*')
-      .eq('room_id', roomId)
-
-    // 4. Kết hợp dữ liệu (Giữ nguyên logic map)
-    const fullSubmissionsList = (allStudents || []).map(student => {
-      const studentSub = (subs || []).find(s => s.student_id === student.id)
-      if (studentSub) {
-        return { ...studentSub, students: student }
-      } else {
-        return {
-          id: `not-started-${student.id}`,
-          student_id: student.id,
-          status: 'not_started',
-          score: null,
-          correct_count: null,
-          answers: {},
-          score_breakdown: {},
-          students: student
-        }
-      }
-    })
-
-    // Sắp xếp thứ tự trạng thái
-    fullSubmissionsList.sort((a, b) => {
-      const statusOrder: Record<string, number> = { submitted: 1, in_progress: 2, not_started: 3 }
-      return (statusOrder[a.status] || 4) - (statusOrder[b.status] || 4)
-    })
-
-    setSubmissions(fullSubmissionsList)
-  } catch (err) {
-    console.error(err) // log lỗi ra bản để kiểm tra chi tiết
-    toast.error('Không thể tải dữ liệu kết quả')
-  } finally {
-    setLoading(false)
+      setSubmissions(subs || [])
+    } catch (err) {
+      toast.error('Không thể tải dữ liệu kết quả')
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
   if (loading) return <div className="p-20 text-center text-teal-600 font-bold">Đang tải bảng điểm...</div>
 
@@ -161,18 +126,14 @@ export default function ExamResultsPage() {
                     <div className="text-xs text-gray-400 font-mono">{sub.students?.student_code}</div>
                   </td>
                   <td className="px-6 py-4 text-center">
-  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-    sub.status === 'submitted'
-      ? 'bg-green-100 text-green-700'
-      : sub.status === 'in_progress' || sub.status === 'pending' // trạng thái cũ (Đang làm)
-      ? 'bg-amber-100 text-amber-700'
-      : 'bg-gray-100 text-gray-500' // Trạng thái 'not_started' (Chưa làm)
-  }`}>
-    {sub.status === 'submitted' && 'Đã nộp'}
-    {(sub.status === 'in_progress' || sub.status === 'pending') && 'Đang làm'}
-    {sub.status === 'not_started' && 'Chưa làm'}
-  </span>
-</td>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      sub.status === 'submitted'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {sub.status === 'submitted' ? 'Đã nộp' : 'Đang làm'}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 text-center font-bold text-teal-600 text-lg">
                     {sub.score != null ? sub.score.toFixed(2) : '—'}
                   </td>
@@ -182,18 +143,14 @@ export default function ExamResultsPage() {
                       : '—'}
                   </td>
                   <td className="px-6 py-4 text-right">
-  {sub.status !== 'not_started' ? (
-    <button
-      onClick={() => setSelectedSub(formattedSub)}
-      className="p-2 text-teal-600 hover:bg-teal-100 rounded-lg transition-all"
-      title="Xem chi tiết câu trả lời"
-    >
-      <Eye className="w-5 h-5" />
-    </button>
-  ) : (
-    <span className="text-gray-400 text-xs italic pr-2">Chưa có bài</span>
-  )}
-</td>
+                    <button
+                      onClick={() => setSelectedSub(formattedSub)}
+                      className="p-2 text-teal-600 hover:bg-teal-100 rounded-lg transition-all"
+                      title="Xem chi tiết câu trả lời"
+                    >
+                      <Eye className="w-5 h-5" />
+                    </button>
+                  </td>
                 </tr>
               )
             })}
