@@ -51,6 +51,13 @@ export default function ExamResultsPage() {
 
   if (loading) return <div className="p-20 text-center text-teal-600 font-bold">Đang tải bảng điểm...</div>
 
+  // ✅ THÊM ĐOẠN NÀY VÀO ĐÂY: Sắp xếp điểm từ cao đến thấp
+  const sortedSubmissions = [...submissions].sort((a, b) => {
+    const scoreA = a.status === 'submitted' && a.score !== null ? a.score : -1;
+    const scoreB = b.status === 'submitted' && b.score !== null ? b.score : -1;
+    return scoreB - scoreA;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
