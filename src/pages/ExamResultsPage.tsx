@@ -14,6 +14,7 @@ export default function ExamResultsPage() {
   const [room, setRoom] = useState<any>(null)
   const [exam, setExam] = useState<any>(null)
   const [submissions, setSubmissions] = useState<any[]>([])
+  const [notSubmittedStudents, setNotSubmittedStudents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   const [selectedSub, setSelectedSub] = useState<any>(null)
@@ -42,12 +43,32 @@ export default function ExamResultsPage() {
         .order('submitted_at', { ascending: false })
 
       setSubmissions(subs || [])
+
+      // Lấy danh sách học sinh thuộc lớp của phòng thi để tìm ai chưa nộp
+      if (roomData?.class_id) {
+        const { data: enrolledStudents } = await supabase
+          .from('enrollments')
+          .select('student_id, students(id, full_name, student_code)')
+          .eq('class_id', roomData.class_id)
+          .eq('status', 'active')
+
+        if (enrolledStudents) {
+          const submittedStudentIds = new Set((subs || []).map((s: any) => s.student_id))
+          const notSubmitted = enrolledStudents
+            .filter((e: any) => !submittedStudentIds.has(e.student_id))
+            .map((e: any) => e.students)
+            .filter(Boolean)
+          setNotSubmittedStudents(notSubmitted)
+        }
+      }
     } catch (err) {
       toast.error('Không thể tải dữ liệu kết quả')
     } finally {
       setLoading(false)
     }
   }
+
+  const totalEnrolled = submissions.length + notSubmittedStudents.length
 
   if (loading) return <div className="p-20 text-center text-teal-600 font-bold">Đang tải bảng điểm...</div>
 
@@ -61,7 +82,10 @@ export default function ExamResultsPage() {
           <div>
             <h1 className="section-title text-2xl">Kết quả: {room?.exams?.title}</h1>
             <p className="text-gray-400 text-sm">
-              Mã phòng: <span className="font-mono font-bold text-teal-600">{room?.code}</span> · {submissions.length} bài nộp
+              Mã phòng: <span className="font-mono font-bold text-teal-600">{room?.code}</span> · {submissions.length}/{totalEnrolled} đã nộp
+              {notSubmittedStudents.length > 0 && (
+                <span className="text-red-500 font-semibold"> · {notSubmittedStudents.length} chưa nộp</span>
+              )}
             </p>
           </div>
         </div>
@@ -86,6 +110,7 @@ export default function ExamResultsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
+            {/* Học sinh đã nộp bài / đang làm */}
             {submissions.map((sub) => {
               const sb = sub.score_breakdown || {}
 
@@ -154,6 +179,37 @@ export default function ExamResultsPage() {
                 </tr>
               )
             })}
+
+            {/* Học sinh chưa nộp bài */}
+            {notSubmittedStudents.map((student) => (
+              <tr key={student.id} className="hover:bg-red-50/30 transition-colors bg-red-50/10">
+                <td className="px-6 py-4">
+                  <div className="font-bold text-gray-800">{student.full_name}</div>
+                  <div className="text-xs text-gray-400 font-mono">{student.student_code}</div>
+                </td>
+                <td className="px-6 py-4 text-center">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">
+                    Chưa nộp
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-center font-bold text-gray-300 text-lg">—</td>
+                <td className="px-6 py-4 text-center text-gray-300">—</td>
+                <td className="px-6 py-4 text-right">
+                  <span className="p-2 text-gray-300 inline-block">
+                    <Eye className="w-5 h-5" />
+                  </span>
+                </td>
+              </tr>
+            ))}
+
+            {/* Không có học sinh nào */}
+            {submissions.length === 0 && notSubmittedStudents.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-6 py-16 text-center text-gray-400">
+                  Chưa có học sinh nào trong phòng thi này.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
