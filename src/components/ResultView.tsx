@@ -348,6 +348,7 @@ const MultipleChoiceReview: React.FC<{
 }> = ({ question, userAnswer, correctAnswer, showCorrectAnswers, showExplanations }) => {
   const isCorrect = !!userAnswer && userAnswer.toUpperCase() === correctAnswer?.toUpperCase();
   const isUnanswered = !userAnswer;
+  const displayOptions = question.options || [];
 
   const statusColor = showCorrectAnswers
     ? isCorrect ? 'bg-emerald-50 border-l-4 border-emerald-400' : 'bg-red-50 border-l-4 border-red-400'
@@ -376,7 +377,7 @@ const MultipleChoiceReview: React.FC<{
 
           {displayOptions.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {question.options.map((opt: QuestionOption) => {
+              {displayOptions.map((opt: QuestionOption) => {
                 const isUserAnswer = userAnswer?.toUpperCase() === opt.letter.toUpperCase();
                 const isCorrectOpt = correctAnswer?.toUpperCase() === opt.letter.toUpperCase();
 
