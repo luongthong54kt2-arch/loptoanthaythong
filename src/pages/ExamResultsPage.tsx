@@ -26,7 +26,6 @@ export default function ExamResultsPage() {
   const loadAllData = async () => {
     setLoading(true)
     try {
-      // 1. Lấy thông tin phòng thi và đề thi
       const { data: roomData } = await supabase
         .from('exam_rooms')
         .select('*, exams(title, data)')
@@ -36,46 +35,13 @@ export default function ExamResultsPage() {
       setRoom(roomData)
       setExam(roomData.exams)
 
-      // 2. Lấy TẤT CẢ học sinh thuộc phòng thi này từ bảng liên kết (ví dụ: room_students)
-      const { data: roomStudents } = await supabase
-        .from('room_students') // ⚠️ Thay tên bảng này nếu DB của bạn đặt tên khác
-        .select('*, students(id, full_name, student_code)')
-        .eq('room_id', roomId)
-
-      // 3. Lấy tất cả bài nộp hiện tại của phòng này
       const { data: subs } = await supabase
         .from('exam_submissions')
-        .select('*')
+        .select('*, students(full_name, student_code)')
         .eq('room_id', roomId)
+        .order('submitted_at', { ascending: false })
 
-      // 4. KẾT HỢP: Duyệt qua toàn bộ học sinh, bạn nào có bài nộp thì gắn vào, chưa có thì để null
-      const fullSubmissionsList = (roomStudents || []).map((rs: any) => {
-        const studentInfo = rs.students;
-        // Tìm xem học sinh này đã có bài nộp nào chưa
-        const existingSub = (subs || []).find((s: any) => s.student_id === studentInfo?.id);
-
-        if (existingSub) {
-          // Nếu đã làm bài (đang làm hoặc đã nộp), giữ nguyên bản ghi và map thông tin student vào đúng cấu trúc cũ
-          return {
-            ...existingSub,
-            students: studentInfo
-          };
-        } else {
-          // Nếu CHƯA TỪNG bấm vào làm bài
-          return {
-            id: `not-started-${studentInfo?.id}`, // Tạo một id tạm thời để không trùng key
-            student_id: studentInfo?.id,
-            status: 'not_started', // Trạng thái tự định nghĩa: Chưa làm
-            score: null,
-            correct_count: null,
-            answers: null,
-            score_breakdown: null,
-            students: studentInfo // Vẫn giữ thông tin học sinh để hiển thị tên/mã
-          };
-        }
-      });
-
-      setSubmissions(fullSubmissionsList)
+      setSubmissions(subs || [])
     } catch (err) {
       toast.error('Không thể tải dữ liệu kết quả')
     } finally {
@@ -84,13 +50,6 @@ export default function ExamResultsPage() {
   }
 
   if (loading) return <div className="p-20 text-center text-teal-600 font-bold">Đang tải bảng điểm...</div>
-
-  // Sắp xếp điểm từ cao đến thấp, "Đang làm" và "Chưa làm" xếp xuống cuối
-  const sortedSubmissions = [...submissions].sort((a: any, b: any) => {
-    const scoreA = a.status === 'submitted' && a.score !== null ? a.score : -1;
-    const scoreB = b.status === 'submitted' && b.score !== null ? b.score : -1;
-    return scoreB - scoreA;
-  });
 
   return (
     <div className="space-y-6">
@@ -127,107 +86,75 @@ export default function ExamResultsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-  {sortedSubmissions.map((sub) => {
-    const sb = sub.score_breakdown || {}
+            {submissions.map((sub) => {
+              const sb = sub.score_breakdown || {}
 
-    const mcCorrect = sb.multipleChoice?.correct || 0
-    const tfCorrect = sb.trueFalse?.correct || 0
-    const saCorrect = sb.shortAnswer?.correct || 0
-    const computedCorrectCount = mcCorrect + tfCorrect + saCorrect
+              // ✅ FIX BUG 2+5: correctCount từ score_breakdown, không phải correct_count
+              const mcCorrect = sb.multipleChoice?.correct || 0
+              const tfCorrect = sb.trueFalse?.correct || 0
+              const saCorrect = sb.shortAnswer?.correct || 0
+              const computedCorrectCount = mcCorrect + tfCorrect + saCorrect
 
-    const examQuestions = exam?.data?.questions || []
-    const totalQCount = examQuestions.length ||
-      ((sb.multipleChoice?.total || 0) + (sb.trueFalse?.total || 0) + (sb.shortAnswer?.total || 0))
+              // ✅ FIX BUG 5: totalQuestions từ exam.questions.length (đầy đủ)
+              const examQuestions = exam?.data?.questions || []
+              const totalQCount = examQuestions.length ||
+                ((sb.multipleChoice?.total || 0) + (sb.trueFalse?.total || 0) + (sb.shortAnswer?.total || 0))
 
-    const formattedSub = {
-      ...sub,
-      student: {
-        name: sub.students?.full_name,
-        className: '',
-        studentCode: sub.students?.student_code
-      },
-      roomCode: room.code,
-      totalScore: sub.score || sb.totalScore || 0,
-      percentage: sb.percentage || 0,
-      correctCount: sub.correct_count ?? computedCorrectCount,
-      totalQuestions: totalQCount,
-      duration: sub.duration || 0,
-      tabSwitchCount: sub.tab_switches || 0,
-      scoreBreakdown: sb,
-      answers: sub.answers
-    }
+              const formattedSub = {
+                ...sub,
+                student: {
+                  name: sub.students?.full_name,
+                  className: '',
+                  studentCode: sub.students?.student_code
+                },
+                roomCode: room.code,
+                totalScore: sub.score || sb.totalScore || 0,
+                percentage: sb.percentage || 0,
+                // ✅ FIX: dùng correct_count từ DB nếu có, fallback sang compute
+                correctCount: sub.correct_count ?? computedCorrectCount,
+                totalQuestions: totalQCount,
+                duration: sub.duration || 0,
+                tabSwitchCount: sub.tab_switches || 0,
+                scoreBreakdown: sb,           // ✅ FIX BUG 1: map đúng tên camelCase
+                answers: sub.answers          // ✅ đảm bảo answers luôn có
+              }
 
-    // Kiểm tra xem học sinh đã thực sự nộp bài và có điểm chưa
-    const hasSubmitted = sub.status === 'submitted' && sub.score != null;
-
-    return (
-      <tr key={sub.id} className="hover:bg-teal-50/30 transition-colors">
-        <td className="px-6 py-4 text-center">
-  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-    sub.status === 'submitted' && sub.score != null
-      ? 'bg-green-100 text-green-700'
-      : sub.status === 'in_progress'
-        ? 'bg-amber-100 text-amber-700'
-        : 'bg-gray-100 text-gray-500' // Cho trạng thái 'not_started' (Chưa làm)
-  }`}>
-    {sub.status === 'submitted' && sub.score != null 
-      ? 'Đã nộp' 
-      : sub.status === 'in_progress' 
-        ? 'Đang làm' 
-        : 'Chưa làm'}
-  </span>
-</td>
-        
-        {/* Cập nhật Trạng thái */}
-        <td className="px-6 py-4 text-center">
-          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-            hasSubmitted
-              ? 'bg-green-100 text-green-700'
-              : sub.status === 'in_progress' 
-                ? 'bg-amber-100 text-amber-700' 
-                : 'bg-gray-100 text-gray-500'
-          }`}>
-            {hasSubmitted ? 'Đã nộp' : sub.status === 'in_progress' ? 'Đang làm' : 'Chưa làm'}
-          </span>
-        </td>
-        
-        {/* Cập nhật Điểm số từ cao đến thấp, chưa làm hiển thị "Chưa làm" hoặc "—" */}
-        <td className="px-6 py-4 text-center font-bold text-lg">
-          {hasSubmitted ? (
-            <span className="text-teal-600">{sub.score.toFixed(2)}</span>
-          ) : (
-            <span className="text-gray-400 text-sm font-normal">Chưa làm</span>
-          )}
-        </td>
-        
-        {/* Cập nhật Số câu đúng */}
-        <td className="px-6 py-4 text-center text-gray-600">
-          {hasSubmitted ? (
-            <span className="font-semibold">
-              {computedCorrectCount}
-              <span className="text-gray-400 font-normal">/{totalQCount}</span>
-            </span>
-          ) : (
-            '—'
-          )}
-        </td>
-        
-        <td className="px-6 py-4 text-right">
-          {/* Chỉ cho phép xem chi tiết nếu học sinh đã làm bài */}
-          {sub.status && (
-            <button
-              onClick={() => setSelectedSub(formattedSub)}
-              className="p-2 text-teal-600 hover:bg-teal-100 rounded-lg transition-all"
-              title="Xem chi tiết câu trả lời"
-            >
-              <Eye className="w-5 h-5" />
-            </button>
-          )}
-        </td>
-      </tr>
-    )
-  })}
-</tbody>
+              return (
+                <tr key={sub.id} className="hover:bg-teal-50/30 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-gray-800">{sub.students?.full_name}</div>
+                    <div className="text-xs text-gray-400 font-mono">{sub.students?.student_code}</div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      sub.status === 'submitted'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {sub.status === 'submitted' ? 'Đã nộp' : 'Đang làm'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-center font-bold text-teal-600 text-lg">
+                    {sub.score != null ? sub.score.toFixed(2) : '—'}
+                  </td>
+                  <td className="px-6 py-4 text-center text-gray-600">
+                    {sub.status === 'submitted'
+                      ? <span className="font-semibold">{computedCorrectCount}<span className="text-gray-400 font-normal">/{totalQCount}</span></span>
+                      : '—'}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button
+                      onClick={() => setSelectedSub(formattedSub)}
+                      className="p-2 text-teal-600 hover:bg-teal-100 rounded-lg transition-all"
+                      title="Xem chi tiết câu trả lời"
+                    >
+                      <Eye className="w-5 h-5" />
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
         </table>
       </div>
 
