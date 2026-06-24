@@ -26,6 +26,7 @@ export default function ExamResultsPage() {
   const loadAllData = async () => {
     setLoading(true)
     try {
+      // 1. Lấy thông tin phòng thi và đề thi
       const { data: roomData } = await supabase
         .from('exam_rooms')
         .select('*, exams(title, data)')
@@ -35,13 +36,46 @@ export default function ExamResultsPage() {
       setRoom(roomData)
       setExam(roomData.exams)
 
+      // 2. Lấy TẤT CẢ học sinh thuộc phòng thi này từ bảng liên kết (ví dụ: room_students)
+      const { data: roomStudents } = await supabase
+        .from('room_students') // ⚠️ Thay tên bảng này nếu DB của bạn đặt tên khác
+        .select('*, students(id, full_name, student_code)')
+        .eq('room_id', roomId)
+
+      // 3. Lấy tất cả bài nộp hiện tại của phòng này
       const { data: subs } = await supabase
         .from('exam_submissions')
-        .select('*, students(full_name, student_code)')
+        .select('*')
         .eq('room_id', roomId)
-        .order('submitted_at', { ascending: false })
 
-      setSubmissions(subs || [])
+      // 4. KẾT HỢP: Duyệt qua toàn bộ học sinh, bạn nào có bài nộp thì gắn vào, chưa có thì để null
+      const fullSubmissionsList = (roomStudents || []).map((rs: any) => {
+        const studentInfo = rs.students;
+        // Tìm xem học sinh này đã có bài nộp nào chưa
+        const existingSub = (subs || []).find((s: any) => s.student_id === studentInfo?.id);
+
+        if (existingSub) {
+          // Nếu đã làm bài (đang làm hoặc đã nộp), giữ nguyên bản ghi và map thông tin student vào đúng cấu trúc cũ
+          return {
+            ...existingSub,
+            students: studentInfo
+          };
+        } else {
+          // Nếu CHƯA TỪNG bấm vào làm bài
+          return {
+            id: `not-started-${studentInfo?.id}`, // Tạo một id tạm thời để không trùng key
+            student_id: studentInfo?.id,
+            status: 'not_started', // Trạng thái tự định nghĩa: Chưa làm
+            score: null,
+            correct_count: null,
+            answers: null,
+            score_breakdown: null,
+            students: studentInfo // Vẫn giữ thông tin học sinh để hiển thị tên/mã
+          };
+        }
+      });
+
+      setSubmissions(fullSubmissionsList)
     } catch (err) {
       toast.error('Không thể tải dữ liệu kết quả')
     } finally {
@@ -51,8 +85,8 @@ export default function ExamResultsPage() {
 
   if (loading) return <div className="p-20 text-center text-teal-600 font-bold">Đang tải bảng điểm...</div>
 
-  // ✅ THÊM ĐOẠN NÀY VÀO ĐÂY: Sắp xếp điểm từ cao đến thấp
-  const sortedSubmissions = [...submissions].sort((a, b) => {
+  // Sắp xếp điểm từ cao đến thấp, "Đang làm" và "Chưa làm" xếp xuống cuối
+  const sortedSubmissions = [...submissions].sort((a: any, b: any) => {
     const scoreA = a.status === 'submitted' && a.score !== null ? a.score : -1;
     const scoreB = b.status === 'submitted' && b.score !== null ? b.score : -1;
     return scoreB - scoreA;
@@ -128,10 +162,21 @@ export default function ExamResultsPage() {
 
     return (
       <tr key={sub.id} className="hover:bg-teal-50/30 transition-colors">
-        <td className="px-6 py-4">
-          <div className="font-bold text-gray-800">{sub.students?.full_name}</div>
-          <div className="text-xs text-gray-400 font-mono">{sub.students?.student_code}</div>
-        </td>
+        <td className="px-6 py-4 text-center">
+  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+    sub.status === 'submitted' && sub.score != null
+      ? 'bg-green-100 text-green-700'
+      : sub.status === 'in_progress'
+        ? 'bg-amber-100 text-amber-700'
+        : 'bg-gray-100 text-gray-500' // Cho trạng thái 'not_started' (Chưa làm)
+  }`}>
+    {sub.status === 'submitted' && sub.score != null 
+      ? 'Đã nộp' 
+      : sub.status === 'in_progress' 
+        ? 'Đang làm' 
+        : 'Chưa làm'}
+  </span>
+</td>
         
         {/* Cập nhật Trạng thái */}
         <td className="px-6 py-4 text-center">
