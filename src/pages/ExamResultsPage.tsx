@@ -26,47 +26,40 @@ export default function ExamResultsPage() {
   const loadAllData = async () => {
   setLoading(true)
   try {
-    // 1. Lấy thông tin phòng và đề thi
+    // 1. Lấy thông tin phòng, đề thi VÀ class_id (hoặc mã lớp tương ứng của phòng)
     const { data: roomData } = await supabase
       .from('exam_rooms')
-      .select('*, exams(title, data)')
+      // 🛑 Hãy đổi 'class_id' thành tên cột lưu ID lớp trong bảng exam_rooms của bạn nếu có
+      .select('*, exams(title, data)') 
       .eq('id', roomId)
       .single()
 
     setRoom(roomData)
     setExam(roomData.exams)
 
-    // 2. Lấy TẤT CẢ học sinh được gán vào phòng thi này 
-    // (Bạn thay đổi bảng 'students' hoặc 'room_students' tùy theo cấu trúc DB của bạn nhé)
+    // 2. Lấy tất cả học sinh dựa vào class_id của phòng thi đó
     const { data: allStudents } = await supabase
       .from('students')
       .select('id, full_name, student_code')
-      // Giả sử có trường room_id hoặc class_id để lọc học sinh thuộc phòng này
-      .eq('room_id', roomId) 
+      // 🛑 Thay 'class_id' bằng cột liên kết lớp học của bạn
+      .eq('class_id', roomData?.class_id) 
 
-    // 3. Lấy tất cả bài nộp hiện có của phòng
+    // 3. Lấy tất cả bài nộp của phòng này
     const { data: subs } = await supabase
       .from('exam_submissions')
       .select('*')
       .eq('room_id', roomId)
 
-    // 4. KẾT HỢP: Duyệt qua tất cả học sinh, gắn bài nộp nếu có
+    // 4. Kết hợp dữ liệu (Giữ nguyên logic map)
     const fullSubmissionsList = (allStudents || []).map(student => {
-      // Tìm bài nộp của học sinh này
       const studentSub = (subs || []).find(s => s.student_id === student.id)
-
       if (studentSub) {
-        // Nếu có bài nộp, giữ nguyên dữ liệu cũ kèm thông tin student
-        return {
-          ...studentSub,
-          students: student // Đảm bảo cấu trúc sub.students.full_name không bị vỡ
-        }
+        return { ...studentSub, students: student }
       } else {
-        // Nếu CHƯA CÓ bài nộp, tạo một object giả lập với status = 'not_started'
         return {
           id: `not-started-${student.id}`,
           student_id: student.id,
-          status: 'not_started', // Trạng thái mới
+          status: 'not_started',
           score: null,
           correct_count: null,
           answers: {},
@@ -76,7 +69,7 @@ export default function ExamResultsPage() {
       }
     })
 
-    // Sắp xếp: Ưu tiên Đã nộp -> Đang làm -> Chưa làm
+    // Sắp xếp thứ tự trạng thái
     fullSubmissionsList.sort((a, b) => {
       const statusOrder: Record<string, number> = { submitted: 1, in_progress: 2, not_started: 3 }
       return (statusOrder[a.status] || 4) - (statusOrder[b.status] || 4)
@@ -84,6 +77,7 @@ export default function ExamResultsPage() {
 
     setSubmissions(fullSubmissionsList)
   } catch (err) {
+    console.error(err) // log lỗi ra bản để kiểm tra chi tiết
     toast.error('Không thể tải dữ liệu kết quả')
   } finally {
     setLoading(false)
