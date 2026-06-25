@@ -50,6 +50,7 @@ export default function Classes() {
 
   const save = async () => {
     if (!form.class_name) return toast.error('Nhập tên lớp')
+    if (!form.grade) return toast.error('Vui lòng chọn Khối lớp')
     setSaving(true)
     try {
       const payload: any = {
@@ -247,8 +248,14 @@ export default function Classes() {
             </select>
           </div>
           <div>
-            <label className="label">Khối lớp</label>
-            <input {...inp('grade')} placeholder="Khối 10..." />
+            <label className="label">Khối lớp *</label>
+            <select {...inp('grade')} className="input" required>
+              <option value="">-- Chọn khối lớp --</option>
+              <option value="6">Khối 6</option>
+              <option value="7">Khối 7</option>
+              <option value="8">Khối 8</option>
+              <option value="9">Khối 9</option>
+            </select>
           </div>
 
           <div className="md:col-span-2">
