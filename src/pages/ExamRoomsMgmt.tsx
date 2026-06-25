@@ -15,6 +15,7 @@ export default function ExamRoomsMgmt() {
 
   const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [modalGrade, setModalGrade] = useState<number | ''>('')
   
   // ✅ Đã thêm settings vào Form state
   const [form, setForm] = useState<{
@@ -38,6 +39,7 @@ export default function ExamRoomsMgmt() {
   }, [loadRooms, loadExams, loadClasses])
 
   const handleCreate = async () => {
+    if (!modalGrade) return toast.error('Vui lòng chọn khối lớp')
     if (!form.exam_id) return toast.error('Vui lòng chọn đề thi')
     if (!form.class_id) return toast.error('Vui lòng chọn lớp học')
 
@@ -46,6 +48,7 @@ export default function ExamRoomsMgmt() {
       await createRoom(form)
       toast.success('Mở phòng thi thành công!')
       setModalOpen(false)
+      setModalGrade('')
       // Reset form sau khi tạo
       setForm({ 
         exam_id: '', class_id: '', time_limit: 45, status: 'waiting', 
@@ -112,6 +115,39 @@ export default function ExamRoomsMgmt() {
     }
   }, [rooms])
 
+  const getExamGrade = (title: string) => {
+    const t = title.toLowerCase()
+    if (t.includes('lớp 6') || t.includes('khối 6') || t.includes('toán 6') || t.includes('khối sáu') || /\b(khối\s+)?6\b/.test(t)) return 6
+    if (t.includes('lớp 7') || t.includes('khối 7') || t.includes('toán 7') || t.includes('khối bảy') || /\b(khối\s+)?7\b/.test(t)) return 7
+    if (t.includes('lớp 8') || t.includes('khối 8') || t.includes('toán 8') || t.includes('khối tám') || /\b(khối\s+)?8\b/.test(t)) return 8
+    if (t.includes('lớp 9') || t.includes('khối 9') || t.includes('toán 9') || t.includes('khối chín') || /\b(khối\s+)?9\b/.test(t)) return 9
+    return null
+  }
+
+  const getClassGrade = (cls: any) => {
+    const gradeStr = (cls.grade || '').toLowerCase().trim()
+    if (gradeStr.includes('6') || gradeStr === '6') return 6
+    if (gradeStr.includes('7') || gradeStr === '7') return 7
+    if (gradeStr.includes('8') || gradeStr === '8') return 8
+    if (gradeStr.includes('9') || gradeStr === '9') return 9
+
+    const className = ((cls.class_name || cls.name || '') as string).toLowerCase()
+    if (className.includes('lớp 6') || className.includes('khối 6') || className.includes('toán 6') || /\b6\b/.test(className)) return 6
+    if (className.includes('lớp 7') || className.includes('khối 7') || className.includes('toán 7') || /\b7\b/.test(className)) return 7
+    if (className.includes('lớp 8') || className.includes('khối 8') || className.includes('toán 8') || /\b8\b/.test(className)) return 8
+    if (className.includes('lớp 9') || className.includes('khối 9') || className.includes('toán 9') || /\b9\b/.test(className)) return 9
+
+    return null
+  }
+
+  const filteredExams = modalGrade 
+    ? exams.filter(ex => getExamGrade(ex.title) === modalGrade)
+    : exams
+
+  const filteredClasses = modalGrade
+    ? classes.filter(c => c.status === 'active' && getClassGrade(c) === modalGrade)
+    : classes.filter(c => c.status === 'active')
+
   return (
     <div className="space-y-6">
       <div className="page-header flex justify-between items-start">
@@ -122,7 +158,13 @@ export default function ExamRoomsMgmt() {
           <p className="text-gray-400 text-sm mt-1">Giao đề và theo dõi kết quả thi của học sinh</p>
         </div>
         
-        <button onClick={() => setModalOpen(true)} className="btn-teal flex items-center gap-2 shadow-lg shadow-teal-500/20">
+        <button 
+          onClick={() => {
+            setModalGrade(typeof activeGrade === 'number' ? activeGrade : '')
+            setModalOpen(true)
+          }} 
+          className="btn-teal flex items-center gap-2 shadow-lg shadow-teal-500/20"
+        >
           <Plus className="w-4 h-4" /> Mở phòng thi mới
         </button>
       </div>
@@ -261,14 +303,38 @@ export default function ExamRoomsMgmt() {
         <div className="space-y-5">
           <div className="bg-teal-50 p-4 rounded-2xl border border-teal-100 mb-2">
             <p className="text-xs text-teal-700 font-bold uppercase tracking-wider mb-1">💡 Mẹo nhỏ:</p>
-            <p className="text-xs text-teal-600 leading-relaxed">Chọn đề thi và lớp tương ứng. Mã phòng sẽ được hệ thống tạo ngẫu nhiên sau khi lưu.</p>
+            <p className="text-xs text-teal-600 leading-relaxed">Chọn khối lớp trước. Đề thi và lớp học tương ứng sẽ được lọc tự động theo khối đã chọn.</p>
+          </div>
+
+          <div>
+            <label className="label">Chọn Khối Lớp *</label>
+            <select 
+              value={modalGrade} 
+              onChange={e => {
+                const val = e.target.value
+                setModalGrade(val ? Number(val) : '')
+                setForm(f => ({ ...f, exam_id: '', class_id: '' }))
+              }} 
+              className="input font-bold"
+            >
+              <option value="">-- Chọn khối lớp --</option>
+              <option value="6">Khối 6</option>
+              <option value="7">Khối 7</option>
+              <option value="8">Khối 8</option>
+              <option value="9">Khối 9</option>
+            </select>
           </div>
 
           <div>
             <label className="label">1. Chọn đề thi từ thư viện *</label>
-            <select value={form.exam_id} onChange={e => setForm({...form, exam_id: e.target.value})} className="input font-semibold text-teal-900">
-              <option value="">-- Chọn đề thi --</option>
-              {exams.map(ex => (
+            <select 
+              value={form.exam_id} 
+              onChange={e => setForm({...form, exam_id: e.target.value})} 
+              className="input font-semibold text-teal-900"
+              disabled={!modalGrade}
+            >
+              <option value="">{modalGrade ? '-- Chọn đề thi --' : '-- Vui lòng chọn khối lớp trước --'}</option>
+              {filteredExams.map(ex => (
                 <option key={ex.id} value={ex.id}>{ex.title}</option>
               ))}
             </select>
@@ -276,9 +342,14 @@ export default function ExamRoomsMgmt() {
 
           <div>
             <label className="label">2. Giao cho lớp học nào? *</label>
-            <select value={form.class_id} onChange={e => setForm({...form, class_id: e.target.value})} className="input">
-              <option value="">-- Chọn lớp học --</option>
-              {classes.filter(c => c.status === 'active').map(c => (
+            <select 
+              value={form.class_id} 
+              onChange={e => setForm({...form, class_id: e.target.value})} 
+              className="input"
+              disabled={!modalGrade}
+            >
+              <option value="">{modalGrade ? '-- Chọn lớp học --' : '-- Vui lòng chọn khối lớp trước --'}</option>
+              {filteredClasses.map(c => (
                 <option key={c.id} value={c.id}>{(c as any).class_name || (c as any).name}</option>
               ))}
             </select>
