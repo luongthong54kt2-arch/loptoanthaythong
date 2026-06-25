@@ -69,7 +69,7 @@ export default function ExamRoomsMgmt() {
   }
 
   const getRoomGrade = (room: any) => {
-    const roomClass = classes.find(c => c.id === room.class_id)
+    const roomClass = classes.find(c => c.id === room.class_id) as any
     if (roomClass) {
       const gradeStr = (roomClass.grade || '').toLowerCase().trim()
       if (gradeStr.includes('6') || gradeStr === '6') return 6
