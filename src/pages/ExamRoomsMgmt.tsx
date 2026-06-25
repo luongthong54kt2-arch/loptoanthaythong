@@ -68,6 +68,37 @@ export default function ExamRoomsMgmt() {
     }
   }
 
+  const getRoomGrade = (room: any) => {
+    const roomClass = classes.find(c => c.id === room.class_id)
+    if (roomClass) {
+      const gradeStr = (roomClass.grade || '').toLowerCase().trim()
+      if (gradeStr.includes('6') || gradeStr === '6') return 6
+      if (gradeStr.includes('7') || gradeStr === '7') return 7
+      if (gradeStr.includes('8') || gradeStr === '8') return 8
+      if (gradeStr.includes('9') || gradeStr === '9') return 9
+
+      const className = ((roomClass.class_name || roomClass.name || '') as string).toLowerCase()
+      if (className.includes('lớp 6') || className.includes('khối 6') || className.includes('toán 6') || /\b6\b/.test(className)) return 6
+      if (className.includes('lớp 7') || className.includes('khối 7') || className.includes('toán 7') || /\b7\b/.test(className)) return 7
+      if (className.includes('lớp 8') || className.includes('khối 8') || className.includes('toán 8') || /\b8\b/.test(className)) return 8
+      if (className.includes('lớp 9') || className.includes('khối 9') || className.includes('toán 9') || /\b9\b/.test(className)) return 9
+    }
+
+    const examTitle = (room.exams?.title || '').toLowerCase()
+    if (examTitle.includes('lớp 6') || examTitle.includes('khối 6') || examTitle.includes('toán 6') || examTitle.includes('khối sáu') || /\b(khối\s+)?6\b/.test(examTitle)) return 6
+    if (examTitle.includes('lớp 7') || examTitle.includes('khối 7') || examTitle.includes('toán 7') || examTitle.includes('khối bảy') || /\b(khối\s+)?7\b/.test(examTitle)) return 7
+    if (examTitle.includes('lớp 8') || examTitle.includes('khối 8') || examTitle.includes('toán 8') || examTitle.includes('khối tám') || /\b(khối\s+)?8\b/.test(examTitle)) return 8
+    if (examTitle.includes('lớp 9') || examTitle.includes('khối 9') || examTitle.includes('toán 9') || examTitle.includes('khối chín') || /\b(khối\s+)?9\b/.test(examTitle)) return 9
+
+    return null
+  }
+
+  const displayGrades = [6, 7, 8, 9]
+  const hasOtherRooms = rooms.some(room => {
+    const grade = getRoomGrade(room)
+    return grade === null || !displayGrades.includes(grade)
+  })
+
   return (
     <div className="space-y-6">
       <div className="page-header flex justify-between items-start">
@@ -83,74 +114,98 @@ export default function ExamRoomsMgmt() {
         </button>
       </div>
 
-      <div className="card overflow-hidden border-teal-100 shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ background: 'linear-gradient(135deg,#0d9488,#14b8a6)' }}>
-                <th className="px-4 py-4 text-left text-white font-bold text-xs uppercase tracking-wider">Mã phòng</th>
-                <th className="px-4 py-4 text-left text-white font-bold text-xs uppercase tracking-wider">Đề thi</th>
-                <th className="px-4 py-4 text-left text-white font-bold text-xs uppercase tracking-wider">Lớp học</th>
-                <th className="px-4 py-4 text-center text-white font-bold text-xs uppercase tracking-wider">Thời lượng</th>
-                <th className="px-4 py-4 text-left text-white font-bold text-xs uppercase tracking-wider">Trạng thái</th>
-                <th className="px-4 py-4 text-right text-white font-bold text-xs uppercase tracking-wider">Hành động</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-teal-50">
-              {loading && rooms.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-teal-500 mx-auto" /></td></tr>
-              ) : rooms.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-16 text-gray-400">Chưa có phòng thi nào. Hãy mở phòng thi đầu tiên!</td></tr>
-              ) : (
-                rooms.map((room, i) => (
-                  <tr key={room.id} className={`hover:bg-teal-50/40 transition-colors ${i % 2 === 0 ? '' : 'bg-teal-50/10'}`}>
-                    <td className="px-4 py-4">
-                      <span className="flex items-center gap-1.5 font-mono text-lg font-extrabold text-teal-700 bg-teal-50 px-3 py-1 rounded-xl border border-teal-200 w-max shadow-sm">
-                        <KeyRound className="w-4 h-4 opacity-50" /> {room.code}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 font-bold text-gray-800">{room.exams?.title || '—'}</td>
-                    <td className="px-4 py-4 text-gray-600 font-medium">
-                      {(room.classes as any)?.class_name || (room.classes as any)?.name || 'Tất cả'}
-                    </td>
-                    <td className="px-4 py-4 text-center font-bold text-gray-500">{room.time_limit} phút</td>
-                    <td className="px-4 py-4">
-                      <select 
-                        value={room.status} 
-                        onChange={(e) => updateRoomStatus(room.id, e.target.value as any)}
-                        className={`text-[11px] font-extrabold px-2.5 py-1.5 rounded-full outline-none border-2 cursor-pointer transition-all ${
-                          room.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 
-                          room.status === 'closed' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-                        }`}
-                      >
-                        <option value="waiting">🟡 CHỜ BẮT ĐẦU</option>
-                        <option value="active">🟢 ĐANG THI</option>
-                        <option value="closed">🔴 ĐÃ KHÓA</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-4 text-right flex justify-end gap-2">
-                      <button 
-                        onClick={() => navigate(`/exam-results/${room.id}`)}
-                        className="p-2 text-teal-600 hover:bg-teal-100 rounded-xl transition-all border border-transparent hover:border-teal-200"
-                        title="Xem bảng điểm & kết quả"
-                      >
-                        <BarChart3 className="w-5 h-5" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(room.id, room.code)}
-                        className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-all"
-                        title="Xóa phòng"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {loading && rooms.length === 0 ? (
+        <div className="card flex justify-center items-center py-16">
+          <RefreshCw className="w-8 h-8 animate-spin text-teal-600" />
         </div>
-      </div>
+      ) : (
+        <div className={`grid grid-cols-1 md:grid-cols-2 ${hasOtherRooms ? 'xl:grid-cols-5' : 'xl:grid-cols-4'} gap-6`}>
+          {[...displayGrades, ...(hasOtherRooms ? ['others'] : [])].map((col) => {
+            const isOther = col === 'others'
+            const gradeRooms = rooms.filter(r => isOther ? (getRoomGrade(r) === null || !displayGrades.includes(getRoomGrade(r)!)) : getRoomGrade(r) === col)
+            const title = isOther ? 'Khác' : `Khối ${col}`
+
+            return (
+              <div key={col} className="flex flex-col bg-slate-50/50 rounded-2xl border border-slate-200/60 p-4 h-[550px] min-w-[240px]">
+                <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-200">
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${isOther ? 'bg-amber-400' : 'bg-teal-500'}`}></span>
+                    {title}
+                  </h3>
+                  <span className="text-xs font-bold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-md border border-teal-100">
+                    {gradeRooms.length} phòng
+                  </span>
+                </div>
+
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
+                  {gradeRooms.length === 0 ? (
+                    <div className="h-full flex flex-col justify-center items-center text-gray-400 text-xs italic py-16">
+                      Chưa có phòng thi
+                    </div>
+                  ) : (
+                    gradeRooms.map((room) => (
+                      <div 
+                        key={room.id} 
+                        className="bg-white border border-teal-100/60 rounded-xl p-4 shadow-sm hover:border-teal-300 hover:shadow-md transition-all duration-200 space-y-3"
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="font-mono text-[13px] font-extrabold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200 shadow-sm flex items-center gap-1">
+                            <KeyRound className="w-3.5 h-3.5 opacity-60" /> {room.code}
+                          </span>
+                          
+                          <select 
+                            value={room.status} 
+                            onChange={(e) => updateRoomStatus(room.id, e.target.value as any)}
+                            className={`text-[10px] font-extrabold px-2 py-1 rounded-full outline-none border cursor-pointer transition-all ${
+                              room.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 
+                              room.status === 'closed' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}
+                          >
+                            <option value="waiting">🟡 Chờ</option>
+                            <option value="active">🟢 Thi</option>
+                            <option value="closed">🔴 Khóa</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <h4 className="font-bold text-gray-800 text-sm leading-snug line-clamp-2" title={room.exams?.title}>
+                            {room.exams?.title || '—'}
+                          </h4>
+                          <p className="text-xs text-gray-500 font-medium truncate mt-1">
+                            Lớp: {(room.classes as any)?.class_name || (room.classes as any)?.name || 'Tất cả'}
+                          </p>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-2 border-t border-gray-50">
+                          <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
+                            {room.time_limit} phút
+                          </span>
+                          <div className="flex gap-1.5">
+                            <button 
+                              onClick={() => navigate(`/exam-results/${room.id}`)}
+                              className="p-1.5 text-teal-600 hover:bg-teal-50 hover:text-teal-700 rounded-lg border border-transparent hover:border-teal-100 transition-all"
+                              title="Xem bảng điểm & kết quả"
+                            >
+                              <BarChart3 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(room.id, room.code)}
+                              className="p-1.5 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all"
+                              title="Xóa phòng"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Thiết lập phòng thi mới" size="md">
         <div className="space-y-5">
