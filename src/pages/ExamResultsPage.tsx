@@ -104,6 +104,7 @@ export default function ExamResultsPage() {
             <tr className="bg-gray-50 border-b border-gray-100">
               <th className="px-6 py-4 text-left font-bold text-gray-600">Học sinh</th>
               <th className="px-6 py-4 text-center font-bold text-gray-600">Trạng thái</th>
+              <th className="px-6 py-4 text-center font-bold text-gray-600">Cảnh báo vi phạm</th>
               <th className="px-6 py-4 text-center font-bold text-gray-600">Điểm</th>
               <th className="px-6 py-4 text-center font-bold text-gray-600">Số câu đúng</th>
               <th className="px-6 py-4 text-right font-bold text-gray-600">Hành động</th>
@@ -111,74 +112,89 @@ export default function ExamResultsPage() {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {/* Học sinh đã nộp bài / đang làm */}
-            {submissions.map((sub) => {
-              const sb = sub.score_breakdown || {}
+            {[...submissions]
+              .sort((a, b) => {
+                const scoreA = a.score ?? -1
+                const scoreB = b.score ?? -1
+                return scoreB - scoreA
+              })
+              .map((sub) => {
+                const sb = sub.score_breakdown || {}
 
-              // ✅ FIX BUG 2+5: correctCount từ score_breakdown, không phải correct_count
-              const mcCorrect = sb.multipleChoice?.correct || 0
-              const tfCorrect = sb.trueFalse?.correct || 0
-              const saCorrect = sb.shortAnswer?.correct || 0
-              const computedCorrectCount = mcCorrect + tfCorrect + saCorrect
+                // ✅ FIX BUG 2+5: correctCount từ score_breakdown, không phải correct_count
+                const mcCorrect = sb.multipleChoice?.correct || 0
+                const tfCorrect = sb.trueFalse?.correct || 0
+                const saCorrect = sb.shortAnswer?.correct || 0
+                const computedCorrectCount = mcCorrect + tfCorrect + saCorrect
 
-              // ✅ FIX BUG 5: totalQuestions từ exam.questions.length (đầy đủ)
-              const examQuestions = exam?.data?.questions || []
-              const totalQCount = examQuestions.length ||
-                ((sb.multipleChoice?.total || 0) + (sb.trueFalse?.total || 0) + (sb.shortAnswer?.total || 0))
+                // ✅ FIX BUG 5: totalQuestions từ exam.questions.length (đầy đủ)
+                const examQuestions = exam?.data?.questions || []
+                const totalQCount = examQuestions.length ||
+                  ((sb.multipleChoice?.total || 0) + (sb.trueFalse?.total || 0) + (sb.shortAnswer?.total || 0))
 
-              const formattedSub = {
-                ...sub,
-                student: {
-                  name: sub.students?.full_name,
-                  className: '',
-                  studentCode: sub.students?.student_code
-                },
-                roomCode: room.code,
-                totalScore: sub.score || sb.totalScore || 0,
-                percentage: sb.percentage || 0,
-                // ✅ FIX: dùng correct_count từ DB nếu có, fallback sang compute
-                correctCount: sub.correct_count ?? computedCorrectCount,
-                totalQuestions: totalQCount,
-                duration: sub.duration || 0,
-                tabSwitchCount: sub.tab_switches || 0,
-                scoreBreakdown: sb,           // ✅ FIX BUG 1: map đúng tên camelCase
-                answers: sub.answers          // ✅ đảm bảo answers luôn có
-              }
+                const formattedSub = {
+                  ...sub,
+                  student: {
+                    name: sub.students?.full_name,
+                    className: '',
+                    studentCode: sub.students?.student_code
+                  },
+                  roomCode: room.code,
+                  totalScore: sub.score || sb.totalScore || 0,
+                  percentage: sb.percentage || 0,
+                  // ✅ FIX: dùng correct_count từ DB nếu có, fallback sang compute
+                  correctCount: sub.correct_count ?? computedCorrectCount,
+                  totalQuestions: totalQCount,
+                  duration: sub.duration || 0,
+                  tabSwitchCount: sub.tab_switches || 0,
+                  scoreBreakdown: sb,           // ✅ FIX BUG 1: map đúng tên camelCase
+                  answers: sub.answers          // ✅ đảm bảo answers luôn có
+                }
 
-              return (
-                <tr key={sub.id} className="hover:bg-teal-50/30 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-gray-800">{sub.students?.full_name}</div>
-                    <div className="text-xs text-gray-400 font-mono">{sub.students?.student_code}</div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      sub.status === 'submitted'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      {sub.status === 'submitted' ? 'Đã nộp' : 'Đang làm'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-center font-bold text-teal-600 text-lg">
-                    {sub.score != null ? sub.score.toFixed(2) : '—'}
-                  </td>
-                  <td className="px-6 py-4 text-center text-gray-600">
-                    {sub.status === 'submitted'
-                      ? <span className="font-semibold">{computedCorrectCount}<span className="text-gray-400 font-normal">/{totalQCount}</span></span>
-                      : '—'}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => setSelectedSub(formattedSub)}
-                      className="p-2 text-teal-600 hover:bg-teal-100 rounded-lg transition-all"
-                      title="Xem chi tiết câu trả lời"
-                    >
-                      <Eye className="w-5 h-5" />
-                    </button>
-                  </td>
-                </tr>
-              )
-            })}
+                return (
+                  <tr key={sub.id} className="hover:bg-teal-50/30 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-gray-800">{sub.students?.full_name}</div>
+                      <div className="text-xs text-gray-400 font-mono">{sub.students?.student_code}</div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        sub.status === 'submitted'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-amber-100 text-amber-700'
+                      }`}>
+                        {sub.status === 'submitted' ? 'Đã nộp' : 'Đang làm'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {(sub.tab_switches || 0) > 0 ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-red-50 text-red-700 border border-red-200 shadow-sm animate-pulse">
+                          ⚠️ Chuyển tab {sub.tab_switches} lần
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs font-semibold">✅ Bình thường</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center font-bold text-teal-600 text-lg">
+                      {sub.score != null ? sub.score.toFixed(2) : '—'}
+                    </td>
+                    <td className="px-6 py-4 text-center text-gray-600">
+                      {sub.status === 'submitted'
+                        ? <span className="font-semibold">{computedCorrectCount}<span className="text-gray-400 font-normal">/{totalQCount}</span></span>
+                        : '—'}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => setSelectedSub(formattedSub)}
+                        className="p-2 text-teal-600 hover:bg-teal-100 rounded-lg transition-all"
+                        title="Xem chi tiết câu trả lời"
+                      >
+                        <Eye className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
 
             {/* Học sinh chưa nộp bài */}
             {notSubmittedStudents.map((student) => (
@@ -192,6 +208,7 @@ export default function ExamResultsPage() {
                     Chưa nộp
                   </span>
                 </td>
+                <td className="px-6 py-4 text-center text-gray-400">—</td>
                 <td className="px-6 py-4 text-center font-bold text-gray-300 text-lg">—</td>
                 <td className="px-6 py-4 text-center text-gray-300">—</td>
                 <td className="px-6 py-4 text-right">
@@ -205,7 +222,7 @@ export default function ExamResultsPage() {
             {/* Không có học sinh nào */}
             {submissions.length === 0 && notSubmittedStudents.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-16 text-center text-gray-400">
+                <td colSpan={6} className="px-6 py-16 text-center text-gray-400">
                   Chưa có học sinh nào trong phòng thi này.
                 </td>
               </tr>
