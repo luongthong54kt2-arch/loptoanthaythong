@@ -35,8 +35,14 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
       setCourse(courseData)
       setProgress(progressData || [])
       
-      if (courseData?.chapters?.[0]?.lessons?.[0]) {
-        setActiveLesson(courseData.chapters[0].lessons[0])
+      // Sắp xếp chương và bài học theo order_index để chọn đúng bài học đầu tiên làm activeLesson
+      if (courseData?.chapters && courseData.chapters.length > 0) {
+        const sortedChapters = [...courseData.chapters].sort((a: any, b: any) => a.order_index - b.order_index)
+        const firstChapter = sortedChapters[0]
+        if (firstChapter?.lessons && firstChapter.lessons.length > 0) {
+          const sortedLessons = [...firstChapter.lessons].sort((a: any, b: any) => a.order_index - b.order_index)
+          setActiveLesson(sortedLessons[0])
+        }
       }
     }
     fetchData()
