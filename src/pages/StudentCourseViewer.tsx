@@ -48,6 +48,11 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
     fetchData()
   }, [courseId, studentId])
 
+  useEffect(() => {
+    console.log('🔍 [DEBUG] StudentCourseViewer - course:', course)
+    console.log('🔍 [DEBUG] StudentCourseViewer - activeLesson:', activeLesson)
+  }, [course, activeLesson])
+
   const isUnlocked = (lesson: any) => {
     if (course?.chapters?.[0]?.lessons?.[0] && lesson.order_index === 1 && course.chapters[0].lessons[0].id === lesson.id) return true
     const p = progress.find(item => item.lesson_id === lesson.id)
