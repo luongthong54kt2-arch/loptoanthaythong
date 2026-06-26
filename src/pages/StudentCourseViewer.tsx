@@ -28,8 +28,9 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
   const [course, setCourse] = useState<any>(null)
   const [progress, setProgress] = useState<any[]>([])
   const [activeLesson, setActiveLesson] = useState<any>(null)
-  const [showPractice, setShowPractice] = useState(false)
+  const [activePracticeExamId, setActivePracticeExamId] = useState<string | null>(null)
   const [studentName, setStudentName] = useState('Học sinh')
+  const [exams, setExams] = useState<any[]>([])
 
   useEffect(() => {
     const sessionStr = sessionStorage.getItem('current_student')
@@ -45,8 +46,11 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
       const { data: progressData } = await supabase.from('student_progress')
         .select('*').eq('student_id', studentId)
 
+      const { data: examsData } = await supabase.from('exams').select('id, title')
+
       setCourse(courseData)
       setProgress(progressData || [])
+      setExams(examsData || [])
       
       // Sắp xếp bài học theo thứ tự đánh số để chọn đúng bài học đầu tiên làm activeLesson
       if (courseData?.chapters && courseData.chapters.length > 0) {
@@ -90,24 +94,24 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
     } catch(e) {
       console.error(e);
     } finally {
-      setShowPractice(false);
+      setActivePracticeExamId(null);
     }
   }
 
-  if (showPractice && activeLesson?.exam_id) {
+  if (activePracticeExamId) {
     return (
       <div className="fixed inset-0 z-50 bg-white flex flex-col">
         <div className="p-4 bg-gray-100 flex items-center border-b shadow-sm">
-          <button onClick={() => setShowPractice(false)} className="flex items-center gap-2 text-gray-600 hover:text-red-600 font-bold transition">
+          <button onClick={() => setActivePracticeExamId(null)} className="flex items-center gap-2 text-gray-600 hover:text-red-600 font-bold transition">
             <ChevronLeft /> Thoát luyện tập
           </button>
         </div>
         <div className="flex-1 relative">
           <LessonExamRoom 
-            examId={activeLesson.exam_id} 
+            examId={activePracticeExamId} 
             studentName={studentName}
             onSubmitted={handlePracticeSubmitted}
-            onExit={() => setShowPractice(false)} 
+            onExit={() => setActivePracticeExamId(null)} 
           />
         </div>
       </div>
@@ -149,11 +153,27 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
           <div className="flex-1 flex flex-col">
             <div className="p-4 border-b flex justify-between items-center bg-white shadow-sm z-10">
               <h1 className="font-extrabold text-xl">{activeLesson.title}</h1>
-              {activeLesson.exam_id && (
-                <button onClick={() => setShowPractice(true)} className="bg-teal-600 text-white font-bold px-6 py-2 rounded-xl shadow-md hover:bg-teal-700 transition">
-                  ✏️ Luyện tập ngay
-                </button>
-              )}
+              {(() => {
+                const currentExamIds = activeLesson.exam_ids || (activeLesson.exam_id ? [activeLesson.exam_id] : []);
+                if (currentExamIds.length === 0) return null;
+                return (
+                  <div className="flex flex-wrap gap-2">
+                    {currentExamIds.map((exId: string, idx: number) => {
+                      const examObj = exams.find((e: any) => e.id === exId);
+                      const displayTitle = examObj?.title || `Luyện tập ${idx + 1}`;
+                      return (
+                        <button 
+                          key={exId} 
+                          onClick={() => setActivePracticeExamId(exId)} 
+                          className="bg-teal-600 hover:bg-teal-700 text-white font-bold px-4 py-2 rounded-xl shadow-md transition text-xs flex items-center gap-1"
+                        >
+                          ✏️ {displayTitle}
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex-1 bg-gray-200 relative">
               {activeLesson.video_url ? (

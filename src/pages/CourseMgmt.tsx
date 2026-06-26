@@ -10,6 +10,19 @@ import Modal from '@/components/Modal'
 import toast from 'react-hot-toast'
 import InteractiveVideoEditor from '@/components/InteractiveVideoEditor'
 
+const sortLessons = (lessons: any[]) => {
+  return [...lessons].sort((a, b) => {
+    const getNum = (title: string) => {
+      const match = title.match(/(?:buổi|buoi|bài|bai|lớp|lop)\s*(\d+)/i) || title.match(/(\d+)/)
+      return match ? parseInt(match[1], 10) : Infinity
+    }
+    const numA = getNum(a.title || '')
+    const numB = getNum(b.title || '')
+    if (numA !== numB) return numA - numB
+    return (a.title || '').localeCompare(b.title || '', 'vi', { numeric: true, sensitivity: 'base' })
+  })
+}
+
 export default function CourseMgmt() {
   const { 
     courses, loadCourses, createCourse, updateCourse, deleteCourse,
@@ -139,7 +152,15 @@ export default function CourseMgmt() {
   const handleSaveAttachExam = async () => {
     if (!attachExamLesson || !selectedExamId) return toast.error('Chọn một đề thi!');
     try {
-      await updateLesson(attachExamLesson.id, { exam_id: selectedExamId });
+      const currentExamIds = attachExamLesson.exam_ids || (attachExamLesson.exam_id ? [attachExamLesson.exam_id] : []);
+      if (currentExamIds.includes(selectedExamId)) {
+        return toast.error('Bài tập này đã được gắn rồi!');
+      }
+      const newExamIds = [...currentExamIds, selectedExamId];
+      await updateLesson(attachExamLesson.id, { 
+        exam_ids: newExamIds,
+        exam_id: newExamIds[0] // tương thích ngược
+      });
       toast.success('Gắn thành công!');
       setAttachExamLesson(null); setSelectedExamId('');
     } catch(err) { toast.error('Lỗi gắn bài tập!'); }
@@ -231,7 +252,7 @@ export default function CourseMgmt() {
                   </div>
 
                   <div className="pl-6 space-y-2">
-                    {chapter.lessons?.sort((a:any, b:any) => a.order_index - b.order_index).map((lesson: any) => (
+                    {sortLessons(chapter.lessons || []).map((lesson: any) => (
                       <div key={lesson.id} className="flex flex-col bg-white p-3 rounded-lg border border-gray-100 shadow-sm group">
                         <div className="flex items-center justify-between">
                           {editState?.id === lesson.id && editState.type === 'lesson' ? (
@@ -273,13 +294,49 @@ export default function CourseMgmt() {
                              </div>
                            )}
                            
-                           {!lesson.exam_id ? (
-                             <button onClick={() => setAttachExamLesson(lesson)} className="hover:text-blue-600 font-medium">✏️ Gắn Bài tập</button>
-                           ) : (
-                             <div className="flex items-center gap-1 text-blue-600 font-medium">
-                               ✅ Có bài tập <button onClick={() => updateLesson(lesson.id, { exam_id: null })} className="text-[10px] text-red-400 hover:text-red-600">(Gỡ)</button>
-                             </div>
-                           )}
+                           {/* Hiển thị danh sách các bài tập đã gắn */}
+                           <div className="flex flex-wrap items-center gap-2">
+                             {(() => {
+                               const currentExamIds = lesson.exam_ids || (lesson.exam_id ? [lesson.exam_id] : []);
+                               return (
+                                 <>
+                                   {currentExamIds.map((exId: string, idx: number) => {
+                                     const examObj = exams?.find((e: any) => e.id === exId);
+                                     const displayTitle = examObj?.title || `Bài tập ${idx + 1}`;
+                                     return (
+                                       <div key={exId} className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 font-medium text-[11px]">
+                                         📝 {displayTitle}
+                                         <button 
+                                           onClick={async () => {
+                                             if (!confirm(`Bạn có chắc muốn gỡ bài tập "${displayTitle}" khỏi bài học?`)) return;
+                                             const newExamIds = currentExamIds.filter((id: string) => id !== exId);
+                                             await updateLesson(lesson.id, { 
+                                               exam_ids: newExamIds,
+                                               exam_id: newExamIds[0] || null
+                                             });
+                                             toast.success('Đã gỡ bài tập!');
+                                           }} 
+                                           className="text-red-400 hover:text-red-600 ml-1 font-bold"
+                                           title="Gỡ bài tập"
+                                         >
+                                           ✕
+                                         </button>
+                                       </div>
+                                     );
+                                   })}
+                                   <button 
+                                     onClick={() => {
+                                       setAttachExamLesson(lesson);
+                                       setSelectedExamId('');
+                                     }} 
+                                     className="text-blue-600 hover:text-blue-800 hover:underline font-bold text-[11px] flex items-center gap-0.5 ml-1"
+                                   >
+                                     + Gắn Bài tập
+                                   </button>
+                                 </>
+                               );
+                             })()}
+                           </div>
                         </div>
                       </div>
                     ))}
