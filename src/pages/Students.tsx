@@ -504,12 +504,13 @@ function ImportModal({ open, onClose, onDone }: { open: boolean; onClose: () => 
 type TabKey = 'all' | 'active' | 'inactive' | 'anonymous'
 
 export default function Students() {
-  const { students, classes, enrollments, loadStudents, loadClasses, loadEnrollments } = useDataStore()
+  const { students, classes, enrollments, loadStudents, loadClasses, loadEnrollments, enroll } = useDataStore()
   const { user, isAdmin } = useAuthStore() as any
 
   const [modal, setModal]               = useState<'form' | 'import' | null>(null)
   const [editing, setEditing]           = useState<Student | null>(null)
   const [form, setForm]                 = useState<FormData>(EMPTY)
+  const [formClassId, setFormClassId]   = useState<string>('')
   const [search, setSearch]             = useState('')
   const [tab, setTab]                   = useState<TabKey>('active')
   const [saving, setSaving]             = useState(false)
@@ -519,7 +520,7 @@ export default function Students() {
     void Promise.all([loadStudents(), loadClasses(), loadEnrollments()])
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const openAdd  = () => { setEditing(null); setForm(EMPTY); setShowPassword(false); setModal('form') }
+  const openAdd  = () => { setEditing(null); setForm(EMPTY); setFormClassId(''); setShowPassword(false); setModal('form') }
   const openEdit = (s: Student) => {
     setEditing(s)
     setForm({ ...s, password: (s as any).password ?? null, date_of_birth: (s as any).date_of_birth ?? null })
@@ -573,15 +574,27 @@ export default function Students() {
         toast.success('Đã cập nhật học sinh')
       } else {
         if (!payload.password) { toast.error('Vui lòng đặt mật khẩu'); setSaving(false); return }
-        const { error } = await supabase.from('students').insert(payload)
+        const { data, error } = await supabase.from('students').insert(payload).select().single()
         if (error) throw error
-        toast.success(
-          isAdmin() ? 'Đã thêm học sinh mới' : 'Đã thêm! Hãy qua phần Lớp học để xếp lớp cho học sinh nhé.',
-          { duration: 4000 }
-        )
+        
+        if (formClassId) {
+          try {
+            await enroll(data.id, formClassId)
+            toast.success('Đã thêm và xếp lớp cho học sinh mới thành công!')
+          } catch (enrollErr) {
+            console.error('Lỗi khi xếp lớp:', enrollErr)
+            toast.error('Học sinh đã được tạo nhưng xếp lớp thất bại.')
+          }
+        } else {
+          toast.success(
+            isAdmin() ? 'Đã thêm học sinh mới' : 'Đã thêm! Hãy qua phần Lớp học để xếp lớp cho học sinh nhé.',
+            { duration: 4000 }
+          )
+        }
       }
       setModal(null)
       loadStudents()
+      setFormClassId('')
     } catch (e: any) {
       toast.error(e.message || 'Lỗi không xác định')
     } finally {
@@ -899,6 +912,28 @@ export default function Students() {
             <label className="label">Ghi chú thêm</label>
             <input {...inp('note')} placeholder="Ghi chú về học lực, tính cách..." className="input" />
           </div>
+
+          {!editing && (
+            <div className="md:col-span-4 bg-teal-50/50 p-4 rounded-xl border border-teal-100 flex flex-col md:flex-row gap-4 items-center justify-between mt-2">
+              <div className="flex-1">
+                <label className="label text-teal-900 font-bold block mb-1">Xếp vào lớp học ngay</label>
+                <span className="text-xs text-gray-400">Chọn một lớp trong danh sách để xếp lớp trực tiếp cho học sinh mới này</span>
+              </div>
+              <select
+                value={formClassId}
+                onChange={e => setFormClassId(e.target.value)}
+                className="input md:max-w-xs font-bold text-teal-800"
+              >
+                <option value="">-- Chưa xếp lớp --</option>
+                {classes
+                  .filter(c => c.status === 'active')
+                  .sort((a, b) => (a.class_name || a.name || '').localeCompare(b.class_name || b.name || ''))
+                  .map(c => (
+                    <option key={c.id} value={c.id}>{c.class_name || c.name}</option>
+                  ))}
+              </select>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-3 mt-5 justify-end border-t border-gray-100 pt-4">
