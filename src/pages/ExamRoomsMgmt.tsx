@@ -7,6 +7,22 @@ import { useDataStore } from '@/store/dataStore'
 import Modal from '@/components/Modal'
 import toast from 'react-hot-toast'
 
+const getExamSessionNumber = (title: string) => {
+  const match = title.toLowerCase().match(/buổi\s*(\d+)|buoi\s*(\d+)/)
+  if (match) {
+    return parseInt(match[1] || match[2], 10)
+  }
+  return 999
+}
+
+const getExamNo = (title: string) => {
+  const match = title.toLowerCase().match(/đề\s*(\d+)|de\s*(\d+)/)
+  if (match) {
+    return parseInt(match[1] || match[2], 10)
+  }
+  return 999
+}
+
 export default function ExamRoomsMgmt() {
   const navigate = useNavigate()
   const { rooms, loading, loadRooms, createRoom, updateRoomStatus, deleteRoom } = useExamRoomStore()
@@ -181,6 +197,33 @@ export default function ExamRoomsMgmt() {
     ? activeRooms.filter(r => r.class_id === currentClassId)
     : activeRooms
 
+  // Sắp xếp danh sách phòng thi: Buổi 1 -> Buổi 2 -> ... -> thời gian tạo tăng dần
+  const sortedRooms = [...displayedRooms].sort((a, b) => {
+    const titleA = a.exams?.title || ''
+    const titleB = b.exams?.title || ''
+    
+    const sessionA = getExamSessionNumber(titleA)
+    const sessionB = getExamSessionNumber(titleB)
+    
+    if (sessionA !== sessionB) {
+      return sessionA - sessionB
+    }
+    
+    const deA = getExamNo(titleA)
+    const deB = getExamNo(titleB)
+    
+    if (deA !== deB) {
+      return deA - deB
+    }
+    
+    if (sessionA === 999 && sessionB === 999) {
+      const titleComp = titleA.localeCompare(titleB, 'vi', { numeric: true, sensitivity: 'base' })
+      if (titleComp !== 0) return titleComp
+    }
+    
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  })
+
   return (
     <div className="space-y-6">
       <div className="page-header flex justify-between items-start">
@@ -286,9 +329,9 @@ export default function ExamRoomsMgmt() {
               </div>
             )}
 
-            {/* Grid of rooms */}
+            {/* List of rooms (horizontal layout, stacked vertically) */}
             {(() => {
-              if (displayedRooms.length === 0) {
+              if (sortedRooms.length === 0) {
                 return (
                   <div className="flex flex-col justify-center items-center py-24 text-gray-400">
                     <MonitorPlay className="w-12 h-12 opacity-25 mb-3" />
@@ -302,21 +345,38 @@ export default function ExamRoomsMgmt() {
               }
 
               return (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {displayedRooms.map((room) => (
+                <div className="flex flex-col gap-3">
+                  {sortedRooms.map((room) => (
                     <div 
                       key={room.id} 
-                      className="bg-white border border-teal-100/60 rounded-2xl p-5 shadow-sm hover:border-teal-300 hover:shadow-md transition-all duration-200 space-y-4"
+                      className="bg-white border border-slate-200/60 rounded-2xl p-4 shadow-sm hover:border-teal-300 hover:shadow-md transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
-                      <div className="flex justify-between items-center">
-                        <span className="font-mono text-sm font-extrabold text-teal-700 bg-teal-50 px-3 py-1 rounded-xl border border-teal-200 shadow-sm flex items-center gap-1.5">
+                      {/* Left: Code & Title & Class */}
+                      <div className="flex flex-col md:flex-row md:items-center gap-4 flex-1 min-w-0">
+                        <span className="font-mono text-sm font-extrabold text-teal-700 bg-teal-50 px-3 py-1.5 rounded-xl border border-teal-200 shadow-sm flex items-center gap-1.5 shrink-0 self-start md:self-auto">
                           <KeyRound className="w-4 h-4 opacity-60" /> {room.code}
+                        </span>
+                        
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-gray-800 text-base leading-snug truncate" title={room.exams?.title}>
+                            {room.exams?.title || '—'}
+                          </h4>
+                          <p className="text-xs text-gray-400 font-bold mt-1">
+                            Lớp học: <span className="text-gray-500 font-medium">{(room.classes as any)?.class_name || (room.classes as any)?.name || 'Tất cả'}</span>
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Right: Time, Status, and Actions */}
+                      <div className="flex items-center justify-between md:justify-end gap-5 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
+                        <span className="text-xs text-gray-400 font-bold bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-150 shrink-0">
+                          {room.time_limit} phút
                         </span>
                         
                         <select 
                           value={room.status} 
                           onChange={(e) => updateRoomStatus(room.id, e.target.value as any)}
-                          className={`text-[11px] font-extrabold px-3 py-1.5 rounded-full outline-none border-2 cursor-pointer transition-all ${
+                          className={`text-[11px] font-extrabold px-3 py-1.5 rounded-full outline-none border-2 cursor-pointer transition-all shrink-0 ${
                             room.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 
                             room.status === 'closed' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200'
                           }`}
@@ -325,22 +385,8 @@ export default function ExamRoomsMgmt() {
                           <option value="active">🟢 Thi</option>
                           <option value="closed">🔴 Khóa</option>
                         </select>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-bold text-gray-800 text-base leading-snug line-clamp-2" title={room.exams?.title}>
-                          {room.exams?.title || '—'}
-                        </h4>
-                        <p className="text-sm text-gray-500 font-medium truncate mt-1.5">
-                          Lớp học: {(room.classes as any)?.class_name || (room.classes as any)?.name || 'Tất cả'}
-                        </p>
-                      </div>
-
-                      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                        <span className="text-xs text-gray-400 font-bold bg-gray-50 px-2 py-1 rounded-lg border border-gray-150">
-                          {room.time_limit} phút
-                        </span>
-                        <div className="flex gap-2">
+                        
+                        <div className="flex gap-1">
                           <button 
                             onClick={() => navigate(`/exam-results/${room.id}`)}
                             className="p-2 text-teal-600 hover:bg-teal-50 hover:text-teal-700 rounded-xl border border-transparent hover:border-teal-100 transition-all"
