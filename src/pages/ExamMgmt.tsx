@@ -26,6 +26,36 @@ export default function ExamMgmt() {
   // State cho cấu hình điểm
   const [configExam, setConfigExam] = useState<any>(null)
 
+  // State cho chỉnh sửa tên đề thi
+  const [editingExamId, setEditingExamId] = useState<string | null>(null)
+  const [editingExamTitle, setEditingExamTitle] = useState<string>('')
+  const [savingRename, setSavingRename] = useState(false)
+
+  const handleRenameExam = async (id: string) => {
+    if (!editingExamTitle.trim()) {
+      toast.error('Tên đề thi không được để trống')
+      return
+    }
+    setSavingRename(true)
+    const toastId = toast.loading('Đang đổi tên đề thi...')
+    try {
+      const { error } = await supabase
+        .from('exams')
+        .update({ title: editingExamTitle.trim() })
+        .eq('id', id)
+
+      if (error) throw error
+
+      toast.success('Đổi tên đề thi thành công!', { id: toastId })
+      setEditingExamId(null)
+      await loadExams()
+    } catch (err: any) {
+      toast.error('Lỗi khi đổi tên: ' + err.message, { id: toastId })
+    } finally {
+      setSavingRename(false)
+    }
+  }
+
   useEffect(() => {
     void loadExams()
   }, [loadExams])
@@ -223,9 +253,54 @@ export default function ExamMgmt() {
                       key={exam.id} 
                       className="bg-white p-3 rounded-xl border border-gray-150 hover:border-teal-300 hover:shadow-md transition-all duration-200 group"
                     >
-                      <h4 className="font-bold text-teal-800 text-sm mb-1 leading-snug line-clamp-2" title={exam.title}>
-                        {exam.title}
-                      </h4>
+                      {editingExamId === exam.id ? (
+                        <div className="flex gap-1 items-center mb-1">
+                          <input 
+                            type="text" 
+                            value={editingExamTitle} 
+                            onChange={(e) => setEditingExamTitle(e.target.value)} 
+                            className="w-full border border-teal-300 rounded px-2 py-1 text-xs font-bold text-teal-800 focus:outline-none focus:ring-1 focus:ring-teal-500 bg-teal-50/50"
+                            autoFocus
+                            disabled={savingRename}
+                            onKeyDown={async (e) => {
+                              if (e.key === 'Enter') {
+                                await handleRenameExam(exam.id)
+                              } else if (e.key === 'Escape') {
+                                setEditingExamId(null)
+                              }
+                            }}
+                          />
+                          <button 
+                            onClick={() => handleRenameExam(exam.id)}
+                            disabled={savingRename}
+                            className="p-1 text-emerald-600 hover:bg-emerald-50 rounded flex-shrink-0"
+                            title="Lưu"
+                          >
+                            <Save className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => setEditingExamId(null)}
+                            disabled={savingRename}
+                            className="p-1 text-gray-500 hover:bg-gray-50 rounded flex-shrink-0"
+                            title="Hủy"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-start justify-between gap-1 group/title mb-1">
+                          <h4 className="font-bold text-teal-800 text-sm leading-snug line-clamp-2" title={exam.title}>
+                            {exam.title}
+                          </h4>
+                          <button 
+                            onClick={() => { setEditingExamId(exam.id); setEditingExamTitle(exam.title); }}
+                            className="p-0.5 text-gray-400 hover:text-teal-600 rounded opacity-0 group-hover/title:opacity-100 transition-opacity flex-shrink-0"
+                            title="Đổi tên đề"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
                       <p className="text-[11px] text-gray-400 mb-2">
                         {fmt(new Date(exam.created_at), 'dd/MM/yyyy HH:mm')}
                       </p>
@@ -278,9 +353,54 @@ export default function ExamMgmt() {
                 key={exam.id} 
                 className="bg-white p-3 rounded-xl border border-gray-150 hover:border-teal-350 hover:shadow-md transition-all duration-200 group"
               >
-                <h4 className="font-bold text-teal-800 text-sm mb-1 leading-snug line-clamp-2" title={exam.title}>
-                  {exam.title}
-                </h4>
+                {editingExamId === exam.id ? (
+                  <div className="flex gap-1 items-center mb-1">
+                    <input 
+                      type="text" 
+                      value={editingExamTitle} 
+                      onChange={(e) => setEditingExamTitle(e.target.value)} 
+                      className="w-full border border-teal-300 rounded px-2 py-1 text-xs font-bold text-teal-800 focus:outline-none focus:ring-1 focus:ring-teal-500 bg-teal-50/50"
+                      autoFocus
+                      disabled={savingRename}
+                      onKeyDown={async (e) => {
+                        if (e.key === 'Enter') {
+                          await handleRenameExam(exam.id)
+                        } else if (e.key === 'Escape') {
+                          setEditingExamId(null)
+                        }
+                      }}
+                    />
+                    <button 
+                      onClick={() => handleRenameExam(exam.id)}
+                      disabled={savingRename}
+                      className="p-1 text-emerald-600 hover:bg-emerald-50 rounded flex-shrink-0"
+                      title="Lưu"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      onClick={() => setEditingExamId(null)}
+                      disabled={savingRename}
+                      className="p-1 text-gray-500 hover:bg-gray-50 rounded flex-shrink-0"
+                      title="Hủy"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-start justify-between gap-1 group/title mb-1">
+                    <h4 className="font-bold text-teal-800 text-sm leading-snug line-clamp-2" title={exam.title}>
+                      {exam.title}
+                    </h4>
+                    <button 
+                      onClick={() => { setEditingExamId(exam.id); setEditingExamTitle(exam.title); }}
+                      className="p-0.5 text-gray-400 hover:text-teal-600 rounded opacity-0 group-hover/title:opacity-100 transition-opacity flex-shrink-0"
+                      title="Đổi tên đề"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
                 <p className="text-[11px] text-gray-400 mb-2">
                   {fmt(new Date(exam.created_at), 'dd/MM/yyyy HH:mm')}
                 </p>
