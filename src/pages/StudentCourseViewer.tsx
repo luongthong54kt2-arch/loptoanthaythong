@@ -1,12 +1,17 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { Lock, CheckCircle, PlayCircle, ChevronLeft } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import LessonExamRoom from '@/components/LessonExamRoom'
 import InteractiveVideoPlayer from '@/components/InteractiveVideoPlayer' // ✅ Import Player
 import toast from 'react-hot-toast'
 
-export default function StudentCourseViewer({ courseId, studentId }: { courseId: string, studentId: string }) {
+export default function StudentCourseViewer({ courseId: propCourseId, studentId: propStudentId }: { courseId?: string, studentId?: string }) {
+  const params = useParams<{ courseId: string, studentId: string }>()
+  const courseId = propCourseId || params.courseId
+  const studentId = propStudentId || params.studentId
+
   const [course, setCourse] = useState<any>(null)
   const [progress, setProgress] = useState<any[]>([])
   const [activeLesson, setActiveLesson] = useState<any>(null)
