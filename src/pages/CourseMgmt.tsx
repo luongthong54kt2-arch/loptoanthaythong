@@ -122,7 +122,10 @@ export default function CourseMgmt() {
       const result = await uploadPdfToSupabase(base64, file.name);
       await updateLesson(uploadingLessonId, { pdf_url: result.fileUrl });
       toast.success('Upload thành công!', { id: toastId });
-    } catch(err) { toast.error('Lỗi upload!', { id: toastId }); } 
+    } catch(err: any) { 
+      toast.error(`Lỗi upload: ${err.message || 'Không rõ nguyên nhân'}`, { id: toastId }); 
+      console.error(err);
+    } 
     finally { setUploadingLessonId(null); if (fileInputRef.current) fileInputRef.current.value = ''; }
   }
 
