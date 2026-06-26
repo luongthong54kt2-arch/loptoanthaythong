@@ -1,8 +1,9 @@
 // @ts-nocheck
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import MathText from '@/components/MathText';
-import { parseTFAnswer } from './ExamRoom';
+import { parseTFAnswer, serializeTFAnswer } from './ExamRoom';
+import { Check as CheckIcon, X as XIcon } from 'lucide-react';
 
 interface LessonExamRoomProps {
   examId: string;
@@ -138,6 +139,13 @@ export default function LessonExamRoom({ examId, studentName, onSubmitted, onExi
                 </div>
               )}
 
+              {/* Các câu Đúng / Sai */}
+              {q.type === 'true_false' && (
+                <div className="pl-11">
+                  <TrueFalseGrid options={q.options || []} userAnswer={uAns} onChange={val => handleAnswer(q.number, val)} />
+                </div>
+              )}
+
               {/* Các câu Trả lời ngắn */}
               {q.type === 'short_answer' && (
                 <div className="pl-11">
@@ -165,3 +173,61 @@ export default function LessonExamRoom({ examId, studentName, onSubmitted, onExi
     </div>
   )
 }
+
+// Bảng Đúng/Sai cực kỳ trực quan
+const TrueFalseGrid: React.FC<any> = ({ options, userAnswer, onChange }) => {
+  const tfMap = useMemo(() => parseTFAnswer(userAnswer), [userAnswer]);
+  
+  const handleSelect = (letter: string, val: 'T' | 'F') => {
+    const current = { ...tfMap }; const key = letter.toLowerCase();
+    if (current[key] === val) delete current[key]; else current[key] = val;
+    onChange(serializeTFAnswer(current));
+  };
+
+  return (
+    <div className="rounded-xl border-2 border-teal-600 overflow-hidden shadow-sm mt-3">
+      {/* HEADER BẢNG */}
+      <div className="grid grid-cols-[1fr_70px_70px] sm:grid-cols-[1fr_90px_90px] bg-teal-600 text-xs font-black text-white uppercase divide-x-2 divide-teal-500 border-b-2 border-teal-600">
+        <div className="px-4 py-3 flex items-center bg-teal-600">Mệnh đề</div>
+        <div className="py-3 flex items-center justify-center gap-1 bg-teal-600"><CheckIcon className="w-4 h-4"/> Đúng</div>
+        <div className="py-3 flex items-center justify-center gap-1 bg-teal-600"><XIcon className="w-4 h-4"/> Sai</div>
+      </div>
+      
+      {/* CÁC DÒNG MỆNH ĐỀ */}
+      <div className="divide-y-2 divide-teal-100">
+        {options.map((opt: any, idx: number) => {
+          const displayLetter = String.fromCharCode(97 + idx); // a, b, c, d
+          const cVal = tfMap[opt.letter.toLowerCase()];
+          
+          return (
+            <div key={opt.letter} className="grid grid-cols-[1fr_70px_70px] sm:grid-cols-[1fr_90px_90px] bg-white divide-x-2 divide-teal-100 hover:bg-teal-50/30 transition-colors">
+              
+              <div className="px-4 py-4 flex gap-3 items-start">
+                <span className="w-7 h-7 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center text-[13px] font-black shrink-0 shadow-sm border border-teal-100">
+                  {displayLetter}
+                </span>
+                <MathText html={opt.text || ''} className="flex-1 text-[15px] pt-0.5 text-gray-800" />
+              </div>
+
+              {/* NÚT ĐÚNG */}
+              <button 
+                onClick={() => handleSelect(opt.letter, 'T')} 
+                className={`flex items-center justify-center transition-all outline-none hover:bg-emerald-50 ${cVal === 'T' ? 'bg-emerald-500 text-white shadow-inner' : 'text-gray-300'}`}
+              >
+                {cVal === 'T' ? <CheckIcon className="w-6 h-6 stroke-[3]" /> : ''}
+              </button>
+
+              {/* NÚT SAI */}
+              <button 
+                onClick={() => handleSelect(opt.letter, 'F')} 
+                className={`flex items-center justify-center transition-all outline-none hover:bg-red-50 ${cVal === 'F' ? 'bg-red-500 text-white shadow-inner' : 'text-gray-300'}`}
+              >
+                {cVal === 'F' ? <XIcon className="w-6 h-6 stroke-[3]" /> : ''}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
