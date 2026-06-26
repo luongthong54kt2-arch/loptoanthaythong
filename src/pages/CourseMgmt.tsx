@@ -133,7 +133,26 @@ export default function CourseMgmt() {
     try {
       const base64 = await fileToBase64(file);
       const result = await uploadPdfToSupabase(base64, file.name);
-      await updateLesson(uploadingLessonId, { pdf_url: result.fileUrl });
+
+      // Tìm bài học hiện tại để lấy danh sách PDF đã có
+      let currentPdfs = [];
+      for (const c of courses || []) {
+        for (const ch of c.chapters || []) {
+          for (const l of ch.lessons || []) {
+            if (l.id === uploadingLessonId) {
+              currentPdfs = l.pdf_list || (l.pdf_url ? [{ name: 'Tài liệu PDF', url: l.pdf_url }] : []);
+              break;
+            }
+          }
+        }
+      }
+
+      const newPdfList = [...currentPdfs, { name: file.name, url: result.fileUrl }];
+
+      await updateLesson(uploadingLessonId, { 
+        pdf_list: newPdfList,
+        pdf_url: newPdfList[0]?.url || null // Tương thích ngược
+      });
       toast.success('Upload thành công!', { id: toastId });
     } catch(err: any) { 
       toast.error(`Lỗi upload: ${err.message || 'Không rõ nguyên nhân'}`, { id: toastId }); 
@@ -273,15 +292,43 @@ export default function CourseMgmt() {
                         </div>
 
                         <div className="text-xs text-gray-400 flex flex-wrap gap-4 mt-2 ml-7 items-center">
-                           {!lesson.pdf_url ? (
-                             <button onClick={() => handleTriggerUpload(lesson.id)} disabled={uploadingLessonId === lesson.id} className="hover:text-teal-600 font-medium">
-                               {uploadingLessonId === lesson.id ? '⏳ Đang tải...' : '📄 Upload PDF'}
-                             </button>
-                           ) : (
-                             <div className="flex items-center gap-1 text-teal-600 font-medium">
-                               ✅ Đã tải PDF <button onClick={() => updateLesson(lesson.id, { pdf_url: null })} className="text-[10px] text-red-400 hover:text-red-600">(Gỡ)</button>
-                             </div>
-                           )}
+                           {/* Hiển thị danh sách các tệp PDF đã tải lên */}
+                           <div className="flex flex-wrap items-center gap-2">
+                             {(() => {
+                               const currentPdfs = lesson.pdf_list || (lesson.pdf_url ? [{ name: 'Tài liệu PDF', url: lesson.pdf_url }] : []);
+                               return (
+                                 <>
+                                   {currentPdfs.map((pdf: any, idx: number) => (
+                                     <div key={idx} className="flex items-center gap-1 bg-teal-50 text-teal-700 px-2 py-0.5 rounded border border-teal-100 font-medium text-[11px]">
+                                       📄 <a href={pdf.url} target="_blank" rel="noreferrer" className="hover:underline max-w-[120px] truncate" title={pdf.name}>{pdf.name}</a>
+                                       <button 
+                                         onClick={async () => {
+                                           if (!confirm(`Bạn có chắc muốn gỡ tài liệu "${pdf.name}"?`)) return;
+                                           const newPdfList = currentPdfs.filter((_: any, i: number) => i !== idx);
+                                           await updateLesson(lesson.id, { 
+                                             pdf_list: newPdfList,
+                                             pdf_url: newPdfList[0]?.url || null
+                                           });
+                                           toast.success('Đã gỡ tài liệu!');
+                                         }} 
+                                         className="text-red-400 hover:text-red-600 ml-1 font-bold text-[10px]"
+                                         title="Gỡ tài liệu"
+                                       >
+                                         ✕
+                                       </button>
+                                     </div>
+                                   ))}
+                                   <button 
+                                     onClick={() => handleTriggerUpload(lesson.id)} 
+                                     disabled={uploadingLessonId === lesson.id} 
+                                     className="text-teal-600 hover:text-teal-800 hover:underline font-bold text-[11px] flex items-center gap-0.5 ml-1"
+                                   >
+                                     {uploadingLessonId === lesson.id ? '⏳ Đang tải...' : '+ Tải lên PDF'}
+                                   </button>
+                                 </>
+                               );
+                             })()}
+                           </div>
 
                            {!lesson.video_url ? (
                              <button onClick={() => setAttachVideoLesson(lesson)} className="hover:text-red-600 font-medium flex items-center gap-1">

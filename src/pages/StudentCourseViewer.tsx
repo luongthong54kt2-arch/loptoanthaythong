@@ -31,6 +31,7 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
   const [activePracticeExamId, setActivePracticeExamId] = useState<string | null>(null)
   const [studentName, setStudentName] = useState('Học sinh')
   const [exams, setExams] = useState<any[]>([])
+  const [activePdfUrl, setActivePdfUrl] = useState<string | null>(null)
 
   useEffect(() => {
     const sessionStr = sessionStorage.getItem('current_student')
@@ -69,6 +70,19 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
     console.log('🔍 [DEBUG] StudentCourseViewer - course:', course)
     console.log('🔍 [DEBUG] StudentCourseViewer - activeLesson:', activeLesson)
   }, [course, activeLesson])
+
+  useEffect(() => {
+    if (activeLesson) {
+      const currentPdfs = activeLesson.pdf_list || (activeLesson.pdf_url ? [{ name: 'Tài liệu PDF', url: activeLesson.pdf_url }] : []);
+      if (currentPdfs.length > 0) {
+        setActivePdfUrl(currentPdfs[0].url)
+      } else {
+        setActivePdfUrl(null)
+      }
+    } else {
+      setActivePdfUrl(null)
+    }
+  }, [activeLesson])
 
   const isUnlocked = (lesson: any) => {
     return true // Bỏ khóa hoàn toàn theo yêu cầu của thầy
@@ -175,14 +189,36 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
                 );
               })()}
             </div>
+            {/* Thanh chuyển tài liệu PDF nếu có nhiều tài liệu */}
+            {(() => {
+              const currentPdfs = activeLesson.pdf_list || (activeLesson.pdf_url ? [{ name: 'Tài liệu PDF', url: activeLesson.pdf_url }] : []);
+              if (currentPdfs.length <= 1) return null;
+              return (
+                <div className="flex gap-2 p-2 bg-gray-100 border-b overflow-x-auto">
+                  {currentPdfs.map((pdf: any, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActivePdfUrl(pdf.url)}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg border transition ${
+                        activePdfUrl === pdf.url 
+                        ? 'bg-teal-600 text-white border-teal-600 shadow-sm' 
+                        : 'bg-white text-gray-600 border-gray-200 hover:bg-teal-50 hover:text-teal-700'
+                      }`}
+                    >
+                      📄 {pdf.name}
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
             <div className="flex-1 bg-gray-200 relative">
               {activeLesson.video_url ? (
                 <InteractiveVideoPlayer 
                    lesson={activeLesson} 
                    onComplete={() => handlePracticeSubmitted(100)} 
                 />
-              ) : activeLesson.pdf_url ? (
-                <iframe src={`${activeLesson.pdf_url}#toolbar=0`} className="w-full h-full border-none" />
+              ) : activePdfUrl ? (
+                <iframe src={`${activePdfUrl}#toolbar=0`} className="w-full h-full border-none" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">Không có tài liệu PDF / Video</div>
               )}
