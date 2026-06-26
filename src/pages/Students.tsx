@@ -518,6 +518,7 @@ export default function Students() {
 
   const [activeGrade, setActiveGrade] = useState<number | 'others'>(9)
   const [selectedClassId, setSelectedClassId] = useState<string | 'unassigned' | null>(null)
+  const [hasInitGrade, setHasInitGrade] = useState(false)
 
   const displayGrades = [6, 7, 8, 9]
 
@@ -673,15 +674,16 @@ export default function Students() {
 
   // Tự động chọn Khối đầu tiên có học sinh
   useEffect(() => {
-    if (myStudents.length > 0 && !myStudents.some(s => getStudentGrade(s) === activeGrade)) {
+    if (myStudents.length > 0 && !hasInitGrade) {
       const gradesWithStudents = [6, 7, 8, 9].filter(g => myStudents.some(s => getStudentGrade(s) === g))
       if (gradesWithStudents.length > 0) {
         setActiveGrade(gradesWithStudents[0] as any)
       } else if (hasOtherStudents) {
         setActiveGrade('others')
       }
+      setHasInitGrade(true)
     }
-  }, [myStudents, activeGrade, hasOtherStudents])
+  }, [myStudents, hasInitGrade, hasOtherStudents])
 
   const activeGradeStudents = myStudents.filter(s => {
     const g = getStudentGrade(s)
@@ -812,206 +814,216 @@ export default function Students() {
 
         {/* RIGHT PANEL: CLASS FILTER AND TABLE (75% area) */}
         <div className="flex-1 space-y-5 bg-slate-50/40 rounded-3xl border border-slate-200/50 p-6 min-h-[500px]">
-          {/* CLASS FILTER BUTTONS */}
-          {(classesInActiveGrade.length > 0 || unassignedStudentsCount > 0) && (
-            <div className="flex flex-wrap gap-2 pb-4 border-b border-slate-100">
-              {classesInActiveGrade.map((cls) => {
-                const count = activeGradeStudents.filter(s => 
-                  enrollments.some(e => e.student_id === s.id && e.class_id === cls.id && e.status === 'active')
-                ).length
-                const isActive = currentClassId === cls.id
-                return (
-                  <button
-                    key={cls.id}
-                    onClick={() => setSelectedClassId(cls.id)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border duration-200 flex items-center gap-1.5 ${
-                      isActive
-                        ? 'bg-teal-600 border-teal-600 text-white shadow-md shadow-teal-500/10'
-                        : 'bg-white border-slate-200 text-gray-600 hover:border-teal-300 hover:bg-teal-50/20'
-                    }`}
-                  >
-                    {getClassName(cls)}
-                    <span
-                      className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-                        isActive
-                          ? 'bg-teal-700/50 text-teal-50'
-                          : 'bg-slate-100 text-slate-500 border border-slate-200/50'
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  </button>
-                )
-              })}
-
-              {unassignedStudentsCount > 0 && (
-                <button
-                  onClick={() => setSelectedClassId('unassigned')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border duration-200 flex items-center gap-1.5 ${
-                    currentClassId === 'unassigned'
-                      ? 'bg-amber-600 border-amber-600 text-white shadow-md shadow-amber-500/10'
-                      : 'bg-white border-slate-200 text-amber-600 hover:border-amber-300 hover:bg-amber-50/20'
-                  }`}
-                >
-                  Chưa xếp lớp 👻
-                  <span
-                    className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-                      currentClassId === 'unassigned'
-                        ? 'bg-amber-700/50 text-amber-50'
-                        : 'bg-amber-50 text-amber-600 border border-amber-100'
-                    }`}
-                  >
-                    {unassignedStudentsCount}
-                  </span>
-                </button>
-              )}
+          {activeGradeStudents.length === 0 ? (
+            <div className="flex flex-col justify-center items-center py-24 text-gray-400 bg-white rounded-3xl border border-slate-200/60 p-6 min-h-[400px]">
+              <Users className="w-12 h-12 opacity-25 mb-3 text-teal-600" />
+              <p className="text-base font-bold text-gray-700">Chưa có học sinh nào</p>
+              <p className="text-sm italic text-gray-400 mt-1">Khối {activeGrade === 'others' ? 'Khác' : activeGrade} hiện tại chưa có học sinh nào.</p>
             </div>
-          )}
-
-          {/* ── Search + Tabs ────────────────────────────────────────────── */}
-          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-            {/* Search */}
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute left-3.5 top-3 w-4 h-4 text-teal-400" />
-              <input value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Tìm tên, mã, SĐT, trường..." className="input pl-10 bg-white" />
-            </div>
-
-            {/* Tabs */}
-            <div className="flex gap-1.5 bg-gray-100 rounded-xl p-1 flex-wrap">
-              {TABS.map(t => (
-                <button
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap border ${
-                    tab === t.key
-                      ? t.color + ' shadow-sm'
-                      : 'text-gray-400 bg-transparent border-transparent hover:bg-white hover:text-gray-600'
-                  }`}
-                >
-                  {t.label}
-                  <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${tab === t.key ? 'bg-white/60' : 'bg-gray-200'}`}>
-                    {counts[t.key]}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* ── Anonymous warning ────────────────────────────────────────── */}
-          {tab === 'anonymous' && counts.anonymous > 0 && (
-            <div className="flex items-start gap-3 bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 text-sm text-purple-700">
-              <Ghost className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold">Học sinh ẩn danh từ thi tự do</p>
-                <p className="text-purple-500 text-xs mt-0.5">Đây là các tài khoản được tạo tự động khi học sinh thi không đăng nhập. Bạn có thể xóa các tài khoản rác này.</p>
-              </div>
-            </div>
-          )}
-
-          {/* ── Table ───────────────────────────────────────────────────── */}
-          <div className="card overflow-hidden border border-slate-200">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr style={{ background: 'linear-gradient(135deg,#0d9488,#14b8a6)' }}>
-                    {['Mã HS','Họ tên','Ngày sinh','Liên hệ PH','Trường · Khối','Lớp đang học','Mật khẩu','TT',''].map(h => (
-                      <th key={h} className="px-3 py-3 text-left text-white font-bold text-xs whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.length === 0 && (
-                    <tr>
-                      <td colSpan={9} className="text-center py-16 text-gray-400">
-                        <div className="flex flex-col items-center gap-2">
-                          <Users className="w-10 h-10 text-gray-200" />
-                          <p>Không có học sinh nào</p>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                  {filtered.map((s, i) => {
-                    const anon = isAnonymous(s as any)
+          ) : (
+            <>
+              {/* CLASS FILTER BUTTONS */}
+              {(classesInActiveGrade.length > 0 || unassignedStudentsCount > 0) && (
+                <div className="flex flex-wrap gap-2 pb-4 border-b border-slate-100">
+                  {classesInActiveGrade.map((cls) => {
+                    const count = activeGradeStudents.filter(s => 
+                      enrollments.some(e => e.student_id === s.id && e.class_id === cls.id && e.status === 'active')
+                    ).length
+                    const isActive = currentClassId === cls.id
                     return (
-                      <tr key={s.id} className={`border-b border-teal-50 hover:bg-teal-50/40 transition-colors ${
-                        anon ? 'opacity-70 bg-purple-50/30' : i % 2 === 0 ? 'bg-white' : 'bg-teal-50/20'
-                      }`}>
-                        {/* Mã HS */}
-                        <td className="px-3 py-3">
-                          <span className={`font-mono font-bold text-xs ${anon ? 'text-purple-500' : 'text-teal-700'}`}>
-                            {s.student_code}
-                          </span>
-                          {anon && <Ghost className="w-3 h-3 inline ml-1 text-purple-400" />}
-                        </td>
-
-                        {/* Họ tên */}
-                        <td className="px-3 py-3 font-bold text-gray-800 whitespace-nowrap">{s.full_name}</td>
-
-                        {/* Ngày sinh */}
-                        <td className="px-3 py-3 text-gray-500 text-xs whitespace-nowrap">
-                          {fmtDOB((s as any).date_of_birth)}
-                        </td>
-
-                        {/* Liên hệ PH */}
-                        <td className="px-3 py-3">
-                          <ContactCell student={s} />
-                        </td>
-
-                        {/* Trường · Khối */}
-                        <td className="px-3 py-3 text-xs text-gray-500 whitespace-nowrap">
-                          {[(s as any).school, (s as any).grade].filter(Boolean).join(' · ') || '—'}
-                        </td>
-
-                        {/* Lớp đang học */}
-                        <td className="px-3 py-3 text-xs text-teal-700 font-semibold max-w-[140px]">
-                          <span className="line-clamp-2">{getClassNames(s.id) || '—'}</span>
-                        </td>
-
-                        {/* Mật khẩu */}
-                        <td className="px-3 py-3">
-                          {(s as any).password
-                            ? <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">✓</span>
-                            : <span className="inline-flex items-center gap-1 text-xs font-bold text-red-400 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">✗</span>
-                          }
-                        </td>
-
-                        {/* Trạng thái */}
-                        <td className="px-3 py-3">
-                          <span className={s.status === 'active' ? 'badge-active' : 'badge-inactive'}>
-                            {s.status === 'active' ? 'Học' : 'Nghỉ'}
-                          </span>
-                        </td>
-
-                        {/* Actions */}
-                        <td className="px-3 py-3">
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => openEdit(s)}
-                              className="p-1.5 text-teal-600 hover:bg-teal-100 rounded-lg transition-all"
-                              title="Sửa thông tin">
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => handleDelete(s)}
-                              className="p-1.5 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all"
-                              title="Xóa học sinh">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
+                      <button
+                        key={cls.id}
+                        onClick={() => setSelectedClassId(cls.id)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border duration-200 flex items-center gap-1.5 ${
+                          isActive
+                            ? 'bg-teal-600 border-teal-600 text-white shadow-md shadow-teal-500/10'
+                            : 'bg-white border-slate-200 text-gray-600 hover:border-teal-300 hover:bg-teal-50/20'
+                        }`}
+                      >
+                        {getClassName(cls)}
+                        <span
+                          className={`px-1.5 py-0.5 rounded-md text-[10px] ${
+                            isActive
+                              ? 'bg-teal-700/50 text-teal-50'
+                              : 'bg-slate-100 text-slate-500 border border-slate-200/50'
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      </button>
                     )
                   })}
-                </tbody>
-              </table>
-            </div>
 
-            {/* Footer count */}
-            {filtered.length > 0 && (
-              <div className="px-4 py-2.5 border-t border-teal-50 bg-gray-50/50 text-xs text-gray-400 text-right">
-                Hiển thị {filtered.length} / {tabFiltered.length} học sinh
+                  {unassignedStudentsCount > 0 && (
+                    <button
+                      onClick={() => setSelectedClassId('unassigned')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border duration-200 flex items-center gap-1.5 ${
+                        currentClassId === 'unassigned'
+                          ? 'bg-amber-600 border-amber-600 text-white shadow-md shadow-amber-500/10'
+                          : 'bg-white border-slate-200 text-amber-600 hover:border-amber-300 hover:bg-amber-50/20'
+                      }`}
+                    >
+                      Chưa xếp lớp 👻
+                      <span
+                        className={`px-1.5 py-0.5 rounded-md text-[10px] ${
+                          currentClassId === 'unassigned'
+                            ? 'bg-amber-700/50 text-amber-50'
+                            : 'bg-amber-50 text-amber-600 border border-amber-100'
+                        }`}
+                      >
+                        {unassignedStudentsCount}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* ── Search + Tabs ────────────────────────────────────────────── */}
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                {/* Search */}
+                <div className="relative w-full sm:max-w-xs">
+                  <Search className="absolute left-3.5 top-3 w-4 h-4 text-teal-400" />
+                  <input value={search} onChange={e => setSearch(e.target.value)}
+                    placeholder="Tìm tên, mã, SĐT, trường..." className="input pl-10 bg-white" />
+                </div>
+
+                {/* Tabs */}
+                <div className="flex gap-1.5 bg-gray-100 rounded-xl p-1 flex-wrap">
+                  {TABS.map(t => (
+                    <button
+                      key={t.key}
+                      onClick={() => setTab(t.key)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap border ${
+                        tab === t.key
+                          ? t.color + ' shadow-sm'
+                          : 'text-gray-400 bg-transparent border-transparent hover:bg-white hover:text-gray-600'
+                      }`}
+                    >
+                      {t.label}
+                      <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${tab === t.key ? 'bg-white/60' : 'bg-gray-200'}`}>
+                        {counts[t.key]}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-          </div>
+
+              {/* ── Anonymous warning ────────────────────────────────────────── */}
+              {tab === 'anonymous' && counts.anonymous > 0 && (
+                <div className="flex items-start gap-3 bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 text-sm text-purple-700">
+                  <Ghost className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold">Học sinh ẩn danh từ thi tự do</p>
+                    <p className="text-purple-500 text-xs mt-0.5">Đây là các tài khoản được tạo tự động khi học sinh thi không đăng nhập. Bạn có thể xóa các tài khoản rác này.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Table ───────────────────────────────────────────────────── */}
+              <div className="card overflow-hidden border border-slate-200">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr style={{ background: 'linear-gradient(135deg,#0d9488,#14b8a6)' }}>
+                        {['Mã HS','Họ tên','Ngày sinh','Liên hệ PH','Trường · Khối','Lớp đang học','Mật khẩu','TT',''].map(h => (
+                          <th key={h} className="px-3 py-3 text-left text-white font-bold text-xs whitespace-nowrap">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.length === 0 && (
+                        <tr>
+                          <td colSpan={9} className="text-center py-16 text-gray-400">
+                            <div className="flex flex-col items-center gap-2">
+                              <Users className="w-10 h-10 text-gray-200" />
+                              <p>Không có học sinh nào</p>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      {filtered.map((s, i) => {
+                        const anon = isAnonymous(s as any)
+                        return (
+                          <tr key={s.id} className={`border-b border-teal-50 hover:bg-teal-50/40 transition-colors ${
+                            anon ? 'opacity-70 bg-purple-50/30' : i % 2 === 0 ? 'bg-white' : 'bg-teal-50/20'
+                          }`}>
+                            {/* Mã HS */}
+                            <td className="px-3 py-3">
+                              <span className={`font-mono font-bold text-xs ${anon ? 'text-purple-500' : 'text-teal-700'}`}>
+                                {s.student_code}
+                              </span>
+                              {anon && <Ghost className="w-3 h-3 inline ml-1 text-purple-400" />}
+                            </td>
+
+                            {/* Họ tên */}
+                            <td className="px-3 py-3 font-bold text-gray-800 whitespace-nowrap">{s.full_name}</td>
+
+                            {/* Ngày sinh */}
+                            <td className="px-3 py-3 text-gray-500 text-xs whitespace-nowrap">
+                              {fmtDOB((s as any).date_of_birth)}
+                            </td>
+
+                            {/* Liên hệ PH */}
+                            <td className="px-3 py-3">
+                              <ContactCell student={s} />
+                            </td>
+
+                            {/* Trường · Khối */}
+                            <td className="px-3 py-3 text-xs text-gray-500 whitespace-nowrap">
+                              {[(s as any).school, (s as any).grade].filter(Boolean).join(' · ') || '—'}
+                            </td>
+
+                            {/* Lớp đang học */}
+                            <td className="px-3 py-3 text-xs text-teal-700 font-semibold max-w-[140px]">
+                              <span className="line-clamp-2">{getClassNames(s.id) || '—'}</span>
+                            </td>
+
+                            {/* Mật khẩu */}
+                            <td className="px-3 py-3">
+                              {(s as any).password
+                                ? <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">✓</span>
+                                : <span className="inline-flex items-center gap-1 text-xs font-bold text-red-400 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">✗</span>
+                              }
+                            </td>
+
+                            {/* Trạng thái */}
+                            <td className="px-3 py-3">
+                              <span className={s.status === 'active' ? 'badge-active' : 'badge-inactive'}>
+                                {s.status === 'active' ? 'Học' : 'Nghỉ'}
+                              </span>
+                            </td>
+
+                            {/* Actions */}
+                            <td className="px-3 py-3">
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => openEdit(s)}
+                                  className="p-1.5 text-teal-600 hover:bg-teal-100 rounded-lg transition-all"
+                                  title="Sửa thông tin">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => handleDelete(s)}
+                                  className="p-1.5 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all"
+                                  title="Xóa học sinh">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Footer count */}
+                {filtered.length > 0 && (
+                  <div className="px-4 py-2.5 border-t border-teal-50 bg-gray-50/50 text-xs text-gray-400 text-right">
+                    Hiển thị {filtered.length} / {tabFiltered.length} học sinh
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
