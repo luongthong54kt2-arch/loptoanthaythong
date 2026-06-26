@@ -103,6 +103,11 @@ export default function ExamRoomsMgmt() {
   })
 
   const [activeGrade, setActiveGrade] = useState<number | 'others'>(9)
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
+
+  useEffect(() => {
+    setSelectedClassId(null)
+  }, [activeGrade])
 
   useEffect(() => {
     if (rooms.length > 0 && !rooms.some(r => getRoomGrade(r) === activeGrade)) {
@@ -147,6 +152,31 @@ export default function ExamRoomsMgmt() {
   const filteredClasses = modalGrade
     ? classes.filter(c => c.status === 'active' && getClassGrade(c) === modalGrade)
     : classes.filter(c => c.status === 'active')
+
+  const getClassName = (cls: any) => cls?.class_name || cls?.name || 'Chưa rõ'
+
+  const activeRooms = rooms.filter(r => 
+    activeGrade === 'others' 
+      ? (getRoomGrade(r) === null || !displayGrades.includes(getRoomGrade(r)!)) 
+      : getRoomGrade(r) === activeGrade
+  )
+
+  const classIdsWithRooms = new Set(activeRooms.map(r => r.class_id).filter(Boolean))
+
+  const classesInActiveGrade = classes.filter(c => {
+    const grade = getClassGrade(c)
+    const belongsToGrade = activeGrade === 'others'
+      ? (grade === null || !displayGrades.includes(grade))
+      : grade === activeGrade
+    return belongsToGrade && (c.status === 'active' || classIdsWithRooms.has(c.id))
+  })
+
+  // Sắp xếp các lớp theo tên
+  classesInActiveGrade.sort((a, b) => getClassName(a).localeCompare(getClassName(b)))
+
+  const displayedRooms = selectedClassId 
+    ? activeRooms.filter(r => r.class_id === selectedClassId)
+    : activeRooms
 
   return (
     <div className="space-y-6">
@@ -212,31 +242,74 @@ export default function ExamRoomsMgmt() {
           {/* RIGHT VIEW: ROOM CARDS GRID (75% area) */}
           <div className="flex-1 bg-slate-50/40 rounded-3xl border border-slate-200/50 p-6 min-h-[500px]">
             {/* Header of selected tab */}
-            <div className="flex justify-between items-center mb-6 pb-3 border-b border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-3 mb-5">
               <h2 className="font-bold text-gray-800 text-lg flex items-center gap-2">
                 Danh sách phòng thi {activeGrade === 'others' ? 'Khác' : `Khối ${activeGrade}`}
               </h2>
-              <span className="text-sm font-semibold text-gray-500">
-                Tổng cộng: {rooms.filter(r => activeGrade === 'others' ? (getRoomGrade(r) === null || !displayGrades.includes(getRoomGrade(r)!)) : getRoomGrade(r) === activeGrade).length} phòng
+              <span className="text-sm font-semibold text-gray-500 bg-white border border-slate-200 px-3 py-1 rounded-xl shadow-sm shrink-0">
+                Tổng cộng: {displayedRooms.length} phòng
               </span>
             </div>
 
+            {/* CLASS FILTER BUTTONS */}
+            {classesInActiveGrade.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                <button
+                  onClick={() => setSelectedClassId(null)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border duration-200 ${
+                    selectedClassId === null
+                      ? 'bg-teal-600 border-teal-600 text-white shadow-md shadow-teal-500/10'
+                      : 'bg-white border-slate-200 text-gray-600 hover:border-teal-300 hover:bg-teal-50/20'
+                  }`}
+                >
+                  Tất cả ({activeRooms.length})
+                </button>
+                {classesInActiveGrade.map((cls) => {
+                  const count = activeRooms.filter((r) => r.class_id === cls.id).length
+                  return (
+                    <button
+                      key={cls.id}
+                      onClick={() => setSelectedClassId(cls.id)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border duration-200 flex items-center gap-1.5 ${
+                        selectedClassId === cls.id
+                          ? 'bg-teal-600 border-teal-600 text-white shadow-md shadow-teal-500/10'
+                          : 'bg-white border-slate-200 text-gray-600 hover:border-teal-300 hover:bg-teal-50/20'
+                      }`}
+                    >
+                      {getClassName(cls)}
+                      <span
+                        className={`px-1.5 py-0.5 rounded-md text-[10px] ${
+                          selectedClassId === cls.id
+                            ? 'bg-teal-700/50 text-teal-50'
+                            : 'bg-slate-100 text-slate-500 border border-slate-200/50'
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
             {/* Grid of rooms */}
             {(() => {
-              const activeRooms = rooms.filter(r => activeGrade === 'others' ? (getRoomGrade(r) === null || !displayGrades.includes(getRoomGrade(r)!)) : getRoomGrade(r) === activeGrade)
-              
-              if (activeRooms.length === 0) {
+              if (displayedRooms.length === 0) {
                 return (
                   <div className="flex flex-col justify-center items-center py-24 text-gray-400">
                     <MonitorPlay className="w-12 h-12 opacity-25 mb-3" />
-                    <p className="text-sm italic">Chưa có phòng thi nào được mở cho {activeGrade === 'others' ? 'danh mục này' : `Khối ${activeGrade}`}</p>
+                    <p className="text-sm italic">
+                      {selectedClassId
+                        ? 'Chưa có phòng thi nào được mở cho lớp này'
+                        : `Chưa có phòng thi nào được mở cho ${activeGrade === 'others' ? 'danh mục này' : `Khối ${activeGrade}`}`}
+                    </p>
                   </div>
                 )
               }
 
               return (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {activeRooms.map((room) => (
+                  {displayedRooms.map((room) => (
                     <div 
                       key={room.id} 
                       className="bg-white border border-teal-100/60 rounded-2xl p-5 shadow-sm hover:border-teal-300 hover:shadow-md transition-all duration-200 space-y-4"
