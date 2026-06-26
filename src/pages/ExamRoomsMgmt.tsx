@@ -174,8 +174,11 @@ export default function ExamRoomsMgmt() {
   // Sắp xếp các lớp theo tên
   classesInActiveGrade.sort((a, b) => getClassName(a).localeCompare(getClassName(b)))
 
-  const displayedRooms = selectedClassId 
-    ? activeRooms.filter(r => r.class_id === selectedClassId)
+  const defaultClassId = classesInActiveGrade[0]?.id || null
+  const currentClassId = selectedClassId !== null ? selectedClassId : defaultClassId
+
+  const displayedRooms = currentClassId 
+    ? activeRooms.filter(r => r.class_id === currentClassId)
     : activeRooms
 
   return (
@@ -254,24 +257,15 @@ export default function ExamRoomsMgmt() {
             {/* CLASS FILTER BUTTONS */}
             {classesInActiveGrade.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-6">
-                <button
-                  onClick={() => setSelectedClassId(null)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border duration-200 ${
-                    selectedClassId === null
-                      ? 'bg-teal-600 border-teal-600 text-white shadow-md shadow-teal-500/10'
-                      : 'bg-white border-slate-200 text-gray-600 hover:border-teal-300 hover:bg-teal-50/20'
-                  }`}
-                >
-                  Tất cả ({activeRooms.length})
-                </button>
                 {classesInActiveGrade.map((cls) => {
                   const count = activeRooms.filter((r) => r.class_id === cls.id).length
+                  const isActive = currentClassId === cls.id
                   return (
                     <button
                       key={cls.id}
                       onClick={() => setSelectedClassId(cls.id)}
                       className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border duration-200 flex items-center gap-1.5 ${
-                        selectedClassId === cls.id
+                        isActive
                           ? 'bg-teal-600 border-teal-600 text-white shadow-md shadow-teal-500/10'
                           : 'bg-white border-slate-200 text-gray-600 hover:border-teal-300 hover:bg-teal-50/20'
                       }`}
@@ -279,7 +273,7 @@ export default function ExamRoomsMgmt() {
                       {getClassName(cls)}
                       <span
                         className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-                          selectedClassId === cls.id
+                          isActive
                             ? 'bg-teal-700/50 text-teal-50'
                             : 'bg-slate-100 text-slate-500 border border-slate-200/50'
                         }`}
