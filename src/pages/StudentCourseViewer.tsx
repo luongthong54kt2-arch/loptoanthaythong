@@ -7,6 +7,19 @@ import LessonExamRoom from '@/components/LessonExamRoom'
 import InteractiveVideoPlayer from '@/components/InteractiveVideoPlayer' // ✅ Import Player
 import toast from 'react-hot-toast'
 
+const sortLessons = (lessons: any[]) => {
+  return [...lessons].sort((a, b) => {
+    const getNum = (title: string) => {
+      const match = title.match(/(?:buổi|buoi|bài|bai|lớp|lop)\s*(\d+)/i) || title.match(/(\d+)/)
+      return match ? parseInt(match[1], 10) : Infinity
+    }
+    const numA = getNum(a.title || '')
+    const numB = getNum(b.title || '')
+    if (numA !== numB) return numA - numB
+    return (a.title || '').localeCompare(b.title || '', 'vi', { numeric: true, sensitivity: 'base' })
+  })
+}
+
 export default function StudentCourseViewer({ courseId: propCourseId, studentId: propStudentId }: { courseId?: string, studentId?: string }) {
   const params = useParams<{ courseId: string, studentId: string }>()
   const courseId = propCourseId || params.courseId
@@ -35,12 +48,12 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
       setCourse(courseData)
       setProgress(progressData || [])
       
-      // Sắp xếp chương và bài học theo order_index để chọn đúng bài học đầu tiên làm activeLesson
+      // Sắp xếp bài học theo thứ tự đánh số để chọn đúng bài học đầu tiên làm activeLesson
       if (courseData?.chapters && courseData.chapters.length > 0) {
         const sortedChapters = [...courseData.chapters].sort((a: any, b: any) => a.order_index - b.order_index)
         const firstChapter = sortedChapters[0]
         if (firstChapter?.lessons && firstChapter.lessons.length > 0) {
-          const sortedLessons = [...firstChapter.lessons].sort((a: any, b: any) => a.order_index - b.order_index)
+          const sortedLessons = sortLessons(firstChapter.lessons)
           setActiveLesson(sortedLessons[0])
         }
       }
@@ -54,9 +67,7 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
   }, [course, activeLesson])
 
   const isUnlocked = (lesson: any) => {
-    if (course?.chapters?.[0]?.lessons?.[0] && lesson.order_index === 1 && course.chapters[0].lessons[0].id === lesson.id) return true
-    const p = progress.find(item => item.lesson_id === lesson.id)
-    return p?.is_unlocked || false
+    return true // Bỏ khóa hoàn toàn theo yêu cầu của thầy
   }
 
   // Hàm lưu tiến trình chung (Dùng cho cả nộp Bài tập lẫn làm Video xong)
@@ -111,7 +122,7 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
           <div key={chapter.id} className="mb-6">
             <h3 className="text-xs font-black text-gray-400 uppercase mb-3">{chapter.title}</h3>
             <div className="space-y-2">
-              {chapter.lessons?.sort((a:any, b:any) => a.order_index - b.order_index).map((lesson: any) => {
+              {sortLessons(chapter.lessons || []).map((lesson: any) => {
                 const unlocked = isUnlocked(lesson)
                 const passed = progress.find(p => p.lesson_id === lesson.id)?.is_passed
                 return (
