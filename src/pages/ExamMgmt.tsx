@@ -144,6 +144,28 @@ export default function ExamMgmt() {
     }
   }
 
+  const getExamGrade = (title: string) => {
+    const t = title.toLowerCase()
+    if (t.includes('lớp 6') || t.includes('khối 6') || t.includes('toán 6') || t.includes('khối sáu') || /\b(khối\s+)?6\b/.test(t)) return 6
+    if (t.includes('lớp 7') || t.includes('khối 7') || t.includes('toán 7') || t.includes('khối bảy') || /\b(khối\s+)?7\b/.test(t)) return 7
+    if (t.includes('lớp 8') || t.includes('khối 8') || t.includes('toán 8') || t.includes('khối tám') || /\b(khối\s+)?8\b/.test(t)) return 8
+    if (t.includes('lớp 9') || t.includes('khối 9') || t.includes('toán 9') || t.includes('khối chín') || /\b(khối\s+)?9\b/.test(t)) return 9
+    return null
+  }
+
+  const grades = [6, 7, 8, 9]
+
+  const examsByGrade = {
+    6: exams.filter(e => getExamGrade(e.title) === 6),
+    7: exams.filter(e => getExamGrade(e.title) === 7),
+    8: exams.filter(e => getExamGrade(e.title) === 8),
+    9: exams.filter(e => getExamGrade(e.title) === 9),
+    others: exams.filter(e => {
+      const g = getExamGrade(e.title)
+      return g === null
+    })
+  }
+
   let globalQuestionNumber = 1
 
   return (
@@ -163,59 +185,135 @@ export default function ExamMgmt() {
         </label>
       </div>
 
-      {/* Bảng danh sách đề */}
-      <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ background: 'linear-gradient(135deg,#0d9488,#14b8a6)' }}>
-                <th className="px-4 py-3 text-left text-white font-bold text-xs">Tên đề thi</th>
-                <th className="px-4 py-3 text-left text-white font-bold text-xs">Ngày tạo</th>
-                <th className="px-4 py-3 text-right text-white font-bold text-xs">Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && exams.length === 0 ? (
-                <tr><td colSpan={3} className="text-center py-10"><RefreshCw className="w-6 h-6 animate-spin text-teal-500 mx-auto" /></td></tr>
-              ) : exams.length === 0 ? (
-                <tr><td colSpan={3} className="text-center py-12 text-gray-400">Chưa có đề thi nào trong ngân hàng</td></tr>
-              ) : (
-                exams.map((exam, i) => (
-                  <tr key={exam.id} className={`border-b border-teal-50 hover:bg-teal-50/40 ${i % 2 === 0 ? '' : 'bg-teal-50/20'}`}>
-                    <td className="px-4 py-3 font-bold text-teal-800">{exam.title}</td>
-                    <td className="px-4 py-3 text-gray-500">{fmt(new Date(exam.created_at), 'dd/MM/yyyy HH:mm')}</td>
-                    <td className="px-4 py-3 text-right flex justify-end gap-2">
-                      <button 
-                        onClick={() => handleOpenConfig(exam.id, exam.title)}
-                        className="p-1.5 text-orange-500 hover:bg-orange-100 rounded-lg transition-colors flex items-center gap-1"
-                        title="Cấu hình điểm"
-                      >
-                        <Settings className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handlePreview(exam.id, exam.title)}
-                        disabled={previewing === exam.id}
-                        className="p-1.5 text-blue-500 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-1"
-                        title="Xem trước & Chỉnh sửa"
-                      >
-                        {previewing === exam.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-                      </button>
+      {/* 4 Cột Khối Lớp */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {grades.map(grade => {
+          const list = examsByGrade[grade as 6 | 7 | 8 | 9]
+          // Màu sắc tương ứng từng khối lớp
+          const theme = {
+            6: { border: 'border-blue-500', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-800' },
+            7: { border: 'border-emerald-500', text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-800' },
+            8: { border: 'border-orange-500', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-800' },
+            9: { border: 'border-purple-500', text: 'text-purple-700', badge: 'bg-purple-100 text-purple-800' },
+          }[grade as 6 | 7 | 8 | 9]
+
+          return (
+            <div key={grade} className={`flex flex-col rounded-2xl border-t-4 ${theme.border} bg-white shadow-sm overflow-hidden min-h-[400px]`}>
+              {/* Header của cột */}
+              <div className="px-4 py-3 bg-gray-50/80 border-b border-gray-100 flex justify-between items-center">
+                <h3 className={`font-bold text-base ${theme.text}`}>Khối {grade}</h3>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${theme.badge}`}>
+                  {list.length} đề
+                </span>
+              </div>
+
+              {/* Danh sách đề thi */}
+              <div className="p-3 flex-1 space-y-3 overflow-y-auto max-h-[600px] custom-scrollbar bg-slate-50/30">
+                {loading && list.length === 0 && exams.length === 0 ? (
+                  <div className="flex justify-center items-center h-32">
+                    <RefreshCw className="w-5 h-5 animate-spin text-gray-400" />
+                  </div>
+                ) : list.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400 text-xs italic">
+                    Chưa có đề thi
+                  </div>
+                ) : (
+                  list.map(exam => (
+                    <div 
+                      key={exam.id} 
+                      className="bg-white p-3 rounded-xl border border-gray-150 hover:border-teal-300 hover:shadow-md transition-all duration-200 group"
+                    >
+                      <h4 className="font-bold text-teal-800 text-sm mb-1 leading-snug line-clamp-2" title={exam.title}>
+                        {exam.title}
+                      </h4>
+                      <p className="text-[11px] text-gray-400 mb-2">
+                        {fmt(new Date(exam.created_at), 'dd/MM/yyyy HH:mm')}
+                      </p>
                       
-                      <button 
-                        onClick={() => handleDelete(exam.id, exam.title)}
-                        className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
-                        title="Xóa đề thi"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                      <div className="flex justify-end gap-1.5 pt-1.5 border-t border-gray-50">
+                        <button 
+                          onClick={() => handleOpenConfig(exam.id, exam.title)}
+                          className="p-1 text-orange-500 hover:bg-orange-50 rounded transition-colors"
+                          title="Cấu hình điểm"
+                        >
+                          <Settings className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handlePreview(exam.id, exam.title)}
+                          disabled={previewing === exam.id}
+                          className="p-1 text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                          title="Xem trước & Chỉnh sửa"
+                        >
+                          {previewing === exam.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(exam.id, exam.title)}
+                          className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                          title="Xóa đề thi"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
+
+      {/* Đề thi khác (nếu có) */}
+      {examsByGrade.others.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center gap-2 mb-3">
+            <h3 className="font-bold text-sm text-gray-500 uppercase tracking-wider">Đề thi chưa phân loại</h3>
+            <span className="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-0.5 rounded-full">
+              {examsByGrade.others.length}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {examsByGrade.others.map(exam => (
+              <div 
+                key={exam.id} 
+                className="bg-white p-3 rounded-xl border border-gray-150 hover:border-teal-350 hover:shadow-md transition-all duration-200 group"
+              >
+                <h4 className="font-bold text-teal-800 text-sm mb-1 leading-snug line-clamp-2" title={exam.title}>
+                  {exam.title}
+                </h4>
+                <p className="text-[11px] text-gray-400 mb-2">
+                  {fmt(new Date(exam.created_at), 'dd/MM/yyyy HH:mm')}
+                </p>
+                
+                <div className="flex justify-end gap-1.5 pt-1.5 border-t border-gray-50">
+                  <button 
+                    onClick={() => handleOpenConfig(exam.id, exam.title)}
+                    className="p-1 text-orange-500 hover:bg-orange-50 rounded transition-colors"
+                    title="Cấu hình điểm"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => handlePreview(exam.id, exam.title)}
+                    disabled={previewing === exam.id}
+                    className="p-1 text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                    title="Xem trước & Chỉnh sửa"
+                  >
+                    {previewing === exam.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(exam.id, exam.title)}
+                    className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                    title="Xóa đề thi"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ✅ MODAL CẤU HÌNH ĐIỂM (Đã sửa size thành 3xl) */}
       <Modal open={!!configExam} onClose={() => setConfigExam(null)} title="" size="3xl" >
