@@ -34,7 +34,7 @@ export const EX_TEST_DETHI_TEMPLATE = String.raw`\documentclass[12pt,a4paper]{ar
 \usepackage[dethi]{ex_test}
 %%%%%%%%%%%%% Thông tin tiêu đề
 \def\duoitrai{Lớp toán thầy lĩnh}
-\def\duoiphai{Mr.Phuc Math}
+\def\duoiphai{}
 \usepackage[most]{tcolorbox}
 \usepackage{fancyhdr}
 \usepackage{tkz-euclide}
@@ -61,7 +61,7 @@ export const EX_TEST_DETHI_TEMPLATE = String.raw`\documentclass[12pt,a4paper]{ar
 }
 \renewcommand*\circled[1]{\tikz[baseline=(char.base)]{
     \node[inner sep=1pt,shape=circle,fill=\mau] (char) {\bfseries\sffamily\color{white} #1};}}
-\renewcommand{\TrueEX}{\stepcounter{dapan}{\circEX{\textbf{\H\color{white}\Alph{dapan}}}} \ignorespaces}
+\renewcommand{\TrueEX}{\stepcounter{dapan}{\circled{\textbf{\H\color{white}\Alph{dapan}}}} \ignorespaces}
 \renewcommand{\FalseEX}{\stepcounter{dapan}{\circled{\textbf{\H\color{white}\Alph{dapan}}}} \ignorespaces}
 %%%%%%%
 \renewcommand{\baselinestretch}{1.4}

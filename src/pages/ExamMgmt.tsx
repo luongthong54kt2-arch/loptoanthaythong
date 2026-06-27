@@ -155,7 +155,9 @@ export default function ExamMgmt() {
       // Thay thế tên tác giả và ẩn lời giải
       texContent = texContent
         .replace(/Nguyễn Hữu Phúc/g, 'Lớp toán thầy lĩnh')
+        .replace(/Mr\.Phuc\s+Math/g, '')
         .replace(/\\usepackage\s*\[\s*loigiai\s*\]\s*\{\s*ex_test\s*\}/g, '\\usepackage[dethi]{ex_test}')
+        .replace(/\\circEX/g, '\\circled')
 
       const blob = new Blob([texContent], { type: 'text/plain;charset=utf-8' })
       const filename = `${title.replace(/\s+/g, '_')}.tex`
@@ -212,7 +214,9 @@ export default function ExamMgmt() {
       // Thay thế tên tác giả và ẩn lời giải
       texContent = texContent
         .replace(/Nguyễn Hữu Phúc/g, 'Lớp toán thầy lĩnh')
+        .replace(/Mr\.Phuc\s+Math/g, '')
         .replace(/\\usepackage\s*\[\s*loigiai\s*\]\s*\{\s*ex_test\s*\}/g, '\\usepackage[dethi]{ex_test}')
+        .replace(/\\circEX/g, '\\circled')
 
       toast.loading('Đang biên dịch LaTeX sang PDF...', { id: toastId })
       const compileRes = await compileFullTex({ tex: texContent })
