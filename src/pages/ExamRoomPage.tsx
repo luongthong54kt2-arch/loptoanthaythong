@@ -104,13 +104,26 @@ export default function ExamRoomPage() {
   const handleRetry = async () => {
     if (!confirm('Bạn có muốn thi lại? Kết quả cũ sẽ bị xóa hoàn toàn.')) return;
     try {
-      const currentAttempt = submittedResult?.score_breakdown?.attempt_count || submittedResult?.scoreBreakdown?.attempt_count || 1;
+      const currentAttempt = submittedResult?.score_breakdown?.attempt_count || submittedResult?.scoreBreakDown?.attempt_count || 1;
+      
+      // ✅ Xáo trộn lại đề thi từ đề gốc nếu cài đặt shuffle bật
+      const hasRealQuestions = exam?.data?.questions && exam.data.questions.length > 0 &&
+        !exam.data.questions.every((q: any) => 
+          /^(câu\s+\d+|câu\s+tự\s+luận\s+\d+):?$/i.test((q.text || '').trim())
+        );
+      const isPdf = !hasRealQuestions && (!!exam?.data?.pdfUrl || !!exam?.data?.pdfDriveUrl || !!exam?.data?.pdfBase64);
+      
+      let nextExamData = exam?.data;
+      if (!isPdf && room?.settings?.shuffle) {
+        nextExamData = shuffleExamForStudent(exam.data);
+      }
+
       await supabase.from('exam_submissions').update({
         status: 'in_progress',
         answers: {},
         score: null,
         score_breakdown: {
-          shuffled_exam: currentExamData,
+          shuffled_exam: nextExamData,
           attempt_count: currentAttempt + 1
         },
         submitted_at: null,
