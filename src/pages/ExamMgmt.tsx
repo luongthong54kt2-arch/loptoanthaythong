@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { FileUp, FileText, Trash2, RefreshCw, Eye, Edit2, Save, X, Settings } from 'lucide-react'
 import { useExamStore } from '@/store/examStore'
 import { parseWordToExam } from '@/services/mathWordParserService'
+import { parseTexToExam } from '@/services/texParserService'
 import { createDefaultPointsConfig } from '@/services/scoringService'
 import { fmt } from '@/lib/helpers'
 import { supabase } from '@/lib/supabase'
@@ -80,6 +81,34 @@ export default function ExamMgmt() {
       toast.success('Tải đề thi thành công!', { id: toastId })
     } catch (error: any) {
       toast.error(`Lỗi: ${error.message || 'Không thể đọc file Word'}`, { id: toastId })
+    } finally {
+      setUploading(false)
+      if (e.target) e.target.value = '' 
+    }
+  }
+
+  const handleTexUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    const toastId = toast.loading('Đang khởi động tiến trình đọc LaTeX...')
+    
+    try {
+      const examData = await parseTexToExam(file, (msg) => {
+        toast.loading(msg, { id: toastId })
+      })
+      
+      // Tự động tạo cấu hình điểm mặc định
+      examData.pointsConfig = createDefaultPointsConfig(examData.questions)
+
+      toast.loading('Đang lưu lên Supabase...', { id: toastId })
+      const title = file.name.replace(/\.tex$/i, '')
+      await createExam(examData, title)
+
+      toast.success('Tải đề thi LaTeX thành công!', { id: toastId })
+    } catch (error: any) {
+      toast.error(`Lỗi: ${error.message || 'Không thể đọc file LaTeX'}`, { id: toastId })
     } finally {
       setUploading(false)
       if (e.target) e.target.value = '' 
@@ -208,11 +237,21 @@ export default function ExamMgmt() {
           <p className="text-gray-400 text-sm mt-1">Phân tích tự động và cấu hình điểm thi</p>
         </div>
         
-        <label className={`btn-teal flex items-center gap-2 cursor-pointer ${uploading ? 'opacity-70 pointer-events-none' : ''}`}>
-          {uploading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FileUp className="w-4 h-4" />}
-          {uploading ? 'Đang xử lý...' : 'Tải lên từ Word'}
-          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload} disabled={uploading} />
-        </label>
+        <div className="flex gap-2">
+          <label className={`btn-teal flex items-center gap-2 cursor-pointer ${uploading ? 'opacity-70 pointer-events-none' : ''}`}>
+            {uploading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FileUp className="w-4 h-4" />}
+            {uploading ? 'Đang xử lý...' : 'Tải lên từ Word'}
+            <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload} disabled={uploading} />
+          </label>
+          <label 
+            className={`btn-teal flex items-center gap-2 cursor-pointer ${uploading ? 'opacity-70 pointer-events-none' : ''}`}
+            style={{ background: 'linear-gradient(135deg, #6d28d9, #7c3aed)' }}
+          >
+            {uploading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FileUp className="w-4 h-4" />}
+            {uploading ? 'Đang xử lý...' : 'Tải lên từ LaTeX'}
+            <input type="file" accept=".tex" className="hidden" onChange={handleTexUpload} disabled={uploading} />
+          </label>
+        </div>
       </div>
 
       {/* 4 Cột Khối Lớp */}
