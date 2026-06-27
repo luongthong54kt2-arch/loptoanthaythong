@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { FileUp, FileText, Trash2, RefreshCw, Eye, Edit2, Save, X, Settings, Download, BookOpen } from 'lucide-react'
+import { FileUp, FileText, Trash2, RefreshCw, Eye, Edit2, Save, X, Settings, Download, BookOpen, Sparkles } from 'lucide-react'
 import { useExamStore } from '@/store/examStore'
 import { parseWordToExam } from '@/services/mathWordParserService'
 import { parseTexToExam } from '@/services/texParserService'
 import { createDefaultPointsConfig } from '@/services/scoringService'
+import { generateSimilarQuestions } from '@/services/geminiService'
 import { fmt } from '@/lib/helpers'
 import { supabase } from '@/lib/supabase'
 import Modal from '@/components/Modal'
@@ -37,6 +38,7 @@ export default function ExamMgmt() {
 
   // State cho downloading file LaTeX
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [generatingSimilarId, setGeneratingSimilarId] = useState<string | null>(null)
 
   const generateTexFromQuestions = (title: string, questions: any[]): string => {
     const part1 = (questions || []).filter(q => q.part === 1 || q.type === 'multiple_choice');
@@ -247,6 +249,60 @@ export default function ExamMgmt() {
       toast.error('Lỗi khi biên dịch PDF: ' + e.message, { id: toastId })
     } finally {
       setCompilingId(null)
+    }
+  }
+
+  const handleGenerateSimilarExam = async (exam: any) => {
+    if (!confirm(`Bạn có chắc muốn tạo đề thi mới TƯƠNG TỰ đề: "${exam.title}" không? (Hệ thống sẽ dùng AI thay đổi các số liệu toán nhưng giữ nguyên độ khó và cấu trúc đề).`)) {
+      return
+    }
+
+    setGeneratingSimilarId(exam.id)
+    const toastId = toast.loading('Đang lấy dữ liệu đề gốc...')
+    try {
+      const data = await getExamData(exam.id)
+      
+      toast.loading('AI đang thiết kế và tạo số liệu mới cho đề thi...', { id: toastId })
+      const newQuestions = await generateSimilarQuestions(data.questions || [])
+      
+      const newAnswers: Record<string, any> = {}
+      newQuestions.forEach((q: any) => {
+        if (q.correctAnswer) {
+          newAnswers[q.number] = q.correctAnswer
+        }
+      })
+
+      // Đồng bộ lại các phần (sections)
+      const qMap = new Map(newQuestions.map(q => [q.number, q]))
+      const newSections = (data.sections || []).map((s: any) => ({
+        ...s,
+        questions: (s.questions || []).map((q: any) => qMap.get(q.number) || q)
+      }))
+
+      const newExamData = {
+        ...data,
+        questions: newQuestions,
+        answers: newAnswers,
+        sections: newSections,
+      }
+
+      // Xóa cache PDF và nguyên bản LaTeX cũ vì đây là số liệu mới
+      delete newExamData.pdfUrl
+      delete newExamData.pdfDriveUrl
+      delete newExamData.pdfBase64
+      delete newExamData.originalTex
+
+      toast.loading('Đang lưu đề thi mới vào hệ thống...', { id: toastId })
+      const newTitle = `${exam.title} - Tương tự`
+      await createExam(newExamData, newTitle)
+
+      toast.success(`Đã tạo thành công đề thi tương tự: "${newTitle}"!`, { id: toastId })
+      await loadExams()
+    } catch (err: any) {
+      console.error(err)
+      toast.error('Lỗi khi tạo đề tương tự: ' + err.message, { id: toastId })
+    } finally {
+      setGeneratingSimilarId(null)
     }
   }
 
@@ -592,6 +648,14 @@ export default function ExamMgmt() {
                           {downloadingId === exam.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                         </button>
                         <button 
+                          onClick={() => handleGenerateSimilarExam(exam)}
+                          disabled={generatingSimilarId === exam.id}
+                          className="p-1 text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                          title="Tạo đề tương tự (AI)"
+                        >
+                          {generatingSimilarId === exam.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        </button>
+                        <button 
                           onClick={() => handleOpenConfig(exam.id, exam.title)}
                           className="p-1 text-orange-500 hover:bg-orange-50 rounded transition-colors"
                           title="Cấu hình điểm"
@@ -706,6 +770,14 @@ export default function ExamMgmt() {
                     title="Tải file LaTeX (.tex)"
                   >
                     {downloadingId === exam.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  </button>
+                  <button 
+                    onClick={() => handleGenerateSimilarExam(exam)}
+                    disabled={generatingSimilarId === exam.id}
+                    className="p-1 text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                    title="Tạo đề tương tự (AI)"
+                  >
+                    {generatingSimilarId === exam.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                   </button>
                   <button 
                     onClick={() => handleOpenConfig(exam.id, exam.title)}

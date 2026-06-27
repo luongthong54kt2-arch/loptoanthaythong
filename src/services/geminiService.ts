@@ -209,3 +209,44 @@ export async function convertPdfToText(pdfImages: any[]): Promise<string> {
 export async function callGeminiPublic(prompt: string, model?: string, inlineData?: InlineData, inlineDataList?: InlineData[]): Promise<string> {
   return callGemini(prompt, model, inlineData, inlineDataList);
 }
+
+export async function generateSimilarQuestions(questions: any[]): Promise<any[]> {
+  const apiKey = getSafeApiKey();
+  const ai = new GoogleGenAI({ apiKey });
+  
+  const prompt = `Bạn là một giáo viên toán trung học chuyên nghiệp. 
+Nhiệm vụ của bạn là tạo ra một đề thi toán mới hoàn toàn tương tự đề thi được cung cấp ở dạng JSON dưới đây.
+Yêu cầu bắt buộc:
+1. Giữ nguyên cấu trúc đề, số lượng câu hỏi, các phần (Part), và dạng toán của từng câu hỏi.
+2. Giữ nguyên mức độ khó và phân loại câu hỏi (trắc nghiệm, đúng/sai, trả lời ngắn, tự luận).
+3. CHỈ thay đổi các số liệu, hằng số, phương trình hoặc biến số trong đề bài để tạo ra bài toán mới có cách giải và thuật toán tương tự nhưng đáp án khác.
+4. Đảm bảo các số liệu mới được chọn sao cho đáp án đẹp (ví dụ: nghiệm nguyên, số hữu tỷ đơn giản) nếu có thể.
+5. Cập nhật lại nội dung câu hỏi (text) dưới dạng HTML + LaTeX, các phương án lựa chọn (options) với các trường text và isCorrect phù hợp, đáp án đúng (correctAnswer) và lời giải chi tiết (solution) dưới dạng HTML + LaTeX tương ứng với số liệu mới. Các công thức LaTeX phải được viết chính xác và đặt giữa $ hoặc $$.
+6. Trả về kết quả dưới dạng mảng các đối tượng câu hỏi JSON khớp với cấu trúc mảng đầu vào.
+
+ĐỀ THI GỐC (JSON):
+${JSON.stringify(questions, null, 2)}`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ text: prompt }],
+      config: {
+        responseMimeType: "application/json"
+      }
+    });
+
+    const text = response.text || "";
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+    if (parsed.questions && Array.isArray(parsed.questions)) {
+      return parsed.questions;
+    }
+    throw new Error("Định dạng dữ liệu trả về từ AI không hợp lệ.");
+  } catch (error: any) {
+    console.error("Lỗi khi tạo đề tương tự:", error);
+    throw new Error("Không thể tạo câu hỏi tương tự từ AI: " + (error.message || "Lỗi không xác định"));
+  }
+}
