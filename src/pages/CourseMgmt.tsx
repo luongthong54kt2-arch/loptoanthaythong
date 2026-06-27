@@ -23,6 +23,15 @@ const sortLessons = (lessons: any[]) => {
   })
 }
 
+const getCourseGrade = (title: string) => {
+  const t = (title || '').toLowerCase()
+  if (t.includes('lớp 6') || t.includes('khối 6') || t.includes('toán 6') || t.includes('khối sáu') || /\b(khối\s+)?6\b/.test(t)) return 6
+  if (t.includes('lớp 7') || t.includes('khối 7') || t.includes('toán 7') || t.includes('khối bảy') || /\b(khối\s+)?7\b/.test(t)) return 7
+  if (t.includes('lớp 8') || t.includes('khối 8') || t.includes('toán 8') || t.includes('khối tám') || /\b(khối\s+)?8\b/.test(t)) return 8
+  if (t.includes('lớp 9') || t.includes('khối 9') || t.includes('toán 9') || t.includes('khối chín') || /\b(khối\s+)?9\b/.test(t)) return 9
+  return null
+}
+
 export default function CourseMgmt() {
   const { 
     courses, loadCourses, createCourse, updateCourse, deleteCourse,
@@ -50,6 +59,21 @@ export default function CourseMgmt() {
 
   const [assigningCourse, setAssigningCourse] = useState<any>(null);
   const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
+
+  const [activeGrade, setActiveGrade] = useState<number | 'others'>(9)
+
+  useEffect(() => {
+    if (courses && courses.length > 0) {
+      const availableGrades = [9, 8, 7, 6].filter(g => 
+        courses.some((c: any) => getCourseGrade(c.title) === g)
+      )
+      if (availableGrades.length > 0) {
+        setActiveGrade(availableGrades[0])
+      } else if (courses.some((c: any) => getCourseGrade(c.title) === null)) {
+        setActiveGrade('others')
+      }
+    }
+  }, [courses])
 
   useEffect(() => {
     if (loadCourses) loadCourses()
@@ -197,6 +221,14 @@ export default function CourseMgmt() {
   const myClasses = isAdmin() ? classes : classes.filter((c: any) => c.teacher_id === user?.id);
   const myCourses = isAdmin() ? courses : courses?.filter((c: any) => c.teacher_id === user?.id);
 
+  const displayedCourses = myCourses?.filter((course: any) => {
+    const g = getCourseGrade(course.title)
+    if (activeGrade === 'others') {
+      return g === null
+    }
+    return g === activeGrade
+  })
+
   return (
     <div className="space-y-6">
       <input type="file" accept=".pdf" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
@@ -210,8 +242,43 @@ export default function CourseMgmt() {
         </button>
       </div>
 
+      {/* Grade Selector horizontal list */}
+      <div className="flex flex-wrap gap-3">
+        {[6, 7, 8, 9, 'others'].map((grade) => {
+          const isOther = grade === 'others'
+          const label = isOther ? 'Khác' : `Khối ${grade}`
+          const isActive = activeGrade === grade
+          
+          const count = myCourses?.filter(c => {
+            const g = getCourseGrade(c.title)
+            return isOther ? (g === null) : (g === grade)
+          }).length || 0
+
+          if (isOther && count === 0) return null
+
+          return (
+            <button
+              key={grade}
+              onClick={() => setActiveGrade(grade as any)}
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl border-2 font-bold text-sm transition-all shadow-sm ${
+                isActive
+                  ? 'bg-teal-600 border-teal-600 text-white shadow-md shadow-teal-500/10'
+                  : 'bg-white border-teal-100 text-gray-700 hover:border-teal-300 hover:bg-teal-50/10'
+              }`}
+            >
+              {label}
+              <span className={`text-[11px] px-1.5 py-0.5 rounded-md font-extrabold ${
+                isActive ? 'bg-teal-700/50 text-white' : 'bg-slate-100 text-slate-500'
+              }`}>
+                {count}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
       <div className="grid grid-cols-1 gap-6">
-        {myCourses?.map((course: any) => (
+        {displayedCourses?.map((course: any) => (
           <div key={course.id} className={`card p-6 border-l-4 ${course.is_published ? 'border-teal-500' : 'border-gray-400 bg-gray-50/50'}`}>
             <div className="flex justify-between items-start mb-6">
               <div className="flex-1">
@@ -395,8 +462,10 @@ export default function CourseMgmt() {
             </div>
           </div>
         ))}
-        {(!myCourses || myCourses.length === 0) && (
-          <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">Chưa có khóa học nào. Hãy tạo khóa học đầu tiên!</div>
+        {(!displayedCourses || displayedCourses.length === 0) && (
+          <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
+            Chưa có khóa học nào thuộc {activeGrade === 'others' ? 'danh mục Khác' : `Khối ${activeGrade}`}.
+          </div>
         )}
       </div>
 
