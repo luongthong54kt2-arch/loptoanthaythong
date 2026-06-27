@@ -152,6 +152,11 @@ export default function ExamMgmt() {
         texContent = generateTexFromQuestions(title, data.questions || [])
       }
 
+      // Thay thế tên tác giả và ẩn lời giải
+      texContent = texContent
+        .replace(/Nguyễn Hữu Phúc/g, 'Lớp toán thầy lĩnh')
+        .replace(/\\usepackage\s*\[\s*loigiai\s*\]\s*\{\s*ex_test\s*\}/g, '\\usepackage[dethi]{ex_test}')
+
       const blob = new Blob([texContent], { type: 'text/plain;charset=utf-8' })
       const filename = `${title.replace(/\s+/g, '_')}.tex`
       
@@ -203,6 +208,11 @@ export default function ExamMgmt() {
       } else {
         texContent = generateTexFromQuestions(exam.title, data.questions || [])
       }
+
+      // Thay thế tên tác giả và ẩn lời giải
+      texContent = texContent
+        .replace(/Nguyễn Hữu Phúc/g, 'Lớp toán thầy lĩnh')
+        .replace(/\\usepackage\s*\[\s*loigiai\s*\]\s*\{\s*ex_test\s*\}/g, '\\usepackage[dethi]{ex_test}')
 
       toast.loading('Đang biên dịch LaTeX sang PDF...', { id: toastId })
       const compileRes = await compileFullTex({ tex: texContent })
@@ -385,6 +395,9 @@ export default function ExamMgmt() {
         questions: updatedQuestions,
         answers: updatedAnswers,
       }
+      delete newExamPayload.pdfUrl
+      delete newExamPayload.pdfDriveUrl
+      delete newExamPayload.pdfBase64
 
       const { error } = await supabase
         .from('exams')
@@ -393,14 +406,21 @@ export default function ExamMgmt() {
 
       if (error) throw error
 
-      setPreviewData((prev: any) => ({
-        ...prev,
-        questions: updatedQuestions,
-        answers: updatedAnswers
-      }))
+      setPreviewData((prev: any) => {
+        const next = {
+          ...prev,
+          questions: updatedQuestions,
+          answers: updatedAnswers
+        }
+        delete next.pdfUrl
+        delete next.pdfDriveUrl
+        delete next.pdfBase64
+        return next
+      })
       
       setEditingQuestionId(null)
       setEditForm(null)
+      await loadExams() // Refresh list state to reflect PDF cache deletion
       toast.success('Đã cập nhật câu hỏi thành công!', { id: toastId })
     } catch (err: any) {
       toast.error('Lỗi khi lưu câu hỏi: ' + err.message, { id: toastId })

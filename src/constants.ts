@@ -31,9 +31,9 @@ export const EX_TEST_DETHI_TEMPLATE = String.raw`\documentclass[12pt,a4paper]{ar
 \def\mau{teal}
 \def\tren{1.5}\def\duoi{1.5}\def\trai{1.5}\def\phai{1.5} 
 \usepackage[top=\tren cm, bottom=\duoi cm, left=\trai cm, right=\phai cm]{geometry}
-\usepackage[loigiai]{ex_test}
+\usepackage[dethi]{ex_test}
 %%%%%%%%%%%%% Thông tin tiêu đề
-\def\duoitrai{Nguyễn Hữu Phúc}
+\def\duoitrai{Lớp toán thầy lĩnh}
 \def\duoiphai{Mr.Phuc Math}
 \usepackage[most]{tcolorbox}
 \usepackage{fancyhdr}
