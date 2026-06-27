@@ -33,12 +33,14 @@ export default function TexExamCreator({ teacherId, onSave, onCancel }: TexExamC
     setProgressMsg('Đang khởi tạo bộ phân tích LaTeX...');
 
     try {
+      const fileText = await file.text();
       const parsedData = await parseTexToExam(file, setProgressMsg);
       
       if (!parsedData.questions || parsedData.questions.length === 0) {
         throw new Error('Không tìm thấy câu hỏi nào. Vui lòng kiểm tra lại cấu trúc \\begin{ex}...\\end{ex}');
       }
 
+      parsedData.originalTex = fileText;
       setExamData(parsedData);
       const config = buildPointsConfigFromQuestions(parsedData.questions);
       setPointsConfig(config);
@@ -69,6 +71,7 @@ export default function TexExamCreator({ teacherId, onSave, onCancel }: TexExamC
         answers: examData.answers,
         images: examData.images, 
         pointsConfig: pointsConfig,
+        originalTex: examData.originalTex,
         createdBy: teacherId
       };
       await onSave(finalExamData);

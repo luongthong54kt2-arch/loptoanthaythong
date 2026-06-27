@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FileUp, FileText, Trash2, RefreshCw, Eye, Edit2, Save, X, Settings } from 'lucide-react'
+import { FileUp, FileText, Trash2, RefreshCw, Eye, Edit2, Save, X, Settings, Download } from 'lucide-react'
 import { useExamStore } from '@/store/examStore'
 import { parseWordToExam } from '@/services/mathWordParserService'
 import { parseTexToExam } from '@/services/texParserService'
@@ -10,6 +10,7 @@ import Modal from '@/components/Modal'
 import MathText from '@/components/MathText' 
 import PointsConfigEditor from '@/components/PointsConfigEditor'
 import toast from 'react-hot-toast'
+import { EX_TEST_DETHI_TEMPLATE } from '@/constants'
 
 export default function ExamMgmt() {
   const { exams, loading, loadExams, createExam, deleteExam, getExamData } = useExamStore()
@@ -31,6 +32,143 @@ export default function ExamMgmt() {
   const [editingExamId, setEditingExamId] = useState<string | null>(null)
   const [editingExamTitle, setEditingExamTitle] = useState<string>('')
   const [savingRename, setSavingRename] = useState(false)
+
+  // State cho downloading file LaTeX
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
+
+  const generateTexFromQuestions = (title: string, questions: any[]): string => {
+    const part1 = (questions || []).filter(q => q.part === 1 || q.type === 'multiple_choice');
+    const part2 = (questions || []).filter(q => q.part === 2 || q.type === 'true_false');
+    const part3 = (questions || []).filter(q => q.part === 3 || q.type === 'short_answer');
+    const other = (questions || []).filter(q => q.part !== 1 && q.part !== 2 && q.part !== 3 && q.type !== 'multiple_choice' && q.type !== 'true_false' && q.type !== 'short_answer');
+
+    let body = '';
+
+    const cleanText = (html: string) => {
+      if (!html) return '';
+      let tex = html;
+      tex = tex.replace(/<strong>([\s\S]*?)<\/strong>/gi, '\\textbf{$1}');
+      tex = tex.replace(/<b>([\s\S]*?)<\/b>/gi, '\\textbf{$1}');
+      tex = tex.replace(/<em>([\s\S]*?)<\/em>/gi, '\\textit{$1}');
+      tex = tex.replace(/<i>([\s\S]*?)<\/i>/gi, '\\textit{$1}');
+      tex = tex.replace(/<u>([\s\S]*?)<\/u>/gi, '\\underline{$1}');
+      tex = tex.replace(/<br\s*\/?>/gi, '\\\\\n');
+      tex = tex.replace(/&nbsp;/gi, '~');
+      tex = tex.replace(/<(?:\/?[a-zA-Z][a-zA-Z0-9]*)(?:\s+[^>]*?)?>/g, '');
+      return tex.trim();
+    };
+
+    if (part1.length > 0) {
+      body += `\\textbf{PHẦN I. Câu trắc nghiệm nhiều phương án lựa chọn.} Học sinh trả lời từ câu 1 đến câu ${part1.length}. Mỗi câu hỏi học sinh chỉ chọn một phương án.\n\\hrule\n\\medskip\n`;
+      part1.forEach((q) => {
+        body += `\\begin{ex}\n${cleanText(q.text)}\n`;
+        if (q.options && q.options.length > 0) {
+          body += `\\choice\n`;
+          const letters = ['A', 'B', 'C', 'D'];
+          q.options.forEach((opt: any, oIdx: number) => {
+            const isTrue = opt.isCorrect || opt.letter === q.correctAnswer || (q.correctAnswer === letters[oIdx]);
+            body += `{\n  ${isTrue ? '\\True ' : ''}${cleanText(opt.text)}\n}\n`;
+          });
+        }
+        if (q.solution) {
+          body += `\\loigiai{${cleanText(q.solution)}}\n`;
+        }
+        body += `\\end{ex}\n\n`;
+      });
+    }
+
+    if (part2.length > 0) {
+      body += `\\textbf{PHẦN II. Câu trắc nghiệm đúng sai.} Học sinh trả lời từ câu 1 đến câu ${part2.length}. Trong mỗi ý a), b), c), d) ở mỗi câu, học sinh chọn đúng hoặc sai.\n\\hrule\n\\medskip\n`;
+      part2.forEach((q) => {
+        body += `\\begin{ex}\n${cleanText(q.text)}\n`;
+        if (q.options && q.options.length > 0) {
+          body += `\\choiceTF[t]\n`;
+          q.options.forEach((opt: any) => {
+            const isTrue = opt.isCorrect || (q.correctAnswer && q.correctAnswer.split(',').includes(opt.letter));
+            body += `{\n  ${isTrue ? '\\True ' : ''}${cleanText(opt.text)}\n}\n`;
+          });
+        }
+        if (q.solution) {
+          body += `\\loigiai{${cleanText(q.solution)}}\n`;
+        }
+        body += `\\end{ex}\n\n`;
+      });
+    }
+
+    if (part3.length > 0) {
+      body += `\\textbf{PHẦN III. Câu trắc nghiệm trả lời ngắn.} Học sinh trả lời từ câu 1 đến câu ${part3.length}.\n\\hrule\n\\medskip\n`;
+      part3.forEach((q) => {
+        body += `\\begin{ex}\n${cleanText(q.text)}\n`;
+        if (q.correctAnswer) {
+          body += `\\shortans{${q.correctAnswer}}\n`;
+        }
+        if (q.solution) {
+          body += `\\loigiai{${cleanText(q.solution)}}\n`;
+        }
+        body += `\\end{ex}\n\n`;
+      });
+    }
+
+    if (other.length > 0) {
+      body += `\\textbf{PHẦN IV. Tự luận.}\n\\hrule\n\\medskip\n`;
+      other.forEach((q) => {
+        body += `\\begin{ex}\n${cleanText(q.text)}\n`;
+        if (q.solution) {
+          body += `\\loigiai{${cleanText(q.solution)}}\n`;
+        }
+        body += `\\end{ex}\n\n`;
+      });
+    }
+
+    const template = EX_TEST_DETHI_TEMPLATE;
+    
+    let customizedTemplate = template;
+    if (title) {
+      customizedTemplate = customizedTemplate.replace(
+        /\\textit\{Môn: Toán 12 -- Thời gian: 45 phút\}/g,
+        `\\textit{Môn: Toán -- Đề: ${title}}`
+      );
+    }
+
+    const customParts = customizedTemplate.split('%=== THÊM CÂU HỎI TẠI ĐÂY ===');
+    if (customParts.length >= 2) {
+      return `${customParts[0]}\n\n${body}\n\n${customParts.slice(1).join('%=== THÊM CÂU HỎI TẠI ĐÂY ===')}`;
+    }
+    return `${customizedTemplate}\n\n${body}`;
+  };
+
+  const handleDownloadTex = async (id: string, title: string) => {
+    setDownloadingId(id)
+    const toastId = toast.loading('Đang tải dữ liệu để xuất file...')
+    try {
+      const data = await getExamData(id)
+      
+      let texContent = ''
+      if (data.originalTex) {
+        texContent = data.originalTex
+      } else {
+        texContent = generateTexFromQuestions(title, data.questions || [])
+      }
+
+      const blob = new Blob([texContent], { type: 'text/plain;charset=utf-8' })
+      const filename = `${title.replace(/\s+/g, '_')}.tex`
+      
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+
+      toast.success('Tải file LaTeX thành công!', { id: toastId })
+    } catch (e: any) {
+      toast.error('Lỗi khi xuất file: ' + e.message, { id: toastId })
+    } finally {
+      setDownloadingId(null)
+    }
+  }
 
   const handleRenameExam = async (id: string) => {
     if (!editingExamTitle.trim()) {
@@ -95,12 +233,14 @@ export default function ExamMgmt() {
     const toastId = toast.loading('Đang khởi động tiến trình đọc LaTeX...')
     
     try {
+      const fileText = await file.text()
       const examData = await parseTexToExam(file, (msg) => {
         toast.loading(msg, { id: toastId })
       })
       
       // Tự động tạo cấu hình điểm mặc định
       examData.pointsConfig = createDefaultPointsConfig(examData.questions)
+      examData.originalTex = fileText
 
       toast.loading('Đang lưu lên Supabase...', { id: toastId })
       const title = file.name.replace(/\.tex$/i, '')
@@ -346,6 +486,14 @@ export default function ExamMgmt() {
                       
                       <div className="flex justify-end gap-1.5 pt-1.5 border-t border-gray-50">
                         <button 
+                          onClick={() => handleDownloadTex(exam.id, exam.title)}
+                          disabled={downloadingId === exam.id}
+                          className="p-1 text-teal-600 hover:bg-teal-50 rounded transition-colors"
+                          title="Tải file LaTeX (.tex)"
+                        >
+                          {downloadingId === exam.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                        </button>
+                        <button 
                           onClick={() => handleOpenConfig(exam.id, exam.title)}
                           className="p-1 text-orange-500 hover:bg-orange-50 rounded transition-colors"
                           title="Cấu hình điểm"
@@ -445,6 +593,14 @@ export default function ExamMgmt() {
                 </p>
                 
                 <div className="flex justify-end gap-1.5 pt-1.5 border-t border-gray-50">
+                  <button 
+                    onClick={() => handleDownloadTex(exam.id, exam.title)}
+                    disabled={downloadingId === exam.id}
+                    className="p-1 text-teal-600 hover:bg-teal-50 rounded transition-colors"
+                    title="Tải file LaTeX (.tex)"
+                  >
+                    {downloadingId === exam.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  </button>
                   <button 
                     onClick={() => handleOpenConfig(exam.id, exam.title)}
                     className="p-1 text-orange-500 hover:bg-orange-50 rounded transition-colors"
