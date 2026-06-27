@@ -19,7 +19,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
     try {
       const { data, error } = await supabase
         .from('exams')
-        .select('id, title, created_at')
+        .select('id, title, created_at, pdfUrl:data->>pdfUrl, pdfDriveUrl:data->>pdfDriveUrl, pdfBase64:data->>pdfBase64')
         .order('created_at', { ascending: false })
       if (error) throw error
       set({ exams: data || [] })

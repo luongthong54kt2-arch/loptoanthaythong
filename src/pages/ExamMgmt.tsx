@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FileUp, FileText, Trash2, RefreshCw, Eye, Edit2, Save, X, Settings, Download } from 'lucide-react'
+import { FileUp, FileText, Trash2, RefreshCw, Eye, Edit2, Save, X, Settings, Download, BookOpen } from 'lucide-react'
 import { useExamStore } from '@/store/examStore'
 import { parseWordToExam } from '@/services/mathWordParserService'
 import { parseTexToExam } from '@/services/texParserService'
@@ -11,6 +11,8 @@ import MathText from '@/components/MathText'
 import PointsConfigEditor from '@/components/PointsConfigEditor'
 import toast from 'react-hot-toast'
 import { EX_TEST_DETHI_TEMPLATE } from '@/constants'
+import { compileFullTex } from '@/services/api'
+import { uploadPdfToSupabase } from '@/services/supabaseService'
 
 export default function ExamMgmt() {
   const { exams, loading, loadExams, createExam, deleteExam, getExamData } = useExamStore()
@@ -167,6 +169,70 @@ export default function ExamMgmt() {
       toast.error('Lỗi khi xuất file: ' + e.message, { id: toastId })
     } finally {
       setDownloadingId(null)
+    }
+  }
+
+  // State cho xem PDF
+  const [pdfUrlToView, setPdfUrlToView] = useState<string | null>(null)
+  const [compilingId, setCompilingId] = useState<string | null>(null)
+
+  const handleViewPdf = async (exam: any) => {
+    // 1. Kiểm tra xem đề thi đã có sẵn file PDF chưa
+    if (exam.pdfUrl) {
+      setPdfUrlToView(exam.pdfUrl)
+      return
+    }
+    if (exam.pdfDriveUrl) {
+      setPdfUrlToView(exam.pdfDriveUrl)
+      return
+    }
+
+    // 2. Nếu chưa có, hỏi xem thầy/cô có muốn biên dịch LaTeX sang PDF ngay lập tức không
+    if (!confirm('Đề thi này chưa có bản xem trước PDF. Hệ thống cần biên dịch LaTeX sang PDF (mất khoảng 5-10s). Tiếp tục?')) {
+      return
+    }
+
+    setCompilingId(exam.id)
+    const toastId = toast.loading('Đang lấy dữ liệu đề thi...')
+    try {
+      const data = await getExamData(exam.id)
+      
+      let texContent = ''
+      if (data.originalTex) {
+        texContent = data.originalTex
+      } else {
+        texContent = generateTexFromQuestions(exam.title, data.questions || [])
+      }
+
+      toast.loading('Đang biên dịch LaTeX sang PDF...', { id: toastId })
+      const compileRes = await compileFullTex({ tex: texContent })
+      
+      if (!compileRes.ok || !compileRes.base64) {
+        throw new Error(compileRes.detail || 'Biên dịch LaTeX thất bại')
+      }
+
+      toast.loading('Đang tải file PDF lên hệ thống...', { id: toastId })
+      const uploadRes = await uploadPdfToSupabase(compileRes.base64, `${exam.title}.pdf`)
+      const fileUrl = uploadRes.fileUrl
+
+      // Lưu link PDF mới vào dữ liệu đề thi trong DB
+      const updatedData = {
+        ...data,
+        pdfUrl: fileUrl
+      }
+      
+      await supabase
+        .from('exams')
+        .update({ data: updatedData })
+        .eq('id', exam.id)
+
+      toast.success('Biên dịch và lưu PDF thành công!', { id: toastId })
+      setPdfUrlToView(fileUrl)
+      await loadExams() // Refresh danh sách để cập nhật trạng thái pdfUrl
+    } catch (e: any) {
+      toast.error('Lỗi khi biên dịch PDF: ' + e.message, { id: toastId })
+    } finally {
+      setCompilingId(null)
     }
   }
 
@@ -486,6 +552,14 @@ export default function ExamMgmt() {
                       
                       <div className="flex justify-end gap-1.5 pt-1.5 border-t border-gray-50">
                         <button 
+                          onClick={() => handleViewPdf(exam)}
+                          disabled={compilingId === exam.id}
+                          className="p-1 text-rose-500 hover:bg-rose-50 rounded transition-colors"
+                          title="Đọc PDF"
+                        >
+                          {compilingId === exam.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
+                        </button>
+                        <button 
                           onClick={() => handleDownloadTex(exam.id, exam.title)}
                           disabled={downloadingId === exam.id}
                           className="p-1 text-teal-600 hover:bg-teal-50 rounded transition-colors"
@@ -593,6 +667,14 @@ export default function ExamMgmt() {
                 </p>
                 
                 <div className="flex justify-end gap-1.5 pt-1.5 border-t border-gray-50">
+                  <button 
+                    onClick={() => handleViewPdf(exam)}
+                    disabled={compilingId === exam.id}
+                    className="p-1 text-rose-500 hover:bg-rose-50 rounded transition-colors"
+                    title="Đọc PDF"
+                  >
+                    {compilingId === exam.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
+                  </button>
                   <button 
                     onClick={() => handleDownloadTex(exam.id, exam.title)}
                     disabled={downloadingId === exam.id}
@@ -937,6 +1019,40 @@ export default function ExamMgmt() {
           })}
         </div>
       </Modal>
+
+      {/* ✅ MODAL XEM TRƯỚC PDF */}
+      {pdfUrlToView && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+              <span className="font-extrabold text-slate-800 flex items-center gap-2">
+                <BookOpen size={18} className="text-teal-600 animate-pulse" />
+                Xem trước tài liệu PDF
+              </span>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => window.open(pdfUrlToView, '_blank')} 
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 text-xs flex items-center gap-1.5 transition-all"
+                >
+                  Mở tab mới
+                </button>
+                <button 
+                  onClick={() => setPdfUrlToView(null)} 
+                  className="p-2 rounded-xl hover:bg-slate-100 transition-all"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+            <div className="h-[75vh]">
+              <iframe src={pdfUrlToView} className="w-full h-full border-none" title="pdf-viewer" />
+            </div>
+            <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/50 text-[11px] text-gray-400">
+              Mẹo: Nếu trình duyệt không tự động tải PDF, bạn hãy bấm vào nút "Mở tab mới" để xem chi tiết.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
