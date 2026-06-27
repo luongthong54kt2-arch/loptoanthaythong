@@ -263,74 +263,66 @@ const ResultView: React.FC<ResultViewProps> = ({
               📋 Xem lại bài làm
             </div>
 
-            {!canShowCorrectAnswers && !canShowExplanations ? (
-              <div className="p-8 text-center">
-                <div className="text-6xl mb-4">🔒</div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Không thể xem đáp án</h3>
-                <p className="text-gray-500">Giáo viên chưa cho phép xem đáp án và lời giải cho bài thi này.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {(!canShowCorrectAnswers || !canShowExplanations) && (
-                  <div className="p-4 bg-yellow-50 border-l-4 border-yellow-500">
-                    <div className="flex items-start gap-2">
-                      <span className="text-xl">ℹ️</span>
-                      <div>
-                        <p className="font-semibold text-yellow-800 text-sm">Thông báo:</p>
-                        <ul className="text-sm text-yellow-700 mt-1 list-disc list-inside">
-                          {!canShowCorrectAnswers && <li>Không được phép xem đáp án đúng</li>}
-                          {!canShowExplanations && <li>Không được phép xem lời giải chi tiết</li>}
-                        </ul>
-                      </div>
+            <div className="divide-y divide-gray-100">
+              {(!canShowCorrectAnswers || !canShowExplanations) && (
+                <div className="p-4 bg-yellow-50 border-l-4 border-yellow-500">
+                  <div className="flex items-start gap-2">
+                    <span className="text-xl">ℹ️</span>
+                    <div>
+                      <p className="font-semibold text-yellow-800 text-sm">Thông báo:</p>
+                      <ul className="text-sm text-yellow-700 mt-1 list-disc list-inside">
+                        {!canShowCorrectAnswers && <li>Không được phép xem đáp án đúng</li>}
+                        {!canShowExplanations && <li>Không được phép xem lời giải chi tiết</li>}
+                      </ul>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {exam.questions.map((q: Question) => {
-                  // ✅ FIX: robust answer lookup với cả number và string key
-                  const userAnswer = getAnswer(answers, q.number);
-                  const correctAnswer = q.correctAnswer || '';
+              {exam.questions.map((q: Question) => {
+                // ✅ FIX: robust answer lookup với cả number và string key
+                const userAnswer = getAnswer(answers, q.number);
+                const correctAnswer = q.correctAnswer || '';
 
-                  if (q.type === 'true_false') {
-                    // ✅ FIX: truyền đúng breakdown với string key fallback
-                    const detail = getTFDetail(scoreBreakdown, q.number);
-                    return (
-                      <TrueFalseReview
-                        key={q.number}
-                        question={q}
-                        userAnswer={userAnswer}
-                        correctAnswer={correctAnswer}
-                        showCorrectAnswers={canShowCorrectAnswers}
-                        showExplanations={canShowExplanations}
-                        breakdown={detail}
-                      />
-                    );
-                  } else if (q.type === 'short_answer') {
-                    return (
-                      <ShortAnswerReview
-                        key={q.number}
-                        question={q}
-                        userAnswer={userAnswer}
-                        correctAnswer={correctAnswer}
-                        showCorrectAnswers={canShowCorrectAnswers}
-                        showExplanations={canShowExplanations}
-                      />
-                    );
-                  } else {
-                    return (
-                      <MultipleChoiceReview
-                        key={q.number}
-                        question={q}
-                        userAnswer={userAnswer}
-                        correctAnswer={correctAnswer}
-                        showCorrectAnswers={canShowCorrectAnswers}
-                        showExplanations={canShowExplanations}
-                      />
-                    );
-                  }
-                })}
-              </div>
-            )}
+                if (q.type === 'true_false') {
+                  // ✅ FIX: truyền đúng breakdown với string key fallback
+                  const detail = getTFDetail(scoreBreakdown, q.number);
+                  return (
+                    <TrueFalseReview
+                      key={q.number}
+                      question={q}
+                      userAnswer={userAnswer}
+                      correctAnswer={correctAnswer}
+                      showCorrectAnswers={canShowCorrectAnswers}
+                      showExplanations={canShowExplanations}
+                      breakdown={detail}
+                    />
+                  );
+                } else if (q.type === 'short_answer') {
+                  return (
+                    <ShortAnswerReview
+                      key={q.number}
+                      question={q}
+                      userAnswer={userAnswer}
+                      correctAnswer={correctAnswer}
+                      showCorrectAnswers={canShowCorrectAnswers}
+                      showExplanations={canShowExplanations}
+                    />
+                  );
+                } else {
+                  return (
+                    <MultipleChoiceReview
+                      key={q.number}
+                      question={q}
+                      userAnswer={userAnswer}
+                      correctAnswer={correctAnswer}
+                      showCorrectAnswers={canShowCorrectAnswers}
+                      showExplanations={canShowExplanations}
+                    />
+                  );
+                }
+              })}
+            </div>
           </div>
         )}
       </div>
@@ -350,15 +342,17 @@ const MultipleChoiceReview: React.FC<{
   const isUnanswered = !userAnswer;
   const displayOptions = question.options || [];
 
-  const statusColor = showCorrectAnswers
-    ? isCorrect ? 'bg-emerald-50 border-l-4 border-emerald-400' : 'bg-red-50 border-l-4 border-red-400'
-    : 'bg-gray-50';
+  const statusColor = isUnanswered 
+    ? 'bg-gray-50' 
+    : isCorrect 
+      ? 'bg-emerald-50 border-l-4 border-emerald-400' 
+      : 'bg-red-50 border-l-4 border-red-400';
 
   return (
     <div className={`p-5 ${statusColor}`}>
       <div className="flex items-start gap-3">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm text-white flex-shrink-0 ${
-          showCorrectAnswers ? (isCorrect ? 'bg-emerald-500' : 'bg-red-500') : 'bg-slate-400'
+          isUnanswered ? 'bg-slate-400' : isCorrect ? 'bg-emerald-500' : 'bg-red-500'
         }`}>
           {question.number % 100}
         </div>
@@ -382,25 +376,25 @@ const MultipleChoiceReview: React.FC<{
                 const isCorrectOpt = correctAnswer?.toUpperCase() === opt.letter.toUpperCase();
 
                 let optClass = 'bg-white border-gray-200 text-gray-700';
-                if (showCorrectAnswers) {
-                  if (isCorrectOpt) optClass = 'bg-emerald-50 border-emerald-500 text-emerald-800 font-semibold';
-                  else if (isUserAnswer) optClass = 'bg-red-50 border-red-400 text-red-800';
-                } else if (isUserAnswer) {
-                  optClass = 'bg-blue-50 border-blue-400 text-blue-800';
+                if (isUserAnswer) {
+                  optClass = isCorrect ? 'bg-emerald-50 border-emerald-500 text-emerald-800 font-semibold' : 'bg-red-50 border-red-400 text-red-800';
+                }
+                if (showCorrectAnswers && isCorrectOpt && !isUserAnswer) {
+                  optClass = 'bg-emerald-50 border-emerald-500 text-emerald-800 font-semibold';
                 }
 
                 return (
                   <div key={opt.letter} className={`flex items-center gap-2 p-2.5 rounded-xl border-2 text-sm ${optClass}`}>
                     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                      showCorrectAnswers
-                        ? isCorrectOpt ? 'bg-emerald-500 text-white' : isUserAnswer ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'
-                        : isUserAnswer ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'
+                      isUserAnswer
+                        ? isCorrect ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+                        : showCorrectAnswers && isCorrectOpt ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
                       {opt.letter}
                     </span>
                     <span className="flex-1"><MathText html={opt.text || ''} /></span>
-                    {showCorrectAnswers && isCorrectOpt && <span className="text-emerald-600 font-bold">✔</span>}
-                    {showCorrectAnswers && isUserAnswer && !isCorrectOpt && <span className="text-red-500 font-bold">✖</span>}
+                    {isUserAnswer && isCorrect && <span className="text-emerald-600 font-bold">✔</span>}
+                    {isUserAnswer && !isCorrect && <span className="text-red-500 font-bold">✖</span>}
                   </div>
                 );
               })}
@@ -411,9 +405,14 @@ const MultipleChoiceReview: React.FC<{
             <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${isUnanswered ? 'bg-gray-100 text-gray-500' : 'bg-blue-100 text-blue-700'}`}>
               Bạn chọn: {userAnswer || '(Chưa chọn)'}
             </span>
-            {showCorrectAnswers && (
+            {!isUnanswered && (
               <span className={`px-3 py-1 rounded-lg text-sm font-bold ${isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                {isCorrect ? '✅ Chính xác!' : `❌ Đáp án đúng: ${correctAnswer}`}
+                {isCorrect ? '✅ Chính xác!' : `❌ Không chính xác`}
+              </span>
+            )}
+            {showCorrectAnswers && !isCorrect && !isUnanswered && (
+              <span className="px-3 py-1 bg-teal-100 text-teal-700 rounded-lg text-sm font-bold">
+                Đáp án đúng: {correctAnswer}
               </span>
             )}
           </div>
@@ -487,19 +486,17 @@ const TrueFalseReview: React.FC<{
   const allCorrect = correctCount === totalStatements;
   const partialCorrect = correctCount > 0 && !allCorrect;
 
-  const statusBg = showCorrectAnswers
-    ? allCorrect ? 'bg-emerald-50 border-l-4 border-emerald-400'
-      : partialCorrect ? 'bg-yellow-50 border-l-4 border-yellow-400'
-      : 'bg-red-50 border-l-4 border-red-400'
-    : 'bg-gray-50';
+  const statusBg = allCorrect 
+    ? 'bg-emerald-50 border-l-4 border-emerald-400'
+    : partialCorrect 
+      ? 'bg-yellow-50 border-l-4 border-yellow-400'
+      : 'bg-red-50 border-l-4 border-red-400';
 
   return (
     <div className={`p-5 ${statusBg}`}>
       <div className="flex items-start gap-3">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm text-white flex-shrink-0 ${
-          showCorrectAnswers
-            ? allCorrect ? 'bg-emerald-500' : partialCorrect ? 'bg-yellow-500' : 'bg-red-500'
-            : 'bg-slate-400'
+          allCorrect ? 'bg-emerald-500' : partialCorrect ? 'bg-yellow-500' : 'bg-red-500'
         }`}>
           {question.number % 100}
         </div>
@@ -538,27 +535,28 @@ const TrueFalseReview: React.FC<{
           {/* ✅ Bảng đúng/sai – dùng displayOptions, correctMap, userAnswers đã fix */}
           {displayOptions.length > 0 && (
             <div className="rounded-xl border-2 border-teal-200 overflow-hidden shadow-sm">
-              <div className="grid grid-cols-[1fr_60px_60px_60px] bg-teal-600 text-white text-xs font-bold">
+              <div className="grid bg-teal-600 text-white text-xs font-bold"
+                   style={{ gridTemplateColumns: showCorrectAnswers ? '1fr 60px 60px 60px' : '1fr 60px 60px' }}>
                 <div className="px-4 py-2.5">Mệnh đề</div>
                 <div className="py-2.5 text-center">Bạn chọn</div>
                 {showCorrectAnswers && <div className="py-2.5 text-center bg-teal-700">Đáp án</div>}
-                {showCorrectAnswers && <div className="py-2.5 text-center bg-teal-800">Kết quả</div>}
+                <div className="py-2.5 text-center bg-teal-800">Kết quả</div>
               </div>
               <div className="divide-y divide-teal-100">
                 {displayOptions.map((opt: QuestionOption) => {
                   const key = opt.letter.toLowerCase();
                   const shouldBeTrue = correctMap[key] ?? false;
                   const userVal = userAnswers[key];
-                  const isCorrectStatement = showCorrectAnswers
-                    ? (userVal === 'T' && shouldBeTrue) || (userVal === 'F' && !shouldBeTrue)
+                  const isCorrectStatement = userVal 
+                    ? ((userVal === 'T' && shouldBeTrue) || (userVal === 'F' && !shouldBeTrue))
                     : null;
 
                   return (
-                    <div key={opt.letter} className={`grid grid-cols-[1fr_60px_60px_60px] items-center text-sm ${
-                      showCorrectAnswers && isCorrectStatement !== null
-                        ? isCorrectStatement ? 'bg-emerald-50/50' : 'bg-red-50/50'
-                        : 'bg-white'
-                    }`}>
+                    <div key={opt.letter} className="grid items-center text-sm"
+                         style={{ 
+                           gridTemplateColumns: showCorrectAnswers ? '1fr 60px 60px 60px' : '1fr 60px 60px',
+                           backgroundColor: isCorrectStatement !== null ? (isCorrectStatement ? '#f0fdf4' : '#fef2f2') : '#ffffff'
+                         }}>
                       <div className="px-4 py-3 flex gap-2 items-start">
                         <span className="w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-black flex-shrink-0">
                           {opt.letter.toLowerCase()}
@@ -575,19 +573,19 @@ const TrueFalseReview: React.FC<{
                         </span>
                       </div>
                       {showCorrectAnswers && (
-                        <>
-                          <div className="text-center py-3 bg-teal-50/30">
-                            <span className={`px-2 py-0.5 rounded text-xs font-bold ${shouldBeTrue ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
-                              {shouldBeTrue ? 'Đ' : 'S'}
-                            </span>
-                          </div>
-                          <div className="text-center py-3 bg-teal-50/10">
-                            {isCorrectStatement
-                              ? <span className="text-emerald-600 font-bold text-base">✔</span>
-                              : <span className="text-red-500 font-bold text-base">✖</span>}
-                          </div>
-                        </>
+                        <div className="text-center py-3 bg-teal-50/30">
+                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${shouldBeTrue ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+                            {shouldBeTrue ? 'Đ' : 'S'}
+                          </span>
+                        </div>
                       )}
+                      <div className="text-center py-3 bg-teal-50/10">
+                        {isCorrectStatement !== null
+                          ? isCorrectStatement
+                            ? <span className="text-emerald-600 font-bold text-base">✔</span>
+                            : <span className="text-red-500 font-bold text-base">✖</span>
+                          : <span className="text-gray-400">—</span>}
+                      </div>
                     </div>
                   );
                 })}
@@ -623,14 +621,21 @@ const ShortAnswerReview: React.FC<{
   };
 
   const isCorrect = normalizeAnswer(userAnswer || '') === normalizeAnswer(correctAnswer);
+  const isUnanswered = !userAnswer;
   const safeUser = escapeHtml(userAnswer || '');
   const safeCorrect = escapeHtml(correctAnswer || '');
 
+  const statusBg = isUnanswered 
+    ? 'bg-gray-50' 
+    : isCorrect 
+      ? 'bg-emerald-50 border-l-4 border-emerald-400' 
+      : 'bg-red-50 border-l-4 border-red-400';
+
   return (
-    <div className={`p-5 ${showCorrectAnswers ? (isCorrect ? 'bg-emerald-50 border-l-4 border-emerald-400' : 'bg-red-50 border-l-4 border-red-400') : 'bg-gray-50'}`}>
+    <div className={`p-5 ${statusBg}`}>
       <div className="flex items-start gap-3">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm text-white flex-shrink-0 ${
-          showCorrectAnswers ? (isCorrect ? 'bg-emerald-500' : 'bg-red-500') : 'bg-slate-400'
+          isUnanswered ? 'bg-slate-400' : isCorrect ? 'bg-emerald-500' : 'bg-red-500'
         }`}>
           {question.number % 100}
         </div>
@@ -649,17 +654,21 @@ const ShortAnswerReview: React.FC<{
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-            <div className={`p-3 rounded-xl border-2 ${showCorrectAnswers ? (isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200') : 'bg-blue-50 border-blue-200'}`}>
+            <div className={`p-3 rounded-xl border-2 ${isUnanswered ? 'bg-gray-50 border-gray-200' : isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
               <div className="text-xs font-bold uppercase mb-1 text-gray-500">Bạn trả lời:</div>
               <div className="font-bold text-gray-800">
                 {userAnswer ? <MathText html={safeUser} /> : <span className="text-gray-400 italic font-normal">Bỏ trống</span>}
               </div>
-              {showCorrectAnswers && (
-                <div className="mt-1">{isCorrect ? <span className="text-emerald-600 font-bold text-sm">✅ Chính xác</span> : <span className="text-red-500 font-bold text-sm">❌ Sai</span>}</div>
-              )}
+              <div className="mt-1">
+                {isUnanswered 
+                  ? <span className="text-gray-400 italic font-normal">Bỏ trống</span> 
+                  : isCorrect 
+                    ? <span className="text-emerald-600 font-bold text-sm">✅ Chính xác</span> 
+                    : <span className="text-red-500 font-bold text-sm">❌ Không chính xác</span>}
+              </div>
             </div>
 
-            {showCorrectAnswers && (
+            {showCorrectAnswers && !isCorrect && !isUnanswered && (
               <div className="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-200">
                 <div className="text-xs font-bold uppercase mb-1 text-emerald-600">Đáp án đúng:</div>
                 <div className="font-bold text-emerald-800"><MathText html={safeCorrect} /></div>

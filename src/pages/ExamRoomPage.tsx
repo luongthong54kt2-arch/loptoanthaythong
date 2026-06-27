@@ -46,7 +46,11 @@ export default function ExamRoomPage() {
         if (examErr || !examData) throw new Error('Không tìm thấy đề thi')
         setExam(examData)
 
-        const isPdf = !!examData.data?.pdfUrl || !!examData.data?.pdfDriveUrl || !!examData.data?.pdfBase64;
+        const hasRealQuestions = examData.data?.questions && examData.data.questions.length > 0 &&
+          !examData.data.questions.every((q: any) => 
+            /^(câu\s+\d+|câu\s+tự\s+luận\s+\d+):?$/i.test((q.text || '').trim())
+          );
+        const isPdf = !hasRealQuestions && (!!examData.data?.pdfUrl || !!examData.data?.pdfDriveUrl || !!examData.data?.pdfBase64);
         
         const { data: submission } = await supabase
           .from('exam_submissions').select('*').eq('room_id', roomId).eq('student_id', currentStudent.id).maybeSingle()
@@ -140,7 +144,11 @@ export default function ExamRoomPage() {
   if (loading || !currentExamData) return <div className="min-h-screen flex items-center justify-center text-teal-600 font-bold">♻️ Đang tải dữ liệu...</div>
 
   // ✅ 2. NẾU LÀ ĐỀ PDF -> MỞ GIAO DIỆN PDFExamRoom
-  const isPdfExam = !!currentExamData.pdfUrl || !!currentExamData.pdfDriveUrl || !!currentExamData.pdfBase64;
+  const hasRealQuestions = currentExamData.questions && currentExamData.questions.length > 0 &&
+    !currentExamData.questions.every((q: any) => 
+      /^(câu\s+\d+|câu\s+tự\s+luận\s+\d+):?$/i.test((q.text || '').trim())
+    );
+  const isPdfExam = !hasRealQuestions && (!!currentExamData.pdfUrl || !!currentExamData.pdfDriveUrl || !!currentExamData.pdfBase64);
   if (isPdfExam) {
     return (
       <PDFExamRoom 
