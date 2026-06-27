@@ -716,10 +716,10 @@ const AnswerPanel: React.FC<AnswerPanelProps> = ({
           🔘 PHẦN I — Trắc nghiệm ({answeredMC}/{mcQuestions.length})
         </div>
         <div className="space-y-2">
-          {mcQuestions.map(q => (
+          {mcQuestions.map((q, idx) => (
             <div key={q.number} className="flex items-center gap-3 p-3 bg-cyan-50/50 border border-cyan-100 rounded-2xl">
               <span className="bg-teal-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shrink-0 shadow-sm">
-                Câu {q.number}
+                Câu {idx + 1}
               </span>
               <div className="flex gap-1.5 flex-wrap">
                 {['A', 'B', 'C', 'D'].map(l => (
@@ -828,7 +828,7 @@ const AnswerPanel: React.FC<AnswerPanelProps> = ({
         <div className="space-y-4">
           {writingQuestions.map((q, idx) => (
             <div key={q.number} className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
-              <p className="font-bold text-gray-800 mb-2">Câu {q.number}:</p>
+              <p className="font-bold text-gray-800 mb-2">Câu {idx + 1}:</p>
               <EssayQuestionInput
                 value={writingAnswers[q.number] || ''}
                 onChange={(val) => onWR(q.number, val)}
