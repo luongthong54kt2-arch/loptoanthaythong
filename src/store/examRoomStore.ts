@@ -13,6 +13,7 @@ interface ExamRoom {
   settings?: any // ✅ Thêm trường này để lưu cấu hình
   exams?: { title: string }
   classes?: { class_name: string } 
+  exam_submissions?: Array<{ id: string }>
 }
 
 interface ExamRoomState {
@@ -38,7 +39,8 @@ export const useExamRoomStore = create<ExamRoomState>((set, get) => ({
         .select(`
           *,
           exams ( title ),
-          classes ( class_name )
+          classes ( class_name ),
+          exam_submissions ( id )
         `)
         .order('created_at', { ascending: false })
       

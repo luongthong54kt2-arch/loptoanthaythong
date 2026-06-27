@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { MonitorPlay, Plus, Trash2, KeyRound, BarChart3, RefreshCw } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useExamRoomStore } from '@/store/examRoomStore'
@@ -27,7 +27,7 @@ export default function ExamRoomsMgmt() {
   const navigate = useNavigate()
   const { rooms, loading, loadRooms, createRoom, updateRoomStatus, deleteRoom } = useExamRoomStore()
   const { exams, loadExams } = useExamStore()
-  const { classes, loadClasses } = useDataStore()
+  const { classes, loadClasses, enrollments, loadEnrollments } = useDataStore()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -52,7 +52,8 @@ export default function ExamRoomsMgmt() {
     void loadRooms()
     void loadExams()
     void loadClasses()
-  }, [loadRooms, loadExams, loadClasses])
+    void loadEnrollments()
+  }, [loadRooms, loadExams, loadClasses, loadEnrollments])
 
   const handleCreate = async () => {
     if (!modalGrade) return toast.error('Vui lòng chọn khối lớp')
@@ -118,10 +119,37 @@ export default function ExamRoomsMgmt() {
     return grade === null || !displayGrades.includes(grade)
   })
 
-  const [activeGrade, setActiveGrade] = useState<number | 'others'>(9)
-  const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
+  const isFirstRender = useRef(true)
+
+  const [activeGrade, setActiveGrade] = useState<number | 'others'>(() => {
+    const saved = sessionStorage.getItem('exam_rooms_active_grade')
+    if (saved) {
+      return saved === 'others' ? 'others' : Number(saved)
+    }
+    return 9
+  })
+
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(() => {
+    return sessionStorage.getItem('exam_rooms_selected_class_id')
+  })
 
   useEffect(() => {
+    sessionStorage.setItem('exam_rooms_active_grade', activeGrade.toString())
+  }, [activeGrade])
+
+  useEffect(() => {
+    if (selectedClassId) {
+      sessionStorage.setItem('exam_rooms_selected_class_id', selectedClassId)
+    } else {
+      sessionStorage.removeItem('exam_rooms_selected_class_id')
+    }
+  }, [selectedClassId])
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
     setSelectedClassId(null)
   }, [activeGrade])
 
@@ -135,6 +163,25 @@ export default function ExamRoomsMgmt() {
       }
     }
   }, [rooms])
+
+  useEffect(() => {
+    if (!loading && rooms.length > 0) {
+      const lastClickedId = sessionStorage.getItem('exam_rooms_last_clicked_id')
+      if (lastClickedId) {
+        sessionStorage.removeItem('exam_rooms_last_clicked_id')
+        setTimeout(() => {
+          const element = document.getElementById(`room-card-${lastClickedId}`)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            element.classList.add('ring-4', 'ring-teal-500/50', 'bg-teal-50/30')
+            setTimeout(() => {
+              element.classList.remove('ring-4', 'ring-teal-500/50', 'bg-teal-50/30')
+            }, 2000)
+          }
+        }, 300)
+      }
+    }
+  }, [loading, rooms])
 
   const getExamGrade = (title: string) => {
     const t = title.toLowerCase()
@@ -349,6 +396,7 @@ export default function ExamRoomsMgmt() {
                   {sortedRooms.map((room) => (
                     <div 
                       key={room.id} 
+                      id={`room-card-${room.id}`}
                       className="bg-white border border-slate-200/60 rounded-2xl p-4 shadow-sm hover:border-teal-300 hover:shadow-md transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
                       {/* Left: Code & Title & Class */}
@@ -366,9 +414,40 @@ export default function ExamRoomsMgmt() {
                           </p>
                         </div>
                       </div>
+
+                      {/* Middle: Stats */}
+                      {(() => {
+                        const totalStudents = enrollments.filter(e => e.class_id === room.class_id && e.status === 'active').length
+                        const submittedCount = room.exam_submissions?.length || 0
+                        return (
+                          <div className="flex-col items-start shrink-0 min-w-[100px] gap-0.5 pl-4 border-l border-slate-200 hidden md:flex">
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Đã làm bài</span>
+                            <div className="flex items-baseline gap-1 font-extrabold">
+                              <span className={`text-base ${submittedCount > 0 ? 'text-teal-600' : 'text-gray-400'}`}>
+                                {submittedCount}
+                              </span>
+                              <span className="text-gray-300 text-xs font-normal">/</span>
+                              <span className="text-gray-500 text-xs">
+                                {totalStudents} HS
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      })()}
                       
                       {/* Right: Time, Status, and Actions */}
                       <div className="flex items-center justify-between md:justify-end gap-5 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
+                        {/* Mobile view of stats */}
+                        {(() => {
+                          const totalStudents = enrollments.filter(e => e.class_id === room.class_id && e.status === 'active').length
+                          const submittedCount = room.exam_submissions?.length || 0
+                          return (
+                            <span className="text-[11px] font-bold text-gray-500 md:hidden bg-slate-50 border border-slate-200/50 px-2 py-1 rounded-xl">
+                              Đã nộp: {submittedCount}/{totalStudents}
+                            </span>
+                          )
+                        })()}
+
                         <span className="text-xs text-gray-400 font-bold bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-150 shrink-0">
                           {room.time_limit} phút
                         </span>
@@ -388,7 +467,14 @@ export default function ExamRoomsMgmt() {
                         
                         <div className="flex gap-1">
                           <button 
-                            onClick={() => navigate(`/exam-results/${room.id}`)}
+                            onClick={() => {
+                              sessionStorage.setItem('exam_rooms_active_grade', activeGrade.toString())
+                              if (currentClassId) {
+                                sessionStorage.setItem('exam_rooms_selected_class_id', currentClassId)
+                              }
+                              sessionStorage.setItem('exam_rooms_last_clicked_id', room.id)
+                              navigate(`/exam-results/${room.id}`)
+                            }}
                             className="p-2 text-teal-600 hover:bg-teal-50 hover:text-teal-700 rounded-xl border border-transparent hover:border-teal-100 transition-all"
                             title="Xem bảng điểm & kết quả"
                           >
