@@ -130,6 +130,7 @@ export default function ExamResultsPage() {
               <tr className="bg-gray-50 border-b border-gray-100">
                 <th className="px-6 py-4 text-left font-bold text-gray-600">Học sinh</th>
                 <th className="px-6 py-4 text-center font-bold text-gray-600">Trạng thái</th>
+                <th className="px-6 py-4 text-center font-bold text-gray-600">Số lần thi</th>
                 <th className="px-6 py-4 text-center font-bold text-gray-600">Cảnh báo vi phạm</th>
                 <th className="px-6 py-4 text-center font-bold text-gray-600">Điểm</th>
                 <th className="px-6 py-4 text-center font-bold text-gray-600">Số câu đúng</th>
@@ -192,6 +193,9 @@ export default function ExamResultsPage() {
                           {sub.status === 'submitted' ? 'Đã nộp' : 'Đang làm'}
                         </span>
                       </td>
+                      <td className="px-6 py-4 text-center font-bold text-gray-700">
+                        {sb.attempt_count || 1}
+                      </td>
                       <td className="px-6 py-4 text-center">
                         {(sub.tab_switches || 0) > 0 ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-red-50 text-red-700 border border-red-200 shadow-sm animate-pulse">
@@ -224,7 +228,7 @@ export default function ExamResultsPage() {
 
               {submissions.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-16 text-center text-gray-400">
+                  <td colSpan={7} className="px-6 py-16 text-center text-gray-400">
                     Chưa có học sinh nào nộp bài.
                   </td>
                 </tr>

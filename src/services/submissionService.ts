@@ -33,7 +33,7 @@ export const createSubmission = async (params: {
       student_id: params.student.id,
       status: 'in_progress',
       answers: {},
-      score_breakdown: {}
+      score_breakdown: { attempt_count: 1 }
     }])
     .select('id')
     .single();
@@ -90,9 +90,19 @@ export const submitExam = async (
   // Nếu KHÔNG lưu lại, sau khi submit, giáo viên sẽ xem đề gốc (số 101,102...)
   // nhưng answers lại dùng key 1,2,3... → mismatch → hiển thị "bỏ trống".
   const examForStorage = stripImagesFromExam(exam);
+  
+  // Lấy attempt_count hiện tại để bảo toàn
+  const { data: existingSub } = await supabase
+    .from('exam_submissions')
+    .select('score_breakdown')
+    .eq('id', submissionId)
+    .maybeSingle();
+  const existingAttemptCount = existingSub?.score_breakdown?.attempt_count || 1;
+
   const fullBreakdown = {
     ...scoreBreakdown,
     shuffled_exam: examForStorage, // ← học sinh thấy đề nào, lưu đề đó
+    attempt_count: existingAttemptCount
   };
 
   // ✅ FIX: Convert Date/Object → string để tránh Supabase JSONB serialization treo

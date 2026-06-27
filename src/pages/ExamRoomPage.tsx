@@ -81,7 +81,7 @@ export default function ExamRoomPage() {
         } else {
           const { data: newSub } = await supabase.from('exam_submissions').upsert({
             room_id: roomId, student_id: currentStudent.id, status: 'in_progress', answers: {},
-            score_breakdown: { shuffled_exam: finalExamData } 
+            score_breakdown: { shuffled_exam: finalExamData, attempt_count: 1 } 
           }, { onConflict: 'room_id, student_id' }).select().single()
           if (newSub) setSubmissionId(newSub.id)
         }
@@ -100,7 +100,20 @@ export default function ExamRoomPage() {
   const handleRetry = async () => {
     if (!confirm('Bạn có muốn thi lại? Kết quả cũ sẽ bị xóa hoàn toàn.')) return;
     try {
-      await supabase.from('exam_submissions').delete().eq('id', submissionId);
+      const currentAttempt = submittedResult?.score_breakdown?.attempt_count || submittedResult?.scoreBreakdown?.attempt_count || 1;
+      await supabase.from('exam_submissions').update({
+        status: 'in_progress',
+        answers: {},
+        score: null,
+        score_breakdown: {
+          shuffled_exam: currentExamData,
+          attempt_count: currentAttempt + 1
+        },
+        submitted_at: null,
+        tab_switches: 0,
+        tab_switch_warnings: [],
+        duration: 0
+      }).eq('id', submissionId);
       window.location.reload(); 
     } catch (e) {
       toast.error('Lỗi khi làm mới bài thi');
