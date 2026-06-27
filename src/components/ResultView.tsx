@@ -48,8 +48,8 @@ const ResultView: React.FC<ResultViewProps> = ({
   const scoreBreakdown = submission.scoreBreakdown || (submission as any).score_breakdown;
   const answers = submission.answers;
 
-  const canShowCorrectAnswers = room.settings?.showCorrectAnswers ?? true;
-  const canShowExplanations = room.settings?.showExplanations ?? true;
+  const canShowCorrectAnswers = room.settings?.showCorrectAnswers ?? false;
+  const canShowExplanations = room.settings?.showExplanations ?? false;
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

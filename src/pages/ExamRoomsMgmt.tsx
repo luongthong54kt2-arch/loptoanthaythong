@@ -39,13 +39,13 @@ export default function ExamRoomsMgmt() {
     class_id: string;
     time_limit: number;
     status: 'waiting' | 'active' | 'closed';
-    settings: { shuffle: boolean; allowRetry: boolean };
+    settings: { shuffle: boolean; allowRetry: boolean; showCorrectAnswers: boolean; showExplanations: boolean };
   }>({
     exam_id: '',
     class_id: '',
     time_limit: 45,
     status: 'waiting',
-    settings: { shuffle: true, allowRetry: false } // Mặc định: Bật trộn đề, tắt thi lại
+    settings: { shuffle: true, allowRetry: false, showCorrectAnswers: false, showExplanations: false }
   })
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function ExamRoomsMgmt() {
       // Reset form sau khi tạo
       setForm({ 
         exam_id: '', class_id: '', time_limit: 45, status: 'waiting', 
-        settings: { shuffle: true, allowRetry: false } 
+        settings: { shuffle: true, allowRetry: false, showCorrectAnswers: false, showExplanations: false } 
       })
     } catch (e: any) {
       toast.error('Lỗi khi mở phòng thi')
@@ -593,6 +593,32 @@ export default function ExamRoomsMgmt() {
               <div>
                 <span className="text-gray-800 text-sm font-bold block">🔄 Cho phép thi lại nhiều lần</span>
                 <span className="text-gray-500 text-xs">(Học sinh có thể làm lại bài, điểm mới sẽ ghi đè điểm cũ)</span>
+              </div>
+            </label>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={form.settings.showCorrectAnswers} 
+                onChange={e => setForm({...form, settings: {...form.settings, showCorrectAnswers: e.target.checked}})} 
+                className="w-5 h-5 accent-teal-600 rounded cursor-pointer" 
+              />
+              <div>
+                <span className="text-gray-800 text-sm font-bold block">👁️ Hiển thị đáp án đúng sau khi nộp</span>
+                <span className="text-gray-500 text-xs">(Tô màu xanh đáp án đúng của các câu hỏi khi học sinh xem lại bài)</span>
+              </div>
+            </label>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={form.settings.showExplanations} 
+                onChange={e => setForm({...form, settings: {...form.settings, showExplanations: e.target.checked}})} 
+                className="w-5 h-5 accent-teal-600 rounded cursor-pointer" 
+              />
+              <div>
+                <span className="text-gray-800 text-sm font-bold block">📖 Hiển thị lời giải chi tiết sau khi nộp</span>
+                <span className="text-gray-500 text-xs">(Hiển thị các bước giải thích chi tiết bên dưới câu hỏi)</span>
               </div>
             </label>
           </div>

@@ -126,7 +126,7 @@ export default function ExamRoomPage() {
 
   // ✅ 1. HIỂN THỊ KẾT QUẢ SAU KHI NỘP BÀI
   if (submittedResult && currentExamData) {
-    const mappedRoom = { ...room, examTitle: exam.title, settings: room.settings || { showCorrectAnswers: true, showExplanations: true } };
+    const mappedRoom = { ...room, examTitle: exam.title, settings: room.settings || { showCorrectAnswers: false, showExplanations: false } };
     return (
       <div className="relative">
         <ResultView submission={submittedResult} room={mappedRoom} exam={{...currentExamData, title: exam.title}} onExit={() => { sessionStorage.removeItem('current_student'); navigate('/thi'); }} />
