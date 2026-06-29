@@ -43,9 +43,10 @@ export const parseTexToExam = async (
 
   const part1Questions = parsePart1(processedContent, sectionInfo.part1Start, sectionInfo.part2Start, images);
   const part2Questions = parsePart2(processedContent, sectionInfo.part2Start, sectionInfo.part3Start, images);
-  const part3Questions = parsePart3(processedContent, sectionInfo.part3Start, processedContent.length, images);
+  const part3Questions = parsePart3(processedContent, sectionInfo.part3Start, sectionInfo.part4Start, images);
+  const part4Questions = parsePart4(processedContent, sectionInfo.part4Start, processedContent.length, images);
 
-  const total = part1Questions.length + part2Questions.length + part3Questions.length;
+  const total = part1Questions.length + part2Questions.length + part3Questions.length + part4Questions.length;
   log(`✅ Phân tích xong: ${total} câu hỏi`);
 
   const examData: ExamData = {
@@ -85,6 +86,7 @@ export const parseTexToExam = async (
   addSection(part1Questions, 'PHẦN 1. Trắc nghiệm nhiều lựa chọn', 'Chọn một phương án đúng A, B, C hoặc D', 'multiple_choice');
   addSection(part2Questions, 'PHẦN 2. Trắc nghiệm đúng sai', 'Chọn Đúng hoặc Sai cho mỗi mệnh đề', 'true_false');
   addSection(part3Questions, 'PHẦN 3. Trả lời ngắn', 'Điền đáp án số vào ô trống', 'short_answer');
+  addSection(part4Questions, 'PHẦN 4. Tự luận', 'Học sinh trình bày lời giải chi tiết', 'writing');
 
   return examData;
 };
@@ -445,10 +447,11 @@ interface SectionInfo {
   part1Start: number;
   part2Start: number;
   part3Start: number;
+  part4Start: number;
 }
 
 function detectSections(content: string): SectionInfo {
-  const info: SectionInfo = { part1Start: 0, part2Start: content.length, part3Start: content.length };
+  const info: SectionInfo = { part1Start: 0, part2Start: content.length, part3Start: content.length, part4Start: content.length };
 
   const part1Match = content.match(/\\textbf\{PHẦN\s*1[.\s]/i) || content.match(/PHẦN\s*1[.\s]/i) || content.match(/Phần\s*I[.\s]/i);
   if (part1Match?.index !== undefined) info.part1Start = part1Match.index;
@@ -458,6 +461,9 @@ function detectSections(content: string): SectionInfo {
 
   const part3Match = content.match(/\\textbf\{PHẦN\s*3[.\s]/i) || content.match(/PHẦN\s*3[.\s]/i) || content.match(/Phần\s*III[.\s]/i);
   if (part3Match?.index !== undefined) info.part3Start = part3Match.index;
+
+  const part4Match = content.match(/\\textbf\{PHẦN\s*4[.\s]/i) || content.match(/PHẦN\s*4[.\s]/i) || content.match(/Phần\s*IV[.\s]/i) || content.match(/TỰ\s*LUẬN/i);
+  if (part4Match?.index !== undefined) info.part4Start = part4Match.index;
 
   return info;
 }
@@ -626,6 +632,44 @@ function parseShortAnswerQuestion(rawContent: string, num: number, images: Exten
   };
 }
 
+function parsePart4(content: string, start: number, end: number, images: ExtendedImageData[]): ParsedQuestion[] {
+  if (start >= end) return [];
+  const partContent = content.substring(start, end);
+  const questions: ParsedQuestion[] = [];
+  const exRegex = /\\begin\{ex\}([\s\S]*?)\\end\{ex\}/g;
+  let match;
+  let num = 1;
+
+  while ((match = exRegex.exec(partContent)) !== null) {
+    const exContent = match[1];
+    if (exContent.includes('\\choice') || exContent.includes('\\choiceTF') || exContent.includes('\\shortans')) continue;
+    const q = parseWritingQuestion(exContent, num, images);
+    if (q) { questions.push(q); num++; }
+  }
+  return questions;
+}
+
+function parseWritingQuestion(rawContent: string, num: number, images: ExtendedImageData[]): ParsedQuestion | null {
+  const content = expandImmini(rawContent);
+  const sol = extractCommandGroup(content, '\\loigiai');
+  const contentNoSol = sol.cleaned;
+  const solution = sol.group ? processLatexSolution(sol.group, images) : '';
+
+  const questionRaw = contentNoSol.trim();
+  const questionText = inlineTikzAsHtml(processLatexText(questionRaw), images);
+
+  return {
+    number: num,
+    part: 4,
+    type: 'writing',
+    text: questionText,
+    options: [],
+    correctAnswer: null,
+    solution,
+    images: [],
+  };
+}
+
 function skipSpaces(s: string, i: number): number {
   while (i < s.length && /\s/.test(s[i])) i++;
   return i;
@@ -714,6 +758,7 @@ function getPartName(part: number): string {
     case 1: return 'Trắc nghiệm nhiều lựa chọn';
     case 2: return 'Trắc nghiệm đúng sai';
     case 3: return 'Trả lời ngắn';
+    case 4: return 'Tự luận';
     default: return '';
   }
 }
