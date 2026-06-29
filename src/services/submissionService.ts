@@ -1,6 +1,7 @@
 // src/services/submissionService.ts
 import { supabase } from '@/lib/supabase';
 import { calculateScore } from './scoringService';
+import { gradeEssayWithGemini } from './essayGradingService';
 import { Exam, StudentInfo } from '../types';
 
 export const ensureSignedIn = async () => {
@@ -74,8 +75,72 @@ export const submitExam = async (
     duration: number;
   }
 ) => {
-  // Chấm điểm tự động
+  // Chấm điểm tự động các phần trắc nghiệm/trả lời ngắn
   const scoreBreakdown = calculateScore(answers, exam);
+
+  // Tự động chấm câu hỏi tự luận bằng AI nếu có cấu hình API key
+  const writingQuestions = exam.questions?.filter(q => q.type === 'writing') || [];
+  const apiKey = localStorage.getItem('gemini_essay_api_key') || import.meta.env.VITE_GEMINI_API_KEY || '';
+
+  let totalEssayPoints = 0;
+  const essayDetails: Record<string, any> = {};
+
+  if (writingQuestions.length > 0 && apiKey) {
+    try {
+      const gradingPromises = writingQuestions.map(async (q) => {
+        const rawAns = (answers as any)[q.number];
+        if (!rawAns) return null;
+
+        // Xác định điểm tối đa cho câu hỏi tự luận này
+        const part = Math.floor(Number(q.number) / 100) || 1;
+        const sectionId = `part${part}`;
+        const section = exam.pointsConfig?.sections?.find(s => s.sectionId === sectionId);
+        const maxPts = section?.pointsPerQuestion || 2;
+
+        try {
+          const result = await gradeEssayWithGemini(
+            q.text,
+            rawAns,
+            maxPts,
+            q.solution || undefined,
+            apiKey
+          );
+          if (result && !result.error) {
+            return { qNum: q.number, score: result.score, feedback: result.feedback };
+          }
+        } catch (e) {
+          console.error(`Lỗi chấm tự động câu ${q.number}:`, e);
+        }
+        return null;
+      });
+
+      const gradedResults = await Promise.all(gradingPromises);
+      gradedResults.forEach((res) => {
+        if (res) {
+          essayDetails[String(res.qNum)] = {
+            score: res.score,
+            feedback: res.feedback
+          };
+          totalEssayPoints += res.score;
+        }
+      });
+
+      if (Object.keys(essayDetails).length > 0) {
+        scoreBreakdown.essay = {
+          total: writingQuestions.length,
+          points: parseFloat(totalEssayPoints.toFixed(2)),
+          details: essayDetails
+        };
+        const newTotal = scoreBreakdown.totalScore + totalEssayPoints;
+        scoreBreakdown.totalScore = parseFloat(newTotal.toFixed(2));
+        
+        const maxScore = exam.pointsConfig?.maxScore || 10;
+        scoreBreakdown.percentage = Math.min(100, Math.max(0, Math.round((scoreBreakdown.totalScore / maxScore) * 100)));
+      }
+    } catch (err) {
+      console.error('Lỗi khi chấm tự luận tự động lúc nộp bài:', err);
+    }
+  }
 
   // ✅ FIX: Chuẩn hóa answers sang string keys để nhất quán với JSONB
   const normalizedAnswers: Record<string, string> = {};

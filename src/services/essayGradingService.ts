@@ -67,7 +67,7 @@ export async function gradeEssayWithGemini(
   rubric?: string,
   apiKey?: string
 ): Promise<EssayGradeResult> {
-  const key = apiKey || getGeminiApiKey();
+  const key = apiKey || getGeminiApiKey() || import.meta.env.VITE_GEMINI_API_KEY || '';
   if (!key) {
     return {
       score: 0,
