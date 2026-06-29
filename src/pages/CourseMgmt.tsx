@@ -60,13 +60,37 @@ export default function CourseMgmt() {
   const [assigningCourse, setAssigningCourse] = useState<any>(null);
   const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
 
-  const [activeGrade, setActiveGrade] = useState<number | 'others'>(9)
+  const [activeGrade, setActiveGrade] = useState<number | 'others'>(() => {
+    const saved = sessionStorage.getItem('course_mgmt_active_grade')
+    if (saved) {
+      return saved === 'others' ? 'others' : Number(saved)
+    }
+    return 9
+  })
+
+  // Lưu activeGrade vào sessionStorage khi thay đổi
+  useEffect(() => {
+    sessionStorage.setItem('course_mgmt_active_grade', activeGrade.toString())
+  }, [activeGrade])
 
   useEffect(() => {
     if (courses && courses.length > 0) {
       const availableGrades = [9, 8, 7, 6].filter(g => 
         courses.some((c: any) => getCourseGrade(c.title) === g)
       )
+      
+      const saved = sessionStorage.getItem('course_mgmt_active_grade')
+      if (saved) {
+        const savedVal = saved === 'others' ? 'others' : Number(saved)
+        const isValid = savedVal === 'others'
+          ? courses.some((c: any) => getCourseGrade(c.title) === null)
+          : availableGrades.includes(savedVal)
+        if (isValid) {
+          setActiveGrade(savedVal)
+          return
+        }
+      }
+
       if (availableGrades.length > 0) {
         setActiveGrade(availableGrades[0])
       } else if (courses.some((c: any) => getCourseGrade(c.title) === null)) {

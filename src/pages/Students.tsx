@@ -516,7 +516,19 @@ export default function Students() {
   const [saving, setSaving]             = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  const [activeGrade, setActiveGrade] = useState<number | 'others'>(9)
+  const [activeGrade, setActiveGrade] = useState<number | 'others'>(() => {
+    const saved = sessionStorage.getItem('students_active_grade')
+    if (saved) {
+      return saved === 'others' ? 'others' : Number(saved)
+    }
+    return 9
+  })
+
+  // Lưu activeGrade vào sessionStorage khi thay đổi
+  useEffect(() => {
+    sessionStorage.setItem('students_active_grade', activeGrade.toString())
+  }, [activeGrade])
+
   const [selectedClassId, setSelectedClassId] = useState<string | 'unassigned' | null>(null)
   const [hasInitGrade, setHasInitGrade] = useState(false)
 
@@ -676,6 +688,20 @@ export default function Students() {
   useEffect(() => {
     if (myStudents.length > 0 && !hasInitGrade) {
       const gradesWithStudents = [6, 7, 8, 9].filter(g => myStudents.some(s => getStudentGrade(s) === g))
+      
+      const saved = sessionStorage.getItem('students_active_grade')
+      if (saved) {
+        const savedVal = saved === 'others' ? 'others' : Number(saved)
+        const isValid = savedVal === 'others'
+          ? hasOtherStudents
+          : gradesWithStudents.includes(savedVal)
+        if (isValid) {
+          setActiveGrade(savedVal)
+          setHasInitGrade(true)
+          return
+        }
+      }
+
       if (gradesWithStudents.length > 0) {
         setActiveGrade(gradesWithStudents[0] as any)
       } else if (hasOtherStudents) {
