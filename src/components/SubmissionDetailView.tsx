@@ -31,6 +31,26 @@ function normalizeAnswer(ans: string): string {
   return norm;
 }
 
+function parseEssayAnswer(raw: any) {
+  if (!raw) return { text: '', images: [] };
+  if (typeof raw === 'object') {
+    return {
+      text: raw.text || '',
+      images: Array.isArray(raw.images) ? raw.images : []
+    };
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') {
+      return {
+        text: parsed.text || '',
+        images: Array.isArray(parsed.images) ? parsed.images : [],
+      };
+    }
+  } catch {}
+  return { text: String(raw), images: [] };
+}
+
 const SubmissionDetailView: React.FC<SubmissionDetailViewProps> = ({
   submission,
   exam,
@@ -169,6 +189,13 @@ const SubmissionDetailView: React.FC<SubmissionDetailViewProps> = ({
                 <div className="text-xs text-orange-600">{sa.correct}/{sa.total} câu đúng</div>
               </div>
             )}
+            {sbRaw.essay?.points !== undefined && (
+              <div className="bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl p-3 border border-violet-200 shadow-sm">
+                <div className="text-[10px] font-bold uppercase text-violet-500 mb-1">✍️ Tự luận</div>
+                <div className="text-xl font-black text-violet-700">{formatScore(sbRaw.essay.points)}đ</div>
+                <div className="text-xs text-violet-600">Đã chấm bằng AI/GV</div>
+              </div>
+            )}
 
             {/* Cảnh báo gian lận */}
             {(submission.tabSwitchCount || (submission as any).tab_switches || 0) > 0 && (
@@ -257,6 +284,7 @@ const SubmissionDetailView: React.FC<SubmissionDetailViewProps> = ({
                             question={question}
                             userAnswer={userAnswer}
                             displayIndex={displayIndex}
+                            scoreDetail={sbRaw.essay?.details?.[question.number] || sbRaw.essay?.details?.[String(question.number)]}
                           />
                         )}
                       </div>
@@ -544,13 +572,14 @@ const ShortAnswerDetail = ({ question, userAnswer, displayIndex, maxPoints = 0 }
 };
 
 // ─── TỰ LUẬN ─────────────────────────────────────────────────────────────────
-const EssayDetail = ({ question, userAnswer, displayIndex }) => {
-  const hasText = typeof userAnswer === 'object' ? !!userAnswer?.text : !!userAnswer;
-  const hasImages = Array.isArray(userAnswer?.images) && userAnswer.images.length > 0;
+const EssayDetail = ({ question, userAnswer, displayIndex, scoreDetail }) => {
+  const parsed = parseEssayAnswer(userAnswer);
+  const hasText = !!parsed.text?.trim();
+  const hasImages = Array.isArray(parsed.images) && parsed.images.length > 0;
   const hasContent = hasText || hasImages;
 
   return (
-    <div className="rounded-2xl border-2 border-violet-200 bg-white overflow-hidden">
+    <div className="rounded-2xl border-2 border-violet-200 bg-white overflow-hidden shadow-sm">
       {/* Header */}
       <div className="px-4 py-2.5 flex items-center justify-between bg-violet-50">
         <div className="flex items-center gap-2">
@@ -558,9 +587,14 @@ const EssayDetail = ({ question, userAnswer, displayIndex }) => {
             {displayIndex}
           </div>
           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${hasContent ? 'bg-violet-100 text-violet-700' : 'bg-gray-100 text-gray-500'}`}>
-            {hasContent ? '📝 Đã làm' : '— Bỏ trống'} · Chờ GV chấm
+            {hasContent ? (scoreDetail ? '✅ Đã chấm' : '📝 Đã làm · Chờ GV chấm') : '— Bỏ trống'}
           </span>
         </div>
+        {scoreDetail && (
+          <span className="text-sm font-black text-violet-700">
+            {scoreDetail.score.toFixed(2)}đ
+          </span>
+        )}
       </div>
 
       {/* Content */}
@@ -569,18 +603,28 @@ const EssayDetail = ({ question, userAnswer, displayIndex }) => {
         {hasContent ? (
           <div className="space-y-3">
             {hasText && (
-              <div className="p-3 bg-violet-50 rounded-xl border border-violet-100">
+              <div className="p-3 bg-violet-50/50 rounded-xl border border-violet-100/50">
                 <p className="text-[10px] font-bold text-violet-600 uppercase mb-1">Bài làm:</p>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                  {typeof userAnswer === 'object' ? userAnswer.text : userAnswer}
+                  {parsed.text}
                 </p>
               </div>
             )}
             {hasImages && (
               <div className="grid grid-cols-2 gap-2">
-                {userAnswer.images.map((img: any, i: number) => (
+                {parsed.images.map((img: any, i: number) => (
                   <img key={i} src={`data:${img.type};base64,${img.data}`} className="rounded-xl border-2 border-violet-100 shadow-sm max-h-52 object-contain bg-slate-800" alt={`Ảnh ${i + 1}`} />
                 ))}
+              </div>
+            )}
+            
+            {/* AI Grading result */}
+            {scoreDetail && (
+              <div className="p-3 bg-green-50 rounded-xl border border-green-200 mt-2">
+                <p className="text-[10px] font-bold text-green-700 uppercase mb-1">Nhận xét của giáo viên/AI:</p>
+                <p className="text-xs text-green-800 italic whitespace-pre-line leading-relaxed">
+                  {scoreDetail.feedback || 'Đã chấm điểm.'}
+                </p>
               </div>
             )}
           </div>

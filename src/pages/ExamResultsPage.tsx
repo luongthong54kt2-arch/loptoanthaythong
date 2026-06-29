@@ -69,6 +69,83 @@ export default function ExamResultsPage() {
     }
   }
 
+  const handleEssayScoreUpdate = async (submissionId: string, qNum: number, score: number, feedback: string) => {
+    try {
+      const sub = submissions.find(s => s.id === submissionId)
+      if (!sub) return
+
+      const currentSb = { ...(sub.score_breakdown || {}) }
+      
+      if (!currentSb.essay) {
+        currentSb.essay = {
+          total: 0,
+          points: 0,
+          details: {}
+        }
+      } else {
+        currentSb.essay = {
+          ...currentSb.essay,
+          details: { ...(currentSb.essay.details || {}) }
+        }
+      }
+
+      // Cập nhật chi tiết câu hỏi tự luận này
+      currentSb.essay.details[String(qNum)] = {
+        score,
+        feedback
+      }
+
+      // Tính toán lại tổng điểm phần tự luận
+      let totalEssayPoints = 0
+      Object.values(currentSb.essay.details).forEach((detail: any) => {
+        totalEssayPoints += detail?.score || 0
+      })
+      currentSb.essay.points = parseFloat(totalEssayPoints.toFixed(2))
+
+      // Tính toán lại tổng điểm toàn bộ bài thi
+      const mcPoints = currentSb.multipleChoice?.points || 0
+      const tfPoints = currentSb.trueFalse?.points || 0
+      const saPoints = currentSb.shortAnswer?.points || 0
+      
+      const newTotalScore = mcPoints + tfPoints + saPoints + totalEssayPoints
+      const roundedScore = parseFloat(newTotalScore.toFixed(2))
+
+      // Tính lại tỷ lệ phần trăm
+      const maxScore = room?.exams?.data?.pointsConfig?.maxScore || 10
+      const newPercentage = Math.min(100, Math.max(0, Math.round((roundedScore / maxScore) * 100)))
+
+      currentSb.totalScore = roundedScore
+      currentSb.percentage = newPercentage
+
+      // Cập nhật lên Supabase
+      const { error } = await supabase
+        .from('exam_submissions')
+        .update({
+          score: roundedScore,
+          score_breakdown: currentSb
+        })
+        .eq('id', submissionId)
+
+      if (error) throw error
+
+      // Cập nhật state local ngay lập tức để đồng bộ UI mượt mà
+      setSubmissions(prev => prev.map(s => {
+        if (s.id === submissionId) {
+          return {
+            ...s,
+            score: roundedScore,
+            score_breakdown: currentSb
+          }
+        }
+        return s
+      }))
+      
+      toast.success(`Đã lưu điểm tự luận câu ${qNum} cho học sinh`)
+    } catch (err: any) {
+      toast.error('Lỗi khi lưu điểm tự luận: ' + (err?.message || err))
+    }
+  }
+
   const totalEnrolled = submissions.length + notSubmittedStudents.length
 
   if (loading) return <div className="p-20 text-center text-teal-600 font-bold">Đang tải bảng điểm...</div>
@@ -262,7 +339,7 @@ export default function ExamResultsPage() {
           <EssayGraderPanel
             submissions={submissions.map(s => ({ ...s, student: { name: s.students?.full_name } }))}
             questions={exam?.data?.questions || []}
-            onScoreUpdate={loadAllData}
+            onScoreUpdate={handleEssayScoreUpdate}
           />
         </div>
       </Modal>
