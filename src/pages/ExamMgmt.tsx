@@ -148,7 +148,7 @@ export default function ExamMgmt() {
       const data = await getExamData(id)
       
       let texContent = ''
-      if (data.originalTex) {
+      if (data.originalTex && data.originalTex.includes('\\begin{document}')) {
         texContent = data.originalTex
       } else {
         texContent = generateTexFromQuestions(title, data.questions || [])
@@ -207,7 +207,7 @@ export default function ExamMgmt() {
       const data = await getExamData(exam.id)
       
       let texContent = ''
-      if (data.originalTex) {
+      if (data.originalTex && data.originalTex.includes('\\begin{document}')) {
         texContent = data.originalTex
       } else {
         texContent = generateTexFromQuestions(exam.title, data.questions || [])
