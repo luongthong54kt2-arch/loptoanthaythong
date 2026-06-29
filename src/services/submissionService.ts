@@ -98,11 +98,13 @@ export const submitExam = async (
     .eq('id', submissionId)
     .maybeSingle();
   const existingAttemptCount = existingSub?.score_breakdown?.attempt_count || 1;
+  const existingHistory = existingSub?.score_breakdown?.history || [];
 
   const fullBreakdown = {
     ...scoreBreakdown,
     shuffled_exam: examForStorage, // ← học sinh thấy đề nào, lưu đề đó
-    attempt_count: existingAttemptCount
+    attempt_count: existingAttemptCount,
+    history: existingHistory
   };
 
   // ✅ FIX: Convert Date/Object → string để tránh Supabase JSONB serialization treo

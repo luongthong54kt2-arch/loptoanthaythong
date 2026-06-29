@@ -147,6 +147,8 @@ export default function ExamResultsPage() {
                 })
                 .map((sub) => {
                   const sb = sub.score_breakdown || {}
+                  const historyTabSwitches = (sb.history || []).reduce((sum: number, att: any) => sum + (att.tab_switches || 0), 0)
+                  const totalTabSwitches = (sub.tab_switches || 0) + historyTabSwitches
 
                   // ✅ FIX BUG 2+5: correctCount từ score_breakdown, không phải correct_count
                   const mcCorrect = sb.multipleChoice?.correct || 0
@@ -173,7 +175,7 @@ export default function ExamResultsPage() {
                     correctCount: sub.correct_count ?? computedCorrectCount,
                     totalQuestions: totalQCount,
                     duration: sub.duration || 0,
-                    tabSwitchCount: sub.tab_switches || 0,
+                    tabSwitchCount: totalTabSwitches,
                     scoreBreakdown: sb,           // ✅ FIX BUG 1: map đúng tên camelCase
                     answers: sub.answers          // ✅ đảm bảo answers luôn có
                   }
@@ -197,9 +199,9 @@ export default function ExamResultsPage() {
                         {sb.attempt_count || 1}
                       </td>
                       <td className="px-6 py-4 text-center">
-                        {(sub.tab_switches || 0) > 0 ? (
+                        {totalTabSwitches > 0 ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-red-50 text-red-700 border border-red-200 shadow-sm animate-pulse">
-                            ⚠️ Chuyển tab {sub.tab_switches} lần
+                            ⚠️ Chuyển tab {totalTabSwitches} lần
                           </span>
                         ) : (
                           <span className="text-gray-400 text-xs font-semibold">✅ Bình thường</span>

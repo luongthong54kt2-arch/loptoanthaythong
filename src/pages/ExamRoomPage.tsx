@@ -105,7 +105,18 @@ export default function ExamRoomPage() {
     if (!confirm('Bạn có muốn thi lại? Kết quả cũ sẽ bị xóa hoàn toàn.')) return;
     try {
       const currentAttempt = submittedResult?.score_breakdown?.attempt_count || submittedResult?.scoreBreakDown?.attempt_count || 1;
+      const currentHistory = submittedResult?.score_breakdown?.history || submittedResult?.scoreBreakDown?.history || [];
       
+      const finishedAttemptData = {
+        attempt: currentAttempt,
+        score: submittedResult?.score ?? submittedResult?.totalScore,
+        tab_switches: submittedResult?.tab_switches || 0,
+        submitted_at: submittedResult?.submitted_at,
+        duration: submittedResult?.duration || 0
+      };
+      
+      const newHistory = [...currentHistory, finishedAttemptData];
+
       // ✅ Xáo trộn lại đề thi từ đề gốc nếu cài đặt shuffle bật
       const hasRealQuestions = exam?.data?.questions && exam.data.questions.length > 0 &&
         !exam.data.questions.every((q: any) => 
@@ -124,7 +135,8 @@ export default function ExamRoomPage() {
         score: null,
         score_breakdown: {
           shuffled_exam: nextExamData,
-          attempt_count: currentAttempt + 1
+          attempt_count: currentAttempt + 1,
+          history: newHistory
         },
         submitted_at: null,
         tab_switches: 0,
