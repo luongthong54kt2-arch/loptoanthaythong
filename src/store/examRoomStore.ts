@@ -22,6 +22,7 @@ interface ExamRoomState {
   loadRooms: () => Promise<void>
   createRoom: (roomData: Partial<ExamRoom>) => Promise<void>
   updateRoomStatus: (id: string, status: string) => Promise<void>
+  updateRoom: (id: string, roomData: Partial<ExamRoom>) => Promise<void>
   deleteRoom: (id: string) => Promise<void>
 }
 
@@ -71,6 +72,12 @@ export const useExamRoomStore = create<ExamRoomState>((set, get) => ({
 
   updateRoomStatus: async (id, status) => {
     const { error } = await supabase.from('exam_rooms').update({ status }).eq('id', id)
+    if (error) throw error
+    await get().loadRooms()
+  },
+
+  updateRoom: async (id, roomData) => {
+    const { error } = await supabase.from('exam_rooms').update(roomData).eq('id', id)
     if (error) throw error
     await get().loadRooms()
   },

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { MonitorPlay, Plus, Trash2, KeyRound, BarChart3, RefreshCw } from 'lucide-react'
+import { MonitorPlay, Plus, Trash2, KeyRound, BarChart3, RefreshCw, Settings } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useExamRoomStore } from '@/store/examRoomStore'
 import { useExamStore } from '@/store/examStore'
@@ -25,13 +25,14 @@ const getExamNo = (title: string) => {
 
 export default function ExamRoomsMgmt() {
   const navigate = useNavigate()
-  const { rooms, loading, loadRooms, createRoom, updateRoomStatus, deleteRoom } = useExamRoomStore()
+  const { rooms, loading, loadRooms, createRoom, updateRoomStatus, updateRoom, deleteRoom } = useExamRoomStore()
   const { exams, loadExams } = useExamStore()
   const { classes, loadClasses, enrollments, loadEnrollments } = useDataStore()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [modalGrade, setModalGrade] = useState<number | ''>('')
+  const [editingRoomId, setEditingRoomId] = useState<string | null>(null)
   
   // ✅ Đã thêm settings vào Form state
   const [form, setForm] = useState<{
@@ -55,27 +56,49 @@ export default function ExamRoomsMgmt() {
     void loadEnrollments()
   }, [loadRooms, loadExams, loadClasses, loadEnrollments])
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     if (!modalGrade) return toast.error('Vui lòng chọn khối lớp')
     if (!form.exam_id) return toast.error('Vui lòng chọn đề thi')
     if (!form.class_id) return toast.error('Vui lòng chọn lớp học')
 
     setSaving(true)
     try {
-      await createRoom(form)
-      toast.success('Mở phòng thi thành công!')
+      if (editingRoomId) {
+        await updateRoom(editingRoomId, {
+          time_limit: form.time_limit,
+          status: form.status,
+          settings: form.settings
+        })
+        toast.success('Cập nhật phòng thi thành công!')
+      } else {
+        await createRoom(form)
+        toast.success('Mở phòng thi thành công!')
+      }
       setModalOpen(false)
+      setEditingRoomId(null)
       setModalGrade('')
-      // Reset form sau khi tạo
       setForm({ 
         exam_id: '', class_id: '', time_limit: 45, status: 'waiting', 
         settings: { shuffle: true, allowRetry: false, showCorrectAnswers: false, showExplanations: false } 
       })
     } catch (e: any) {
-      toast.error('Lỗi khi mở phòng thi')
+      toast.error(editingRoomId ? 'Lỗi khi cập nhật phòng thi' : 'Lỗi khi mở phòng thi')
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleOpenEdit = (room: any) => {
+    setEditingRoomId(room.id)
+    setModalGrade(getRoomGrade(room) || '')
+    setForm({
+      exam_id: room.exam_id,
+      class_id: room.class_id || '',
+      time_limit: room.time_limit,
+      status: room.status,
+      settings: room.settings || { shuffle: true, allowRetry: false, showCorrectAnswers: false, showExplanations: false }
+    })
+    setModalOpen(true)
   }
 
   const handleDelete = async (id: string, code: string) => {
@@ -283,7 +306,12 @@ export default function ExamRoomsMgmt() {
         
         <button 
           onClick={() => {
+            setEditingRoomId(null)
             setModalGrade(typeof activeGrade === 'number' ? activeGrade : '')
+            setForm({ 
+              exam_id: '', class_id: '', time_limit: 45, status: 'waiting', 
+              settings: { shuffle: true, allowRetry: false, showCorrectAnswers: false, showExplanations: false } 
+            })
             setModalOpen(true)
           }} 
           className="btn-teal flex items-center gap-2 shadow-lg shadow-teal-500/20"
@@ -481,6 +509,13 @@ export default function ExamRoomsMgmt() {
                             <BarChart3 className="w-5 h-5" />
                           </button>
                           <button 
+                            onClick={() => handleOpenEdit(room)}
+                            className="p-2 text-gray-500 hover:bg-slate-100 hover:text-gray-700 rounded-xl transition-all"
+                            title="Cấu hình phòng thi"
+                          >
+                            <Settings className="w-5 h-5" />
+                          </button>
+                          <button 
                             onClick={() => handleDelete(room.id, room.code)}
                             className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
                             title="Xóa phòng"
@@ -498,7 +533,7 @@ export default function ExamRoomsMgmt() {
         </div>
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Thiết lập phòng thi mới" size="md">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editingRoomId ? "Cấu hình phòng thi" : "Thiết lập phòng thi mới"} size="md">
         <div className="space-y-5">
           <div className="bg-teal-50 p-4 rounded-2xl border border-teal-100 mb-2">
             <p className="text-xs text-teal-700 font-bold uppercase tracking-wider mb-1">💡 Mẹo nhỏ:</p>
@@ -515,6 +550,7 @@ export default function ExamRoomsMgmt() {
                 setForm(f => ({ ...f, exam_id: '', class_id: '' }))
               }} 
               className="input font-bold"
+              disabled={!!editingRoomId}
             >
               <option value="">-- Chọn khối lớp --</option>
               <option value="6">Khối 6</option>
@@ -530,7 +566,7 @@ export default function ExamRoomsMgmt() {
               value={form.exam_id} 
               onChange={e => setForm({...form, exam_id: e.target.value})} 
               className="input font-semibold text-teal-900"
-              disabled={!modalGrade}
+              disabled={!!editingRoomId || !modalGrade}
             >
               <option value="">{modalGrade ? '-- Chọn đề thi --' : '-- Vui lòng chọn khối lớp trước --'}</option>
               {filteredExams.map(ex => (
@@ -545,7 +581,7 @@ export default function ExamRoomsMgmt() {
               value={form.class_id} 
               onChange={e => setForm({...form, class_id: e.target.value})} 
               className="input"
-              disabled={!modalGrade}
+              disabled={!!editingRoomId || !modalGrade}
             >
               <option value="">{modalGrade ? '-- Chọn lớp học --' : '-- Vui lòng chọn khối lớp trước --'}</option>
               {filteredClasses.map(c => (
@@ -625,8 +661,8 @@ export default function ExamRoomsMgmt() {
 
           <div className="flex justify-end gap-3 mt-8 pt-5 border-t border-gray-100">
             <button onClick={() => setModalOpen(false)} className="btn-outline px-8 py-2.5">Đóng</button>
-            <button onClick={handleCreate} disabled={saving} className="btn-teal px-10 py-2.5 font-bold shadow-lg shadow-teal-500/30">
-              {saving ? 'Đang khởi tạo...' : 'Mở phòng thi'}
+            <button onClick={handleSave} disabled={saving} className="btn-teal px-10 py-2.5 font-bold shadow-lg shadow-teal-500/30">
+              {saving ? (editingRoomId ? 'Đang cập nhật...' : 'Đang khởi tạo...') : (editingRoomId ? 'Lưu cài đặt' : 'Mở phòng thi')}
             </button>
           </div>
         </div>
