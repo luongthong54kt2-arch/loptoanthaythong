@@ -55,6 +55,7 @@ export interface Student {
   note: string | null
   status: 'active' | 'inactive'
   created_at: string
+  avatar_url?: string | null
 }
 
 export interface Enrollment {

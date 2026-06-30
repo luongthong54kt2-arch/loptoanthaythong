@@ -4,9 +4,10 @@ import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { 
   CalendarCheck, Trophy, ExternalLink, Loader2, CheckCircle,
-  User, Calendar, Phone, MapPin, StickyNote, GraduationCap
+  User, Calendar, Phone, MapPin, StickyNote, GraduationCap, Camera
 } from 'lucide-react'
 import Modal from '@/components/Modal'
+import toast from 'react-hot-toast'
 
 interface StudentScorecardModalProps {
   student: {
@@ -20,6 +21,7 @@ interface StudentScorecardModalProps {
 
 export default function StudentScorecardModal({ student, open, onClose }: StudentScorecardModalProps) {
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [attendance, setAttendance] = useState<any[]>([])
   const [submissions, setSubmissions] = useState<any[]>([])
   const [studentInfo, setStudentInfo] = useState<any>(null)
@@ -59,6 +61,59 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
       console.error('Lỗi khi tải bảng điểm thu gọn:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Chỉ chấp nhận tệp tin hình ảnh!')
+      return
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error('Kích thước ảnh không được vượt quá 3MB!')
+      return
+    }
+
+    setUploading(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${student.id}_${Date.now()}.${fileExt}`
+      const filePath = `avatars/${fileName}`
+
+      // Upload to 'exams_pdf' bucket
+      const { error: uploadError } = await supabase.storage
+        .from('exams_pdf')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        })
+
+      if (uploadError) throw uploadError
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('exams_pdf')
+        .getPublicUrl(filePath)
+
+      // Update student table
+      const { error: updateError } = await supabase
+        .from('students')
+        .update({ avatar_url: publicUrl })
+        .eq('id', student.id)
+
+      if (updateError) throw updateError
+
+      setStudentInfo(prev => prev ? { ...prev, avatar_url: publicUrl } : { avatar_url: publicUrl })
+      toast.success('Cập nhật ảnh đại diện thành công!')
+    } catch (err: any) {
+      console.error('Lỗi upload avatar:', err)
+      toast.error('Không thể tải ảnh lên: ' + (err.message || err))
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -125,9 +180,40 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
                 
                 {/* Khu vực Avatar & Tên */}
                 <div className="text-center pb-3 border-b border-slate-100">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-teal-500 via-teal-600 to-emerald-600 border-4 border-teal-50 flex items-center justify-center text-white text-2xl font-black shadow-md mx-auto mb-2.5">
-                    {initials}
+                  <div className="relative group w-20 h-20 mx-auto mb-2.5">
+                    {studentInfo?.avatar_url ? (
+                      <img 
+                        src={studentInfo.avatar_url} 
+                        alt={displayName} 
+                        className="w-20 h-20 rounded-full object-cover border-4 border-teal-50 shadow-md"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-teal-500 via-teal-600 to-emerald-600 border-4 border-teal-50 flex items-center justify-center text-white text-2xl font-black shadow-md">
+                        {initials}
+                      </div>
+                    )}
+                    
+                    {/* Overlay thay đổi ảnh */}
+                    <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 text-white rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-all duration-200 shadow-inner">
+                      <Camera className="w-5 h-5 mb-0.5" />
+                      <span className="text-[9px] font-bold uppercase tracking-wider">Đổi ảnh</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={handleAvatarChange} 
+                        disabled={uploading} 
+                      />
+                    </label>
+
+                    {/* Vòng xoay khi đang upload */}
+                    {uploading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full">
+                        <Loader2 className="w-6 h-6 text-teal-400 animate-spin" />
+                      </div>
+                    )}
                   </div>
+
                   <h3 className="font-bold text-gray-800 text-lg line-clamp-1">{displayName}</h3>
                   <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-mono font-bold text-teal-700 bg-teal-50 border border-teal-100 mt-1">
                     {displayCode}
