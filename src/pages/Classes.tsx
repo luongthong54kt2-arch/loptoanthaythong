@@ -1,9 +1,10 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Users, BookOpen, User, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Users, BookOpen, User, Trash2, Search, UserPlus, GraduationCap, Calendar, MapPin } from 'lucide-react'
 import { useDataStore } from '@/store/dataStore'
 import { useAuthStore } from '@/store/authStore'
 import Modal from '@/components/Modal'
+import StudentScorecardModal from '@/components/StudentScorecardModal'
 import { fmtVNDShort } from '@/lib/helpers'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase' // ✅ Thêm supabase để gọi lệnh xóa trực tiếp
@@ -21,10 +22,11 @@ export default function Classes() {
   // ✅ Lấy thêm user từ AuthStore để biết ai đang đăng nhập
   const { user, isAdmin } = useAuthStore() as any
   
-  const [modal, setModal]       = useState<'form' | 'roster' | null>(null)
+  const [modal, setModal]       = useState<'form' | 'add_student' | null>(null)
   const [editing, setEditing]   = useState<any>(null)
   const [form, setForm]         = useState(EMPTY)
   const [selClass, setSelClass] = useState<any>(null)
+  const [scorecardStudent, setScorecardStudent] = useState<any>(null)
   const [saving, setSaving]     = useState(false)
   const [search, setSearch]     = useState('')
   const [leftSearch, setLeftSearch]   = useState('')
@@ -41,12 +43,6 @@ export default function Classes() {
     setModal('form');
   }
   const openEdit = (c: any) => { setEditing(c); setForm({ ...c }); setModal('form') }
-  const openRoster = (c: any) => { 
-    setSelClass(c)
-    setLeftSearch('')
-    setRightSearch('')
-    setModal('roster')
-  }
 
   const save = async () => {
     if (!form.class_name) return toast.error('Nhập tên lớp')
@@ -96,9 +92,11 @@ export default function Classes() {
     ((c as any).subject || '').toLowerCase().includes(search.toLowerCase())
   )
 
-  const rosterStudents: any[] = selClass
+  const currentClass = classes.find(c => c.id === selClass?.id) || (filtered.length > 0 ? filtered[0] : null)
+
+  const rosterStudents: any[] = currentClass
     ? enrollments
-        .filter(e => e.class_id === selClass.id && e.status === 'active')
+        .filter(e => e.class_id === currentClass.id && e.status === 'active')
         .map(e => students.find(s => s.id === e.student_id))
         .filter(Boolean)
     : []
@@ -110,7 +108,7 @@ export default function Classes() {
 
   const filteredAllStudents = students
     .filter(s => s.status === 'active')
-    .filter(s => !enrollments.some(e => e.class_id === selClass?.id && e.student_id === s.id && e.status === 'active'))
+    .filter(s => currentClass ? !enrollments.some(e => e.class_id === currentClass.id && e.student_id === s.id && e.status === 'active') : true)
     .filter(s =>
       s.full_name?.toLowerCase().includes(rightSearch.toLowerCase()) ||
       s.student_code?.toLowerCase().includes(rightSearch.toLowerCase())
@@ -127,87 +125,350 @@ export default function Classes() {
 
   return (
     <div className="space-y-6">
-      <div className="page-header">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-teal-50 shadow-sm">
         <div>
-          <h1 className="section-title flex items-center gap-2">
+          <h1 className="text-2xl font-black text-gray-800 flex items-center gap-2">
             <BookOpen className="w-7 h-7 text-teal-600" /> Lớp học {isAdmin() ? '(Tất cả)' : 'của tôi'}
           </h1>
-          <p className="text-gray-400 text-sm">{myClasses.length} lớp · {myClasses.filter((c:any)=>c.status==='active').length} đang mở</p>
+          <p className="text-gray-400 text-sm mt-1">
+            {myClasses.length} lớp học · {myClasses.filter((c: any) => c.status === 'active').length} lớp đang hoạt động
+          </p>
         </div>
-        
-        {/* ✅ Bỏ chặn isAdmin, cho phép GV tạo lớp */}
-        <button onClick={openAdd} className="btn-teal flex items-center gap-2">
+        <button onClick={openAdd} className="btn-teal flex items-center gap-2 self-start sm:self-auto py-2.5 px-5 shadow-lg shadow-teal-100 hover:shadow-teal-200 hover:scale-[1.02] active:scale-[0.98] transition-all">
           <Plus className="w-4 h-4" /> Thêm lớp
         </button>
       </div>
 
-      <input value={search} onChange={e => setSearch(e.target.value)}
-        placeholder="🔍 Tìm lớp học, môn học..." className="input max-w-sm" />
-
-      <div className="card overflow-hidden shadow-xl border-0">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ background: 'linear-gradient(135deg,#0d9488,#14b8a6)' }}>
-                {['Tên lớp','Môn','Giáo viên','Khối','Học phí','Lịch','Phòng','Sĩ số','Trạng thái','Thao tác'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-white font-bold text-xs whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 && (
-                <tr><td colSpan={10} className="text-center py-12 text-gray-400">Chưa có lớp học nào</td></tr>
-              )}
-              {filtered.map((c: any, i) => {
-                const count = enrollments.filter(e => e.class_id === c.id && e.status === 'active').length
-                const teacher = profiles.find(p => p.id === c.teacher_id)
-                
-                return (
-                  <tr key={c.id} className={`border-b border-teal-50 hover:bg-teal-50/50 transition-colors ${i%2===0?'bg-white':'bg-teal-50/20'}`}>
-                    <td className="px-4 py-3 font-bold text-gray-800">{c.class_name}</td>
-                    <td className="px-4 py-3 text-gray-600">{c.subject}</td>
-                    <td className="px-4 py-3">
-                      {teacher ? (
-                        <div className="flex items-center gap-1.5 text-teal-700 font-semibold whitespace-nowrap">
-                          <User className="w-3.5 h-3.5" /> {teacher.name || teacher.email}
+      {/* Split Pane Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        {/* CỘT TRÁI: DANH SÁCH LỚP HỌC (lg:col-span-4) */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="bg-white rounded-2xl border border-gray-205 p-4 shadow-sm space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Tìm lớp học, môn học..."
+                className="input pl-9 w-full text-sm py-2 bg-gray-50/50 focus:bg-white border-gray-200"
+              />
+            </div>
+            
+            <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-280px)] pr-1 custom-scrollbar">
+              {filtered.length === 0 ? (
+                <div className="text-center py-12 text-gray-400 text-sm">
+                  Chưa có lớp học nào
+                </div>
+              ) : (
+                filtered.map((c: any) => {
+                  const isActive = currentClass?.id === c.id
+                  const count = enrollments.filter(e => e.class_id === c.id && e.status === 'active').length
+                  const teacher = profiles.find(p => p.id === c.teacher_id)
+                  
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => setSelClass(c)}
+                      className={`relative group cursor-pointer border rounded-2xl p-4 transition-all duration-200 ${
+                        isActive
+                          ? 'border-teal-500 bg-teal-50/30 shadow-md shadow-teal-50/30'
+                          : 'border-gray-200 hover:border-teal-300 hover:bg-slate-50/30'
+                      }`}
+                    >
+                      {/* Thẻ Khối lớp & Trạng thái */}
+                      <div className="flex justify-between items-center gap-2 mb-2">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                          isActive ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          Khối {c.grade}
+                        </span>
+                        
+                        <div className="flex items-center gap-1.5">
+                          <span className={c.status === 'active' ? 'text-[10px] font-bold text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded' : 'text-[10px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded'}>
+                            {c.status === 'active' ? 'Đang mở' : 'Đóng'}
+                          </span>
+                          
+                          {/* Nút cộng thêm học sinh nhanh */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelClass(c)
+                              setRightSearch('')
+                              setModal('add_student')
+                            }}
+                            title="Thêm nhanh học sinh"
+                            className="p-1 rounded-full bg-teal-600 hover:bg-teal-700 text-white transition-colors shadow-sm"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
                         </div>
-                      ) : (
-                        <span className="text-gray-400 italic text-xs">Chưa có GV</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{c.grade}</td>
-                    <td className="px-4 py-3 font-bold text-teal-700">{fmtVNDShort(c.fee_per_session)}</td>
-                    <td className="px-4 py-3 text-gray-600 text-xs">{c.schedule || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{c.room || '—'}</td>
-                    <td className="px-4 py-3">
-                      <button onClick={() => openRoster(c)} className="flex items-center gap-1 text-teal-600 hover:text-teal-800 font-bold bg-teal-50 px-2 py-1 rounded-md border border-teal-100 transition-colors">
-                        <Users className="w-3.5 h-3.5" /> {count}/{c.max_students||'∞'}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={c.status==='active'?'badge-active':'badge-inactive'}>
-                        {c.status==='active'?'Đang mở':'Đóng'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5">
-                        <button onClick={() => openEdit(c)} className="p-1.5 text-teal-600 hover:bg-teal-100 rounded-lg transition-all" title="Sửa thông tin lớp">
-                          <Pencil className="w-4 h-4" />
+                      </div>
+
+                      {/* Tên Lớp */}
+                      <h3 className={`font-bold text-sm ${isActive ? 'text-teal-950' : 'text-gray-800'} line-clamp-1 group-hover:text-teal-800`}>
+                        {c.class_name}
+                      </h3>
+
+                      {/* Môn & Giáo viên */}
+                      <div className="flex flex-wrap gap-x-2 gap-y-1 mt-2 text-xs text-gray-500">
+                        <span>Môn: <strong className="text-gray-700">{c.subject}</strong></span>
+                        <span>•</span>
+                        <span className="truncate">
+                          GV: <strong className="text-gray-700">{teacher ? (teacher.name || teacher.email) : 'Chưa phân công'}</strong>
+                        </span>
+                      </div>
+
+                      {/* Lịch học & Sĩ số */}
+                      <div className="mt-3 pt-3 border-t border-dashed border-gray-200 flex justify-between items-center text-xs">
+                        <span className="text-gray-400 truncate max-w-[60%]">{c.schedule || 'Chưa xếp lịch'}</span>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                          isActive ? 'bg-teal-100 text-teal-800' : 'bg-teal-50 text-teal-700 border border-teal-100'
+                        }`}>
+                          <Users className="w-3 h-3" />
+                          {count}/{c.max_students || '∞'}
+                        </span>
+                      </div>
+
+                      {/* Nút thao tác lớp: Hiện khi hover hoặc khi active */}
+                      <div className="absolute right-3 top-8 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/90 backdrop-blur-sm p-1 rounded-lg shadow-sm border border-gray-200">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openEdit(c)
+                          }}
+                          title="Sửa thông tin"
+                          className="p-1 text-teal-600 hover:bg-teal-50 rounded"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        {/* ✅ NÚT XÓA LỚP */}
-                        <button onClick={() => handleDeleteClass(c.id, c.class_name)} className="p-1.5 text-red-500 hover:bg-red-100 hover:text-red-700 rounded-lg transition-all" title="Xóa lớp học này">
-                          <Trash2 className="w-4 h-4" />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteClass(c.id, c.class_name)
+                          }}
+                          title="Xóa lớp"
+                          className="p-1 text-red-500 hover:bg-red-50 rounded"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* CỘT PHẢI: CHI TIẾT LỚP & HỌC SINH (lg:col-span-8) */}
+        <div className="lg:col-span-8 space-y-6">
+          {currentClass ? (
+            <>
+              {/* Thông tin chi tiết lớp học */}
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm relative overflow-hidden">
+                <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-teal-500/10 to-transparent rounded-full -mr-10 -mt-10" />
+                
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 relative z-10">
+                  <div>
+                    <h2 className="text-xl font-extrabold text-gray-800 flex items-center gap-2">
+                      {currentClass.class_name}
+                    </h2>
+                    <p className="text-gray-500 text-sm mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span>Môn: <strong className="text-gray-700">{currentClass.subject}</strong></span>
+                      <span>•</span>
+                      <span>Khối: <strong className="text-gray-700">{currentClass.grade}</strong></span>
+                      <span>•</span>
+                      <span>Học phí/buổi: <strong className="text-teal-700 font-bold">{fmtVNDShort(currentClass.fee_per_session)}</strong></span>
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => openEdit(currentClass)}
+                      className="p-2 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl transition-all flex items-center gap-1.5 text-xs font-semibold"
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> Sửa thông tin
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClass(currentClass.id, currentClass.class_name)}
+                      className="p-2 border border-red-100 text-red-500 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1.5 text-xs font-semibold"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Xóa lớp học
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200 text-xs relative z-10">
+                  <div className="flex items-start gap-2.5">
+                    <User className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="text-gray-400 font-semibold">Giáo viên phụ trách</div>
+                      <div className="text-gray-850 font-bold mt-0.5">
+                        {profiles.find(p => p.id === currentClass.teacher_id)?.name || profiles.find(p => p.id === currentClass.teacher_id)?.email || 'Chưa phân công'}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-2.5">
+                    <Calendar className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="text-gray-400 font-semibold">Lịch học chi tiết</div>
+                      <div className="text-gray-850 font-bold mt-0.5">{currentClass.schedule || '—'}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-2.5">
+                    <MapPin className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="text-gray-400 font-semibold">Phòng học</div>
+                      <div className="text-gray-850 font-bold mt-0.5">{currentClass.room || '—'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Danh sách học sinh trong lớp */}
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200">
+                  <div>
+                    <h3 className="font-extrabold text-gray-800 text-base flex items-center gap-2">
+                      Danh sách học sinh
+                      <span className="text-xs font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full">
+                        {rosterStudents.length} học sinh
+                      </span>
+                    </h3>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setRightSearch('')
+                        setModal('add_student')
+                      }}
+                      className="btn-teal flex items-center gap-1.5 py-1.5 px-3 text-xs shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" /> Thêm học sinh
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Tìm tên hoặc mã học sinh trong lớp..."
+                    value={leftSearch}
+                    onChange={e => setLeftSearch(e.target.value)}
+                    className="input pl-9 w-full text-xs py-2 bg-gray-50/30 border-gray-200 focus:bg-white"
+                  />
+                </div>
+
+                <div className="space-y-3 mt-4">
+                  {filteredRoster.length === 0 ? (
+                    <div className="text-center py-12 text-gray-400 text-sm font-medium">
+                      {leftSearch ? 'Không tìm thấy học sinh phù hợp' : 'Chưa có học sinh nào đăng ký lớp này'}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {filteredRoster.map(s => {
+                        const studentClasses = enrollments
+                          .filter(e => e.student_id === s.id && e.status === 'active')
+                          .map(e => classes.find(c => c.id === e.class_id))
+                          .filter(Boolean)
+
+                        const initials = s.full_name
+                          ?.split(' ')
+                          .slice(-2)
+                          .map((w: string) => w[0])
+                          .join('')
+                          .toUpperCase() || 'HS'
+
+                        return (
+                          <div
+                            key={s.id}
+                            className="flex items-start justify-between p-4 border border-gray-200 hover:border-teal-300 rounded-2xl bg-white hover:bg-slate-50/10 hover:shadow-sm transition-all relative group"
+                          >
+                            <div
+                              onClick={() => setScorecardStudent(s)}
+                              className="flex gap-3 cursor-pointer flex-1 min-w-0"
+                            >
+                              {/* Avatar */}
+                              {s.avatar_url ? (
+                                <img
+                                  src={s.avatar_url}
+                                  alt={s.full_name}
+                                  className="w-10 h-10 rounded-full object-cover border border-teal-100 shadow-sm shrink-0"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-xs font-black shadow-sm shrink-0">
+                                  {initials}
+                                </div>
+                              )}
+
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <h4 className="font-bold text-sm text-gray-800 hover:text-teal-700 truncate">
+                                    {s.full_name}
+                                  </h4>
+                                  <span className="text-[9px] text-gray-400 font-mono shrink-0 bg-gray-100 px-1 py-0.5 rounded">
+                                    {s.student_code}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-0.5 truncate">
+                                  {s.school || 'Không rõ trường'} • Khối {s.grade}
+                                </p>
+                                
+                                {/* Badge các lớp đang học */}
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {studentClasses.map(sc => (
+                                    <span
+                                      key={sc.id}
+                                      className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold border ${
+                                        sc.id === currentClass.id
+                                          ? 'bg-teal-50 text-teal-700 border-teal-200'
+                                          : 'bg-gray-100 text-gray-600 border-gray-200'
+                                      }`}
+                                    >
+                                      {sc.class_name}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={async () => {
+                                const confirmMsg = `Bạn muốn xóa học sinh "${s.full_name}" khỏi lớp "${currentClass.class_name}"?`
+                                if (!window.confirm(confirmMsg)) return
+                                await unenroll(s.id, currentClass.id)
+                                toast.success('Đã bỏ ghi danh học sinh')
+                              }}
+                              className="text-xs text-red-500 hover:bg-red-50 hover:text-red-700 p-1.5 rounded-lg border border-red-150 transition-colors font-bold shrink-0 self-start opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                              title="Bỏ ghi danh"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center shadow-sm">
+              <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <h3 className="font-bold text-gray-700 text-base">Chưa chọn lớp học</h3>
+              <p className="text-gray-400 text-xs mt-1">Chọn một lớp học bên trái hoặc tạo lớp mới để xem danh sách học sinh</p>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Modal: Thêm/Sửa thông tin lớp */}
       <Modal open={modal==='form'} onClose={() => setModal(null)}
         title={editing ? `Sửa lớp: ${editing.class_name}` : 'Thêm lớp mới'} size="2xl">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -303,138 +564,111 @@ export default function Classes() {
         </div>
       </Modal>
 
-      <Modal open={modal==='roster'} onClose={() => setModal(null)}
-        title={`Danh sách học sinh – ${selClass?.class_name}`} size="3xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-[60vh] lg:min-h-[400px] lg:max-h-[600px]">
-          {/* CỘT TRÁI: DANH SÁCH ĐÃ ĐĂNG KÝ HỌC */}
-          <div className="flex flex-col h-[350px] lg:h-full border border-teal-100 rounded-2xl bg-white p-4 shadow-sm">
-            <div className="shrink-0 pb-3 border-b border-teal-50">
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-bold text-teal-700 flex items-center gap-1.5">
-                  <Users className="w-5 h-5 text-teal-600" /> Đang học ({rosterStudents.length})
-                </h4>
-              </div>
-              <input
-                type="text"
-                placeholder="Tìm trong lớp..."
-                value={leftSearch}
-                onChange={e => setLeftSearch(e.target.value)}
-                className="input py-1 text-sm bg-teal-50/30 border-teal-100 focus:border-teal-400 focus:bg-white"
-              />
-            </div>
-
-            <div className="flex-1 overflow-y-auto space-y-2 mt-3 pr-1 custom-scrollbar">
-              {filteredRoster.length === 0 ? (
-                <p className="text-gray-400 text-sm text-center py-12">Không tìm thấy học sinh nào</p>
-              ) : (
-                filteredRoster.map(s => {
-                  const studentClasses = enrollments
-                    .filter(e => e.student_id === s.id && e.status === 'active')
-                    .map(e => classes.find(c => c.id === e.class_id))
-                    .filter(Boolean)
-
-                  return (
-                    <div key={s.id} className="flex items-center justify-between bg-white border border-teal-100 rounded-xl px-4 py-2.5 shadow-sm hover:border-teal-300 transition-colors">
-                      <div className="flex-1 min-w-0 pr-3">
-                        <div className="flex items-baseline gap-2">
-                          <p className="font-bold text-sm text-gray-800 truncate">{s.full_name}</p>
-                          <span className="text-[10px] text-gray-400 font-mono shrink-0">{s.student_code}</span>
-                        </div>
-                        <p className="text-xs text-gray-400 truncate">{s.school || 'Không rõ trường'} · Khối {s.grade || '—'}</p>
-                        
-                        <div className="flex flex-wrap gap-1 mt-1.5">
-                          {studentClasses.map(c => (
-                            <span key={c.id} className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${c.id === selClass?.id ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                              {c.class_name}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={async () => {
-                          await unenroll(s.id, selClass.id)
-                          toast.success('Đã bỏ ghi danh')
-                        }}
-                        className="text-xs text-red-500 hover:bg-red-50 hover:text-red-700 px-3 py-1.5 rounded-lg border border-red-100 transition-colors font-bold shrink-0"
-                      >
-                        Bỏ đăng ký
-                      </button>
-                    </div>
-                  )
-                })
-              )}
-            </div>
+      {/* Modal: Thêm học sinh vào lớp */}
+      <Modal
+        open={modal === 'add_student'}
+        onClose={() => setModal(null)}
+        title={`Thêm học sinh – Lớp ${currentClass?.class_name}`}
+        size="2xl"
+      >
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Nhập tên hoặc mã học sinh để tìm kiếm..."
+              value={rightSearch}
+              onChange={e => setRightSearch(e.target.value)}
+              className="input pl-9 w-full text-sm"
+            />
           </div>
 
-          {/* CỘT PHẢI: HỌC SINH TOÀN TRƯỜNG */}
-          <div className="flex flex-col h-[350px] lg:h-full border border-gray-200 rounded-2xl bg-white p-4 shadow-sm">
-            <div className="shrink-0 pb-3 border-b border-gray-100">
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-bold text-gray-700 flex items-center gap-1.5">
-                  <BookOpen className="w-5 h-5 text-gray-500" /> Học sinh toàn trường ({students.length})
-                </h4>
-              </div>
-              <input
-                type="text"
-                placeholder="Tìm theo tên, mã học sinh..."
-                value={rightSearch}
-                onChange={e => setRightSearch(e.target.value)}
-                className="input py-1 text-sm bg-gray-50/50 border-gray-200 focus:border-teal-400 focus:bg-white"
-              />
-            </div>
+          <div className="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1 custom-scrollbar">
+            {filteredAllStudents.length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-12">Không tìm thấy học sinh nào khả dụng</p>
+            ) : (
+              filteredAllStudents.map(s => {
+                const studentClasses = enrollments
+                  .filter(e => e.student_id === s.id && e.status === 'active')
+                  .map(e => classes.find(c => c.id === e.class_id))
+                  .filter(Boolean)
 
-            <div className="flex-1 overflow-y-auto space-y-2 mt-3 pr-1 custom-scrollbar">
-              {filteredAllStudents.length === 0 ? (
-                <p className="text-gray-400 text-sm text-center py-12">Không tìm thấy học sinh nào</p>
-              ) : (
-                filteredAllStudents.map(s => {
-                  const studentClasses = enrollments
-                    .filter(e => e.student_id === s.id && e.status === 'active')
-                    .map(e => classes.find(c => c.id === e.class_id))
-                    .filter(Boolean)
+                const initials = s.full_name
+                  ?.split(' ')
+                  .slice(-2)
+                  .map((w: string) => w[0])
+                  .join('')
+                  .toUpperCase() || 'HS'
 
-                  return (
-                    <div key={s.id} className="flex items-center justify-between bg-white border border-gray-200 hover:border-teal-300 rounded-xl px-4 py-2.5 shadow-sm transition-colors">
-                      <div className="flex-1 min-w-0 pr-3">
-                        <div className="flex items-baseline gap-2">
-                          <p className="font-bold text-sm text-gray-800 truncate">{s.full_name}</p>
-                          <span className="text-[10px] text-gray-400 font-mono shrink-0">{s.student_code}</span>
+                return (
+                  <div
+                    key={s.id}
+                    className="flex items-center justify-between bg-white border border-gray-200 hover:border-teal-300 rounded-2xl p-4 shadow-sm hover:shadow transition-all"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 pr-3">
+                      {s.avatar_url ? (
+                        <img
+                          src={s.avatar_url}
+                          alt={s.full_name}
+                          className="w-10 h-10 rounded-full object-cover border border-teal-100 shrink-0 shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-600 flex items-center justify-center text-white text-xs font-black shrink-0 shadow-sm">
+                          {initials}
                         </div>
-                        <p className="text-xs text-gray-400 truncate">{s.school || 'Không rõ trường'} · Khối {s.grade || '—'}</p>
+                      )}
+                      
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-bold text-sm text-gray-800 truncate">{s.full_name}</p>
+                          <span className="text-[9px] text-gray-400 font-mono bg-gray-100 px-1 py-0.5 rounded shrink-0">
+                            {s.student_code}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400 truncate mt-0.5">
+                          {s.school || 'Không rõ trường'} • Khối {s.grade || '—'}
+                        </p>
                         
                         <div className="flex flex-wrap gap-1 mt-1.5">
                           {studentClasses.length === 0 ? (
-                            <span className="text-[10px] text-gray-400 italic">Chưa học lớp nào</span>
+                            <span className="text-[9px] text-gray-400 italic">Chưa học lớp nào</span>
                           ) : (
-                            studentClasses.map(c => (
-                              <span key={c.id} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border bg-gray-100 text-gray-600 border-gray-200">
-                                {c.class_name}
+                            studentClasses.map(sc => (
+                              <span
+                                key={sc.id}
+                                className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold border bg-gray-50 text-gray-600 border-gray-200"
+                              >
+                                {sc.class_name}
                               </span>
                             ))
                           )}
                         </div>
                       </div>
-
-                      <div className="shrink-0">
-                        <button
-                          onClick={async () => {
-                            await enroll(s.id, selClass.id)
-                            toast.success(`Đã thêm ${s.full_name} vào lớp`)
-                          }}
-                          className="text-xs btn-teal py-1.5 px-3 shadow-sm font-bold"
-                        >
-                          Thêm vào lớp
-                        </button>
-                      </div>
                     </div>
-                  )
-                })
-              )}
-            </div>
+
+                    <button
+                      onClick={async () => {
+                        await enroll(s.id, currentClass.id)
+                        toast.success(`Đã thêm ${s.full_name} vào lớp`)
+                      }}
+                      className="text-xs btn-teal py-1.5 px-3 shadow-sm font-bold flex items-center gap-1.5 shrink-0"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" /> Thêm vào lớp
+                    </button>
+                  </div>
+                )
+              })
+            )}
           </div>
         </div>
       </Modal>
+
+      {/* Modal: Xem hồ sơ và bảng điểm rút gọn của học sinh */}
+      <StudentScorecardModal
+        student={scorecardStudent}
+        open={!!scorecardStudent}
+        onClose={() => setScorecardStudent(null)}
+      />
     </div>
   )
 }
