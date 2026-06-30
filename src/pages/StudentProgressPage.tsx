@@ -150,9 +150,17 @@ export default function StudentProgressPage() {
         <div className="absolute inset-0 opacity-[0.07]"
           style={{ backgroundImage: 'radial-gradient(circle, white 1.5px, transparent 1.5px)', backgroundSize: '28px 28px' }} />
         <div className="relative z-10">
-          <div className="w-20 h-20 rounded-full bg-white/20 border-4 border-white/40 flex items-center justify-center mx-auto mb-4 text-2xl font-black tracking-tight shadow-xl">
-            {initials}
-          </div>
+          {student.avatar_url ? (
+            <img 
+              src={student.avatar_url} 
+              alt={student.full_name} 
+              className="w-28 h-28 rounded-full object-cover border-4 border-white/40 mx-auto mb-4 shadow-xl"
+            />
+          ) : (
+            <div className="w-28 h-28 rounded-full bg-white/20 border-4 border-white/40 flex items-center justify-center mx-auto mb-4 text-3xl font-black tracking-tight shadow-xl">
+              {initials}
+            </div>
+          )}
           <h1 className="text-2xl font-black leading-tight">{student.full_name}</h1>
           <p className="text-teal-200 text-sm mt-1 font-mono tracking-widest">{student.student_code}</p>
           {Object.keys(byClass).length > 0 && (

@@ -180,15 +180,15 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
                 
                 {/* Khu vực Avatar & Tên */}
                 <div className="text-center pb-3 border-b border-slate-100">
-                  <div className="relative group w-20 h-20 mx-auto mb-2.5">
+                  <div className="relative group w-28 h-28 mx-auto mb-2.5">
                     {studentInfo?.avatar_url ? (
                       <img 
                         src={studentInfo.avatar_url} 
                         alt={displayName} 
-                        className="w-20 h-20 rounded-full object-cover border-4 border-teal-50 shadow-md"
+                        className="w-28 h-28 rounded-full object-cover border-4 border-teal-50 shadow-md"
                       />
                     ) : (
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-teal-500 via-teal-600 to-emerald-600 border-4 border-teal-50 flex items-center justify-center text-white text-2xl font-black shadow-md">
+                      <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-teal-500 via-teal-600 to-emerald-600 border-4 border-teal-50 flex items-center justify-center text-white text-3xl font-black shadow-md">
                         {initials}
                       </div>
                     )}
