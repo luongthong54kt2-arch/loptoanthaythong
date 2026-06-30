@@ -6,6 +6,7 @@ import Modal from '@/components/Modal'
 import EssayGraderPanel from '@/components/EssayGraderPanel'
 import SubmissionDetailView from '@/components/SubmissionDetailView'
 import toast from 'react-hot-toast'
+import StudentScorecardModal from '@/components/StudentScorecardModal'
 
 export default function ExamResultsPage() {
   const { roomId } = useParams()
@@ -20,6 +21,7 @@ export default function ExamResultsPage() {
   const [selectedSub, setSelectedSub] = useState<any>(null)
   const [showEssayGrader, setShowEssayGrader] = useState(false)
   const [activeTab, setActiveTab] = useState<'submitted' | 'not_submitted'>('submitted')
+  const [scorecardStudent, setScorecardStudent] = useState<any>(null)
 
   useEffect(() => {
     loadAllData()
@@ -39,7 +41,7 @@ export default function ExamResultsPage() {
 
       const { data: subs } = await supabase
         .from('exam_submissions')
-        .select('*, students(full_name, student_code)')
+        .select('*, students(id, full_name, student_code)')
         .eq('room_id', roomId)
         .order('submitted_at', { ascending: false })
 
@@ -260,7 +262,16 @@ export default function ExamResultsPage() {
                   return (
                     <tr key={sub.id} className="hover:bg-teal-50/30 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-bold text-gray-800">{sub.students?.full_name}</div>
+                        <button
+                          onClick={() => setScorecardStudent({
+                            id: sub.student_id,
+                            full_name: sub.students?.full_name,
+                            student_code: sub.students?.student_code
+                          })}
+                          className="font-bold text-gray-800 hover:text-teal-600 hover:underline text-left"
+                        >
+                          {sub.students?.full_name}
+                        </button>
                         <div className="text-xs text-gray-400 font-mono">{sub.students?.student_code}</div>
                       </td>
                       <td className="px-6 py-4 text-center">
@@ -322,12 +333,13 @@ export default function ExamResultsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {notSubmittedStudents.map((student) => (
-                <div 
+                <button 
                   key={student.id} 
-                  className="bg-white border border-slate-200/80 rounded-xl p-4 font-bold text-gray-800 text-center shadow-sm hover:border-teal-500 hover:shadow-md transition-all duration-200 flex items-center justify-center min-h-[60px]"
+                  onClick={() => setScorecardStudent(student)}
+                  className="bg-white border border-slate-200/80 rounded-xl p-4 font-bold text-gray-800 text-center shadow-sm hover:border-teal-500 hover:text-teal-600 hover:shadow-md cursor-pointer transition-all duration-200 flex items-center justify-center min-h-[60px]"
                 >
                   {student.full_name}
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -361,6 +373,12 @@ export default function ExamResultsPage() {
           />
         );
       })()}
+
+      <StudentScorecardModal
+        student={scorecardStudent}
+        open={!!scorecardStudent}
+        onClose={() => setScorecardStudent(null)}
+      />
     </div>
   )
 }
