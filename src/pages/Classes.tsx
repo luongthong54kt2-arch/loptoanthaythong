@@ -113,6 +113,14 @@ export default function Classes() {
       s.full_name?.toLowerCase().includes(rightSearch.toLowerCase()) ||
       s.student_code?.toLowerCase().includes(rightSearch.toLowerCase())
     )
+    .sort((a, b) => {
+      const aCount = enrollments.filter(e => e.student_id === a.id && e.status === 'active').length
+      const bCount = enrollments.filter(e => e.student_id === b.id && e.status === 'active').length
+      if (aCount === 0 && bCount > 0) return -1
+      if (bCount === 0 && aCount > 0) return 1
+      if (aCount !== bCount) return aCount - bCount
+      return (a.full_name || '').localeCompare(b.full_name || '', 'vi')
+    })
 
   const inp = (field: keyof typeof EMPTY, extra = {}) => ({
     value: form[field] || '',
