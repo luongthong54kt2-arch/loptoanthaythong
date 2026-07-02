@@ -72,8 +72,8 @@ export default function Layout() {
         <div className="h-16 flex items-center gap-3 px-6 border-b border-teal-600/50 bg-teal-800/30">
           <GraduationCap className="w-8 h-8 text-teal-100" />
           <div>
-            <h1 className="font-bold text-lg leading-tight">EduCenter</h1>
-            <p className="text-[10px] text-teal-200 uppercase tracking-widest">Hệ thống Quản lý</p>
+            <h1 className="font-bold text-sm leading-tight uppercase tracking-wider">LỚP TOÁN THẦY LĨNH</h1>
+            <p className="text-[9px] text-teal-200 uppercase tracking-widest mt-0.5">Hệ thống Quản lý</p>
           </div>
         </div>
 
