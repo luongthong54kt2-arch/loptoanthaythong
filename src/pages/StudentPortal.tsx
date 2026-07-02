@@ -240,7 +240,9 @@ export default function StudentPortal() {
             </div>
             <div className="text-lg font-extrabold uppercase tracking-wide text-teal-600 mb-1">LỚP TOÁN THẦY LĨNH</div>
             <h1 className="text-2xl font-black text-teal-800">Bài Tập Về Nhà</h1>
-            <p className="text-teal-600 text-sm mt-1">Hệ thống giáo dục EduCenter</p>
+            <p className="text-teal-600 text-xs mt-2 italic max-w-sm mx-auto leading-relaxed">
+              Sau mỗi buổi học thầy sẽ giao 2 đề thi, các học trò cố gắng làm hết 2 đề thi này
+            </p>
           </div>
 
           <form className="p-6 space-y-4">
