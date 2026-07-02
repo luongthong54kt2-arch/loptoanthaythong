@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { ChevronLeft, BrainCircuit, Eye } from 'lucide-react'
+import { ChevronLeft, BrainCircuit, Eye, AlertTriangle } from 'lucide-react'
 import Modal from '@/components/Modal'
 import EssayGraderPanel from '@/components/EssayGraderPanel'
 import SubmissionDetailView from '@/components/SubmissionDetailView'
@@ -331,16 +331,22 @@ export default function ExamResultsPage() {
           {notSubmittedStudents.length === 0 ? (
             <p className="text-center text-gray-400 font-bold py-12">🎉 Tất cả học sinh đã nộp bài!</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              {notSubmittedStudents.map((student) => (
-                <button 
-                  key={student.id} 
-                  onClick={() => setScorecardStudent(student)}
-                  className="bg-white border border-slate-200/80 rounded-xl p-4 font-bold text-gray-800 text-center shadow-sm hover:border-teal-500 hover:text-teal-600 hover:shadow-md cursor-pointer transition-all duration-200 flex items-center justify-center min-h-[60px]"
-                >
-                  {student.full_name}
-                </button>
-              ))}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 text-red-600 font-bold text-lg md:text-xl p-4 bg-red-50 rounded-xl border border-red-100">
+                <AlertTriangle className="w-6 h-6 flex-shrink-0 text-red-600 animate-pulse" />
+                <span>Danh sách các bạn chưa hoàn thành bài tập về nhà, hãy nhanh chóng làm trước buổi học tiếp theo!!!!</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                {notSubmittedStudents.map((student) => (
+                  <button 
+                    key={student.id} 
+                    onClick={() => setScorecardStudent(student)}
+                    className="bg-white border border-slate-200/80 rounded-xl p-4 font-bold text-gray-800 text-center shadow-sm hover:border-teal-500 hover:text-teal-600 hover:shadow-md cursor-pointer transition-all duration-200 flex items-center justify-center min-h-[60px]"
+                  >
+                    {student.full_name}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
