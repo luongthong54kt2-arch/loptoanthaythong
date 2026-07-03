@@ -294,6 +294,126 @@ export default function StudentPortal() {
   // Chưa thi: chưa có bài nộp status = 'submitted'
   const pendingExams = examsList.filter(room => !submittedRoomIds.includes(room.id))
 
+  // --- PHÂN TÍCH TIẾN ĐỘ THEO BUỔI & BÀI ---
+  const parsedExams = examsList.map(room => {
+    const title = room.exams?.title || ''
+    const matchBuoi = title.match(/(?:buổi|buoi|b)\s*(\d+)/i)
+    const buoi = matchBuoi ? parseInt(matchBuoi[1]) : null
+
+    const matchDe = title.match(/(?:đề|de|bài|bai|đề\s*số|de\s*so)\s*(\d+)/i)
+    const bai = matchDe ? parseInt(matchDe[1]) : null
+
+    return { room, buoi, bai, title }
+  })
+
+  // Tìm buổi học lớn nhất
+  const buoiNumbers = parsedExams
+    .map(e => e.buoi)
+    .filter(b => typeof b === 'number' && b > 0)
+  const maxBuoi = buoiNumbers.length > 0 ? Math.max(...buoiNumbers) : 4
+
+  // Tạo cấu trúc cột: mỗi buổi có Đề 1 và Đề 2
+  const tableCols = []
+  for (let b = 1; b <= maxBuoi; b++) {
+    tableCols.push({ buoi: b, bai: 1 })
+    tableCols.push({ buoi: b, bai: 2 })
+  }
+
+  // Khớp dữ liệu phòng thi & bài nộp cho từng cột
+  const gridData = tableCols.map(c => {
+    const matched = parsedExams.find(e => e.buoi === c.buoi && e.bai === c.bai)
+    let sub = null
+    if (matched) {
+      sub = submissionsList.find(s => s.room_id === matched.room.id)
+    }
+    return {
+      buoi: c.buoi,
+      bai: c.bai,
+      exam: matched ? matched.room : null,
+      sub
+    }
+  })
+
+  const getAttempts = (item: any) => {
+    if (!item.exam) return '-'
+    if (!item.sub) return '0'
+    return item.sub.score_breakdown?.attempt_count || 1
+  }
+
+  const getViolations = (item: any) => {
+    if (!item.exam) return '-'
+    if (!item.sub) return '0'
+    const historySwitches = (item.sub.score_breakdown?.history || []).reduce((sum: number, att: any) => sum + (att.tab_switches || 0), 0)
+    return (item.sub.tab_switches || 0) + historySwitches
+  }
+
+  const getScoreDisplay = (item: any) => {
+    if (!item.exam) return '-'
+    if (!item.sub) return 'Chưa thi'
+    if (item.sub.status !== 'submitted') return 'Đang làm'
+    return typeof item.sub.score === 'number' ? item.sub.score.toFixed(1) : 'Chưa chấm'
+  }
+
+  // --- DỮ LIỆU ĐỒ THỊ ---
+  const chartData = submissionsList
+    .filter(s => s.status === 'submitted' && s.submitted_at)
+    .map(s => {
+      const room = examsList.find(r => r.id === s.room_id)
+      const title = room?.exams?.title || `Phòng ${room?.code || ''}`
+      const matchBuoi = title.match(/(?:buổi|buoi|b)\s*(\d+)/i)
+      const buoi = matchBuoi ? parseInt(matchBuoi[1]) : 999
+      const matchDe = title.match(/(?:đề|de|bài|bai)\s*(\d+)/i)
+      const bai = matchDe ? parseInt(matchDe[1]) : 999
+
+      return {
+        title,
+        buoi,
+        bai,
+        score: s.score || 0,
+        duration: Math.round((s.duration || 0) / 60), // sang phút
+        submittedAt: new Date(s.submitted_at)
+      }
+    })
+    .sort((a, b) => a.submittedAt.getTime() - b.submittedAt.getTime())
+
+  // Vẽ đồ thị
+  const w = 800
+  const h = 350
+  const chartMargin = { top: 40, right: 60, bottom: 70, left: 50 }
+  const plotW = w - chartMargin.left - chartMargin.right
+  const plotH = h - chartMargin.top - chartMargin.bottom
+  
+  const maxDuration = chartData.length > 0
+    ? Math.max(...chartData.map(d => d.duration), 45)
+    : 45
+
+  const points = chartData.map((d, i) => {
+    const x = chartData.length > 1
+      ? chartMargin.left + (i / (chartData.length - 1)) * plotW
+      : chartMargin.left + plotW / 2
+    const yScore = chartMargin.top + plotH - (d.score / 10) * plotH
+    const yDuration = chartMargin.top + plotH - (d.duration / maxDuration) * plotH
+    const barHeight = (d.duration / maxDuration) * plotH
+    return { ...d, x, yScore, yDuration, barHeight }
+  })
+
+  const scorePathD = points.length > 1
+    ? `M ${points.map(p => `${p.x},${p.yScore}`).join(' L ')}`
+    : ''
+
+  const scoreAreaD = points.length > 1
+    ? `${scorePathD} L ${points[points.length - 1].x},${chartMargin.top + plotH} L ${points[0].x},${chartMargin.top + plotH} Z`
+    : ''
+
+  const getShortTitle = (title: string) => {
+    const matchBuoi = title.match(/(?:buổi|buoi|b)\s*(\d+)/i)
+    const buoi = matchBuoi ? `B${matchBuoi[1]}` : ''
+    const matchDe = title.match(/(?:đề|de|bài|bai)\s*(\d+)/i)
+    const de = matchDe ? `Đ${matchDe[1]}` : ''
+    if (buoi && de) return `${buoi}-${de}`
+    return title.length > 12 ? title.substring(0, 10) + '..' : title
+  }
+
   // ── DASHBOARD (đã đăng nhập) ─────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -334,6 +454,292 @@ export default function StudentPortal() {
             <span className="font-bold">Lưu ý quan trọng:</span> Hệ thống có tính năng giám sát chuyển tab/thoát màn hình khi đang làm bài. Các em hãy tập trung và không chuyển tab khi đang làm bài thi để tránh bị nhắc nhở hoặc khóa bài tự động.
           </div>
         </div>
+
+        {/* BÁO CÁO TIẾN ĐỘ HỌC TẬP (TABLE + CHART) */}
+        <section className="bg-white rounded-3xl p-6 border border-teal-100 shadow-sm space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-teal-50 pb-4">
+            <div>
+              <h2 className="text-xl font-black text-gray-800 flex items-center gap-2">
+                📊 Báo Cáo Tiến Độ & Kết Quả Học Tập
+              </h2>
+              <p className="text-gray-400 text-xs font-semibold mt-0.5">
+                Bảng theo dõi buổi học và biểu đồ kết quả điểm số, thời gian làm bài của học sinh.
+              </p>
+            </div>
+            {/* Quick stats badges */}
+            <div className="flex gap-2.5 flex-wrap">
+              <div className="bg-teal-50 text-teal-700 px-3 py-1.5 rounded-xl border border-teal-100 text-xs font-bold flex items-center gap-1">
+                Bài đã làm: <span className="font-extrabold text-sm">{completedExams.length}</span>
+              </div>
+              <div className="bg-orange-50 text-orange-700 px-3 py-1.5 rounded-xl border border-orange-100 text-xs font-bold flex items-center gap-1">
+                Điểm TB: <span className="font-extrabold text-sm">
+                  {completedExams.length > 0 
+                    ? (completedExams.reduce((sum, item) => sum + (item.sub.score || 0), 0) / completedExams.length).toFixed(1)
+                    : 'N/A'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* TABLE MATRIX */}
+          <div>
+            <h3 className="text-sm font-extrabold text-gray-700 mb-3 uppercase tracking-wider flex items-center gap-1.5">
+              <span>📋 Bảng tổng hợp kết quả chi tiết</span>
+            </h3>
+            <div className="overflow-x-auto rounded-2xl border border-slate-200">
+              <table className="w-full border-collapse table-fixed">
+                <thead>
+                  {/* Row 1: Buổi */}
+                  <tr className="bg-teal-600 text-white text-center font-bold text-sm">
+                    <th className="p-3 border border-teal-700 bg-teal-700 w-[140px] sticky left-0 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.1)] text-left font-black">Buổi học</th>
+                    {Array.from({ length: maxBuoi }, (_, i) => i + 1).map(b => (
+                      <th key={b} colSpan={2} className="p-3 border border-teal-700 font-extrabold tracking-wide text-sm bg-teal-600">
+                        Buổi {b}
+                      </th>
+                    ))}
+                  </tr>
+                  {/* Row 2: Bài */}
+                  <tr className="bg-teal-50 text-teal-800 text-center font-bold text-xs uppercase">
+                    <th className="p-3 border border-teal-200 bg-teal-50 sticky left-0 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.05)] text-left font-black">Mã đề / bài</th>
+                    {tableCols.map((c, idx) => (
+                      <th key={idx} className="p-2.5 border border-teal-200 font-extrabold min-w-[90px] text-xs">
+                        Đề {c.bai}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Row 3: Số lần thi */}
+                  <tr className="text-center hover:bg-slate-50 transition-colors">
+                    <td className="p-3 border border-slate-200 text-left font-bold text-gray-700 bg-white sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] text-xs">
+                      Số lần thi
+                    </td>
+                    {gridData.map((item, idx) => {
+                      const val = getAttempts(item)
+                      return (
+                        <td key={idx} className="p-3 border border-slate-200 font-semibold text-gray-600 text-xs">
+                          {val}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                  {/* Row 4: Số lần vi phạm */}
+                  <tr className="text-center hover:bg-slate-50 transition-colors">
+                    <td className="p-3 border border-slate-200 text-left font-bold text-gray-700 bg-white sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] text-xs">
+                      Số lần vi phạm
+                    </td>
+                    {gridData.map((item, idx) => {
+                      const val = getViolations(item)
+                      const isViolating = typeof val === 'number' && val > 0
+                      return (
+                        <td key={idx} className={`p-3 border border-slate-200 font-bold text-xs ${isViolating ? 'text-rose-600 bg-rose-50/50' : 'text-gray-500'}`}>
+                          {val}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                  {/* Row 5: Điểm số */}
+                  <tr className="text-center hover:bg-slate-50 transition-colors">
+                    <td className="p-3 border border-slate-200 text-left font-bold text-gray-700 bg-white sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] text-xs">
+                      Điểm số
+                    </td>
+                    {gridData.map((item, idx) => {
+                      const display = getScoreDisplay(item)
+                      let scoreColor = 'text-gray-400'
+                      if (item.sub && item.sub.status === 'submitted' && typeof item.sub.score === 'number') {
+                        scoreColor = item.sub.score >= 8.0 
+                          ? 'text-emerald-600 bg-emerald-50/30 font-bold' 
+                          : item.sub.score >= 5.0 
+                            ? 'text-teal-600 bg-teal-50/10' 
+                            : 'text-rose-600 bg-rose-50/30 font-bold'
+                      } else if (display === 'Đang thi') {
+                        scoreColor = 'text-amber-600 bg-amber-50/30 animate-pulse font-bold'
+                      }
+
+                      return (
+                        <td 
+                          key={idx} 
+                          className={`p-3 border border-slate-200 font-black text-xs ${scoreColor}`}
+                        >
+                          {display}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* CHART */}
+          <div className="pt-4 border-t border-teal-50">
+            <h3 className="text-sm font-extrabold text-gray-700 mb-4 uppercase tracking-wider">
+              📈 Biểu đồ kết quả điểm và thời gian làm bài
+            </h3>
+            {chartData.length === 0 ? (
+              <div className="bg-slate-50 rounded-2xl p-10 text-center border-2 border-dashed border-slate-200 flex flex-col items-center justify-center min-h-[220px]">
+                <AlertCircle className="w-10 h-10 text-slate-300 mb-2" />
+                <h4 className="text-slate-500 font-bold">Chưa có dữ liệu biểu đồ</h4>
+                <p className="text-slate-400 text-xs mt-1">Hoàn thành ít nhất một bài kiểm tra để hiển thị sơ đồ trực quan.</p>
+              </div>
+            ) : (
+              <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-100 overflow-x-auto">
+                <div className="min-w-[650px] w-full">
+                  <svg viewBox="0 0 800 350" width="100%" height="auto" className="mx-auto overflow-visible">
+                    {/* Definitions for Gradients */}
+                    <defs>
+                      <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#0d9488" stopOpacity="0.25"/>
+                        <stop offset="100%" stopColor="#0d9488" stopOpacity="0.00"/>
+                      </linearGradient>
+                    </defs>
+
+                    {/* Gridlines & Axes Labels */}
+                    {Array.from({ length: 6 }).map((_, i) => {
+                      const scoreVal = i * 2
+                      const y = chartMargin.top + plotH - (scoreVal / 10) * plotH
+                      return (
+                        <g key={i}>
+                          <line 
+                            x1={chartMargin.left} 
+                            y1={y} 
+                            x2={w - chartMargin.right} 
+                            y2={y} 
+                            stroke="#e2e8f0" 
+                            strokeWidth="1" 
+                            strokeDasharray="4 4" 
+                          />
+                          {/* Left Label (Score) */}
+                          <text 
+                            x={chartMargin.left - 12} 
+                            y={y + 4} 
+                            fill="#0d9488" 
+                            fontSize="11" 
+                            fontWeight="bold"
+                            textAnchor="end"
+                          >
+                            {scoreVal}
+                          </text>
+                          {/* Right Label (Duration) */}
+                          <text 
+                            x={w - chartMargin.right + 12} 
+                            y={y + 4} 
+                            fill="#f97316" 
+                            fontSize="11" 
+                            fontWeight="bold"
+                            textAnchor="start"
+                          >
+                            {Math.round((scoreVal / 10) * maxDuration)}m
+                          </text>
+                        </g>
+                      )
+                    })}
+
+                    {/* Duration Bars */}
+                    {points.map((p, idx) => (
+                      <g key={`bar-${idx}`}>
+                        <rect 
+                          x={p.x - 12} 
+                          y={p.yDuration} 
+                          width="24" 
+                          height={p.barHeight} 
+                          fill="#fed7aa" 
+                          opacity="0.5" 
+                          stroke="#f97316" 
+                          strokeWidth="1.5" 
+                          rx="3" 
+                          ry="3" 
+                        />
+                        <text 
+                          x={p.x} 
+                          y={p.yDuration - 6} 
+                          fill="#ea580c" 
+                          fontSize="9" 
+                          fontWeight="extrabold" 
+                          textAnchor="middle"
+                        >
+                          {p.duration}m
+                        </text>
+                      </g>
+                    ))}
+
+                    {/* Score Path Area Fill */}
+                    {points.length > 1 && (
+                      <path d={scoreAreaD} fill="url(#scoreGrad)" />
+                    )}
+
+                    {/* Score Line */}
+                    {points.length > 1 && (
+                      <path d={scorePathD} fill="none" stroke="#0d9488" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                    )}
+
+                    {/* Points & Score values & X labels */}
+                    {points.map((p, idx) => (
+                      <g key={`dot-${idx}`}>
+                        <circle 
+                          cx={p.x} 
+                          cy={p.yScore} 
+                          r="7" 
+                          fill="#0d9488" 
+                          opacity="0.15" 
+                        />
+                        <circle 
+                          cx={p.x} 
+                          cy={p.yScore} 
+                          r="4.5" 
+                          fill="#0d9488" 
+                          stroke="#ffffff" 
+                          strokeWidth="1.5" 
+                        />
+                        <text 
+                          x={p.x} 
+                          y={p.yScore - 10} 
+                          fill="#0f766e" 
+                          fontSize="11" 
+                          fontWeight="black" 
+                          textAnchor="middle"
+                        >
+                          {p.score.toFixed(1)}
+                        </text>
+
+                        {/* X-axis ticks & rotated labels */}
+                        <line 
+                          x1={p.x} 
+                          y1={chartMargin.top + plotH} 
+                          x2={p.x} 
+                          y2={chartMargin.top + plotH + 5} 
+                          stroke="#cbd5e1" 
+                          strokeWidth="1.5" 
+                        />
+                        <text 
+                          x={p.x - 5} 
+                          y={chartMargin.top + plotH + 20} 
+                          fill="#64748b" 
+                          fontSize="10" 
+                          fontWeight="bold"
+                          textAnchor="end"
+                          transform={`rotate(-25, ${p.x}, ${chartMargin.top + plotH + 20})`}
+                        >
+                          {getShortTitle(p.title)}
+                        </text>
+                      </g>
+                    ))}
+
+                    {/* Chart Legend */}
+                    <g transform="translate(180, 5)">
+                      <line x1="0" y1="15" x2="30" y2="15" stroke="#0d9488" strokeWidth="3" />
+                      <circle cx="15" cy="15" r="4" fill="#0d9488" />
+                      <text x="40" y="19" fill="#475569" fontSize="12" fontWeight="bold">Điểm số (Thang 10)</text>
+
+                      <rect x="230" y="7" width="20" height="15" fill="#fed7aa" rx="3" opacity="0.6" stroke="#f97316" strokeWidth="1.5" />
+                      <text x="260" y="19" fill="#475569" fontSize="12" fontWeight="bold">Thời gian làm bài (Phút)</text>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* DANH SÁCH BÀI THI CHƯA THI */}
         <section className="space-y-4">
