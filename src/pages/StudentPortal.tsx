@@ -85,8 +85,33 @@ export default function StudentPortal() {
 
       if (subsErr) throw subsErr
 
-      setExamsList(eligibleRooms)
-      setSubmissionsList(subs || [])
+      // Tự động nộp bài (0 điểm) nếu có bài thi đang ở trạng thái 'in_progress'
+      // vì học sinh đã thoát khỏi phòng thi đột ngột (quay về portal/đóng tab)
+      const inProgressSubs = subs?.filter(s => s.status === 'in_progress') || []
+      if (inProgressSubs.length > 0) {
+        for (const s of inProgressSubs) {
+          await supabase
+            .from('exam_submissions')
+            .update({
+              status: 'submitted',
+              score: 0,
+              submitted_at: new Date().toISOString()
+            })
+            .eq('id', s.id)
+        }
+
+        // Tải lại danh sách bài nộp mới sau khi cập nhật
+        const { data: updatedSubs } = await supabase
+          .from('exam_submissions')
+          .select('*')
+          .eq('student_id', studentId)
+
+        setExamsList(eligibleRooms)
+        setSubmissionsList(updatedSubs || [])
+      } else {
+        setExamsList(eligibleRooms)
+        setSubmissionsList(subs || [])
+      }
     } catch (error) {
       console.error('Lỗi tải dữ liệu:', error)
       toast.error('Không thể tải danh sách bài thi.')
