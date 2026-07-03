@@ -491,172 +491,109 @@ export default function StudentPortal() {
               </div>
             </div>
           </div>
-
           {/* TABLE MATRIX */}
           <div>
             <h3 className="text-sm font-extrabold text-gray-700 mb-3 uppercase tracking-wider flex items-center gap-1.5">
               <span>📋 Bảng tổng hợp kết quả chi tiết</span>
             </h3>
-            <div className="overflow-x-auto rounded-2xl border border-slate-200">
-              <table className="w-full border-collapse table-fixed">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm">
+              <table className="w-full border-collapse">
                 <thead>
-                  {/* Row 1: Buổi */}
                   <tr className="bg-teal-600 text-white text-center font-bold text-sm">
-                    <th className="p-3 border border-teal-700 bg-teal-700 w-[140px] sticky left-0 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.1)] text-left font-black">Buổi học</th>
-                    {Array.from({ length: maxBuoi }, (_, i) => i + 1).map(b => (
-                      <th key={b} colSpan={2} className="p-3 border border-teal-700 font-extrabold tracking-wide text-sm bg-teal-600">
-                        Buổi {b}
-                      </th>
-                    ))}
-                  </tr>
-                  {/* Row 2: Bài */}
-                  <tr className="bg-teal-50 text-teal-800 text-center font-bold text-xs uppercase">
-                    <th className="p-3 border border-teal-200 bg-teal-50 sticky left-0 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.05)] text-left font-black">Mã đề / bài</th>
-                    {tableCols.map((c, idx) => (
-                      <th key={idx} className="p-2.5 border border-teal-200 font-extrabold min-w-[90px] text-xs">
-                        Đề {c.bai}
-                      </th>
-                    ))}
+                    <th className="p-3 border-r border-teal-750 bg-teal-700 text-center font-black rounded-tl-xl w-[120px]">Buổi học</th>
+                    <th className="p-3 border-r border-teal-700 text-center font-black w-[100px]">Mã đề</th>
+                    <th className="p-3 border-r border-teal-700 text-center font-black w-[120px]">Điểm số</th>
+                    <th className="p-3 text-center font-black rounded-tr-xl">Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {/* Row 3: Số lần thi */}
-                  <tr className="text-center hover:bg-slate-50 transition-colors">
-                    <td className="p-3 border border-slate-200 text-left font-bold text-gray-700 bg-white sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] text-xs">
-                      Số lần thi
-                    </td>
-                    {gridData.map((item, idx) => {
-                      const val = getAttempts(item)
-                      return (
-                        <td key={idx} className="p-3 border border-slate-200 font-semibold text-gray-600 text-xs">
-                          {val}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                  {/* Row 4: Số lần vi phạm */}
-                  <tr className="text-center hover:bg-slate-50 transition-colors">
-                    <td className="p-3 border border-slate-200 text-left font-bold text-gray-700 bg-white sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] text-xs">
-                      Số lần vi phạm
-                    </td>
-                    {gridData.map((item, idx) => {
-                      const val = getViolations(item)
-                      const isViolating = typeof val === 'number' && val > 0
-                      return (
-                        <td key={idx} className={`p-3 border border-slate-200 font-bold text-xs ${isViolating ? 'text-rose-600 bg-rose-50/50' : 'text-gray-500'}`}>
-                          {val}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                  {/* Row 5: Điểm số */}
-                  <tr className="text-center hover:bg-slate-50 transition-colors">
-                    <td className="p-3 border border-slate-200 text-left font-bold text-gray-700 bg-white sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] text-xs">
-                      Điểm số
-                    </td>
-                    {gridData.map((item, idx) => {
-                      const display = getScoreDisplay(item)
+                  {Array.from({ length: maxBuoi }, (_, i) => maxBuoi - i).map(b => {
+                    const items = [
+                      gridData.find(d => d.buoi === b && d.bai === 2),
+                      gridData.find(d => d.buoi === b && d.bai === 1),
+                    ].filter(Boolean)
+
+                    return items.map((item, idx) => {
+                      const displayScore = getScoreDisplay(item)
                       let scoreColor = 'text-gray-400'
                       if (item.sub && item.sub.status === 'submitted' && typeof item.sub.score === 'number') {
                         scoreColor = item.sub.score >= 8.0 
-                          ? 'text-emerald-600 bg-emerald-50/30 font-bold' 
+                          ? 'text-emerald-600 font-extrabold bg-emerald-50/10' 
                           : item.sub.score >= 5.0 
-                            ? 'text-teal-600 bg-teal-50/10' 
-                            : 'text-rose-600 bg-rose-50/30 font-bold'
-                      } else if (display === 'Đang thi') {
-                        scoreColor = 'text-amber-600 bg-amber-50/30 animate-pulse font-bold'
+                            ? 'text-teal-600 font-bold bg-teal-50/5' 
+                            : 'text-rose-600 font-extrabold bg-rose-50/10'
+                      } else if (displayScore === 'Đang làm') {
+                        scoreColor = 'text-amber-600 font-bold animate-pulse'
                       }
+
+                      const isClosed = item.exam?.status === 'closed'
+                      const isWaiting = item.exam?.status === 'waiting'
 
                       return (
-                        <td 
-                          key={idx} 
-                          className={`p-3 border border-slate-200 font-black text-xs ${scoreColor}`}
-                        >
-                          {display}
-                        </td>
+                        <tr key={`${b}-${item.bai}`} className="hover:bg-slate-50 transition-colors border-b border-slate-200 text-center">
+                          {/* Buổi học cell */}
+                          {idx === 0 && (
+                            <td 
+                              rowSpan={items.length} 
+                              className="p-3 border-r border-slate-200 text-center font-extrabold text-gray-800 bg-teal-50/20 text-sm"
+                            >
+                              Buổi {b}
+                            </td>
+                          )}
+
+                          {/* Mã đề */}
+                          <td className="p-3 border-r border-slate-200 text-center font-bold text-gray-600 text-sm">
+                            Đề {item.bai}
+                          </td>
+
+                          {/* Điểm số */}
+                          <td className={`p-3 border-r border-slate-200 text-center text-sm font-black ${scoreColor}`}>
+                            {displayScore}
+                          </td>
+
+                          {/* Trạng thái / Hành động */}
+                          <td className="p-3 text-center text-sm">
+                            {!item.exam ? (
+                              <span className="text-gray-400">-</span>
+                            ) : isClosed ? (
+                              <span className="text-gray-400 font-semibold">Đã đóng</span>
+                            ) : isWaiting ? (
+                              <span className="text-amber-500 font-semibold">Chờ mở</span>
+                            ) : !item.sub ? (
+                              <button
+                                onClick={() => navigate(`/exam-room/${item.exam.id}`)}
+                                className="px-4 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-extrabold rounded-lg shadow-sm transition-all"
+                              >
+                                Vào thi ⚡
+                              </button>
+                            ) : item.sub.status !== 'submitted' ? (
+                              <button
+                                onClick={() => navigate(`/exam-room/${item.exam.id}`)}
+                                className="px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-extrabold rounded-lg shadow-sm transition-all animate-pulse"
+                              >
+                                Làm tiếp ⚡
+                              </button>
+                            ) : (
+                              <div className="flex gap-2 justify-center items-center">
+                                <button
+                                  onClick={() => handleRetakeExam(item.exam, item.sub)}
+                                  className="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-extrabold rounded-lg transition-all flex items-center gap-1"
+                                >
+                                  <RefreshCw className="w-3 h-3" /> Thi lại
+                                </button>
+                                <button
+                                  onClick={() => navigate(`/exam-room/${item.exam.id}`)}
+                                  className="px-3 py-1 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 text-xs font-bold rounded-lg transition-all flex items-center gap-1"
+                                >
+                                  Kết quả 🔍
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
                       )
-                    })}
-                  </tr>
-                  {/* Row 6: Trạng thái / Hành động */}
-                  <tr className="text-center hover:bg-slate-50 transition-colors">
-                    <td className="p-3 border border-slate-200 text-left font-bold text-gray-700 bg-white sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] text-xs">
-                      Trạng thái
-                    </td>
-                    {gridData.map((item, idx) => {
-                      if (!item.exam) {
-                        return (
-                          <td key={idx} className="p-3 border border-slate-200 text-gray-400 text-xs">
-                            -
-                          </td>
-                        )
-                      }
-
-                      const isClosed = item.exam.status === 'closed'
-                      const isWaiting = item.exam.status === 'waiting'
-
-                      if (isClosed) {
-                        return (
-                          <td key={idx} className="p-3 border border-slate-200 text-gray-400 text-xs font-semibold bg-gray-50/50">
-                            Đã đóng
-                          </td>
-                        )
-                      }
-                      if (isWaiting) {
-                        return (
-                          <td key={idx} className="p-3 border border-slate-200 text-amber-500 text-xs font-semibold bg-amber-50/20">
-                            Chờ mở
-                          </td>
-                        )
-                      }
-
-                      // Phòng thi đang mở
-                      if (!item.sub) {
-                        return (
-                          <td key={idx} className="p-3 border border-slate-200 text-xs">
-                            <button
-                              onClick={() => navigate(`/exam-room/${item.exam.id}`)}
-                              className="px-2.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-extrabold rounded-lg shadow-sm transition-all"
-                            >
-                              Vào thi ⚡
-                            </button>
-                          </td>
-                        )
-                      }
-
-                      if (item.sub.status !== 'submitted') {
-                        return (
-                          <td key={idx} className="p-3 border border-slate-200 text-xs bg-orange-50/10">
-                            <button
-                              onClick={() => navigate(`/exam-room/${item.exam.id}`)}
-                              className="px-2.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-extrabold rounded-lg shadow-sm transition-all animate-pulse"
-                            >
-                              Làm tiếp ⚡
-                            </button>
-                          </td>
-                        )
-                      }
-
-                      // Đã nộp bài -> có thể thi lại hoặc xem kết quả
-                      return (
-                        <td key={idx} className="p-2 border border-slate-200 text-xs">
-                          <div className="flex flex-col gap-1 items-center">
-                            <button
-                              onClick={() => handleRetakeExam(item.exam, item.sub)}
-                              className="w-full px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-[10px] font-extrabold rounded-md transition-all flex items-center justify-center gap-0.5"
-                            >
-                              <RefreshCw className="w-2.5 h-2.5" /> Thi lại
-                            </button>
-                            <button
-                              onClick={() => navigate(`/exam-room/${item.exam.id}`)}
-                              className="w-full px-2 py-1 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 text-[10px] font-bold rounded-md transition-all flex items-center justify-center gap-0.5"
-                            >
-                              Kết quả 🔍
-                            </button>
-                          </div>
-                        </td>
-                      )
-                    })}
-                  </tr>
+                    })
+                  })}
                 </tbody>
               </table>
             </div>
