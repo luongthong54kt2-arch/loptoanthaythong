@@ -267,7 +267,7 @@ export default function ExamRoomsMgmt() {
     ? activeRooms.filter(r => r.class_id === currentClassId)
     : activeRooms
 
-  // Sắp xếp danh sách phòng thi: Buổi 1 -> Buổi 2 -> ... -> thời gian tạo tăng dần
+  // Sắp xếp danh sách phòng thi ngược lại: Buổi lớn -> Buổi nhỏ -> ... -> thời gian tạo mới nhất lên đầu
   const sortedRooms = [...displayedRooms].sort((a, b) => {
     const titleA = a.exams?.title || ''
     const titleB = b.exams?.title || ''
@@ -276,22 +276,26 @@ export default function ExamRoomsMgmt() {
     const sessionB = getExamSessionNumber(titleB)
     
     if (sessionA !== sessionB) {
-      return sessionA - sessionB
+      if (sessionA === 999) return 1
+      if (sessionB === 999) return -1
+      return sessionB - sessionA
     }
     
     const deA = getExamNo(titleA)
     const deB = getExamNo(titleB)
     
     if (deA !== deB) {
-      return deA - deB
+      if (deA === 999) return 1
+      if (deB === 999) return -1
+      return deB - deA
     }
     
     if (sessionA === 999 && sessionB === 999) {
-      const titleComp = titleA.localeCompare(titleB, 'vi', { numeric: true, sensitivity: 'base' })
+      const titleComp = titleB.localeCompare(titleA, 'vi', { numeric: true, sensitivity: 'base' })
       if (titleComp !== 0) return titleComp
     }
     
-    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   })
 
   return (
