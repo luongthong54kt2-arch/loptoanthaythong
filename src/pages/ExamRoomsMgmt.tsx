@@ -45,7 +45,7 @@ export default function ExamRoomsMgmt() {
     exam_id: '',
     class_id: '',
     time_limit: 45,
-    status: 'waiting',
+    status: 'active',
     settings: { shuffle: true, allowRetry: false, showCorrectAnswers: false, showExplanations: false }
   })
 
@@ -78,7 +78,7 @@ export default function ExamRoomsMgmt() {
       setEditingRoomId(null)
       setModalGrade('')
       setForm({ 
-        exam_id: '', class_id: '', time_limit: 45, status: 'waiting', 
+        exam_id: '', class_id: '', time_limit: 45, status: 'active', 
         settings: { shuffle: true, allowRetry: false, showCorrectAnswers: false, showExplanations: false } 
       })
     } catch (e: any) {
@@ -309,7 +309,7 @@ export default function ExamRoomsMgmt() {
             setEditingRoomId(null)
             setModalGrade(typeof activeGrade === 'number' ? activeGrade : '')
             setForm({ 
-              exam_id: '', class_id: '', time_limit: 45, status: 'waiting', 
+              exam_id: '', class_id: '', time_limit: 45, status: 'active', 
               settings: { shuffle: true, allowRetry: false, showCorrectAnswers: false, showExplanations: false } 
             })
             setModalOpen(true)
