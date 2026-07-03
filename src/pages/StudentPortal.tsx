@@ -13,11 +13,13 @@ import {
   Lock, 
   FileText, 
   CheckCircle, 
-  Clock 
+  Clock,
+  RefreshCw
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
+import { shuffleExamForStudent } from '@/services/mergeExamsService'
 
 export default function StudentPortal() {
   const navigate = useNavigate()
@@ -164,6 +166,73 @@ export default function StudentPortal() {
     setPasswordInput('')
     setExamsList([])
     setSubmissionsList([])
+  }
+
+  const handleRetakeExam = async (room: any, sub: any) => {
+    if (!confirm('Bạn có muốn thi lại bài này? Kết quả cũ sẽ được lưu vào lịch sử.')) return
+
+    const toastId = toast.loading('Đang khởi tạo lại bài thi...')
+    try {
+      const currentAttempt = sub.score_breakdown?.attempt_count || 1
+      const currentHistory = sub.score_breakdown?.history || []
+
+      const finishedAttemptData = {
+        attempt: currentAttempt,
+        score: sub.score,
+        tab_switches: sub.tab_switches || 0,
+        submitted_at: sub.submitted_at,
+        duration: sub.duration || 0
+      }
+
+      const newHistory = [...currentHistory, finishedAttemptData]
+
+      // Fetch exam data to shuffle if needed
+      const { data: examData, error: examErr } = await supabase
+        .from('exams')
+        .select('data')
+        .eq('id', room.exam_id)
+        .single()
+
+      if (examErr || !examData) throw new Error('Không tìm thấy đề thi')
+
+      const hasRealQuestions = examData.data?.questions && examData.data.questions.length > 0 &&
+        !examData.data.questions.every((q: any) => 
+          /^(câu\s+\d+|câu\s+tự\s+luận\s+\d+):?$/i.test((q.text || '').trim())
+        );
+      const isPdf = !hasRealQuestions && (!!examData.data?.pdfUrl || !!examData.data?.pdfDriveUrl || !!examData.data?.pdfBase64);
+
+      let nextExamData = examData.data
+      if (!isPdf && room.settings?.shuffle) {
+        nextExamData = shuffleExamForStudent(examData.data)
+      }
+
+      const { error: updateErr } = await supabase
+        .from('exam_submissions')
+        .update({
+          status: 'in_progress',
+          answers: {},
+          score: null,
+          score_breakdown: {
+            shuffled_exam: nextExamData,
+            attempt_count: currentAttempt + 1,
+            history: newHistory
+          },
+          submitted_at: null,
+          tab_switches: 0,
+          tab_switch_warnings: [],
+          duration: 0
+        })
+        .eq('id', sub.id)
+
+      if (updateErr) throw updateErr
+
+      toast.success('Khởi tạo thành công! Đang vào phòng thi...', { id: toastId })
+      await fetchStudentData(student.id)
+      navigate(`/exam-room/${room.id}`)
+    } catch (err: any) {
+      console.error(err)
+      toast.error(err.message || 'Lỗi khi thiết lập thi lại.', { id: toastId })
+    }
   }
 
   // ── Loading ──────────────────────────────────────────────────
@@ -562,6 +631,86 @@ export default function StudentPortal() {
                           className={`p-3 border border-slate-200 font-black text-xs ${scoreColor}`}
                         >
                           {display}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                  {/* Row 6: Trạng thái / Hành động */}
+                  <tr className="text-center hover:bg-slate-50 transition-colors">
+                    <td className="p-3 border border-slate-200 text-left font-bold text-gray-700 bg-white sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] text-xs">
+                      Trạng thái
+                    </td>
+                    {gridData.map((item, idx) => {
+                      if (!item.exam) {
+                        return (
+                          <td key={idx} className="p-3 border border-slate-200 text-gray-400 text-xs">
+                            -
+                          </td>
+                        )
+                      }
+
+                      const isClosed = item.exam.status === 'closed'
+                      const isWaiting = item.exam.status === 'waiting'
+
+                      if (isClosed) {
+                        return (
+                          <td key={idx} className="p-3 border border-slate-200 text-gray-400 text-xs font-semibold bg-gray-50/50">
+                            Đã đóng
+                          </td>
+                        )
+                      }
+                      if (isWaiting) {
+                        return (
+                          <td key={idx} className="p-3 border border-slate-200 text-amber-500 text-xs font-semibold bg-amber-50/20">
+                            Chờ mở
+                          </td>
+                        )
+                      }
+
+                      // Phòng thi đang mở
+                      if (!item.sub) {
+                        return (
+                          <td key={idx} className="p-3 border border-slate-200 text-xs">
+                            <button
+                              onClick={() => navigate(`/exam-room/${item.exam.id}`)}
+                              className="px-2.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-extrabold rounded-lg shadow-sm transition-all"
+                            >
+                              Vào thi ⚡
+                            </button>
+                          </td>
+                        )
+                      }
+
+                      if (item.sub.status !== 'submitted') {
+                        return (
+                          <td key={idx} className="p-3 border border-slate-200 text-xs bg-orange-50/10">
+                            <button
+                              onClick={() => navigate(`/exam-room/${item.exam.id}`)}
+                              className="px-2.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-extrabold rounded-lg shadow-sm transition-all animate-pulse"
+                            >
+                              Làm tiếp ⚡
+                            </button>
+                          </td>
+                        )
+                      }
+
+                      // Đã nộp bài -> có thể thi lại hoặc xem kết quả
+                      return (
+                        <td key={idx} className="p-2 border border-slate-200 text-xs">
+                          <div className="flex flex-col gap-1 items-center">
+                            <button
+                              onClick={() => handleRetakeExam(item.exam, item.sub)}
+                              className="w-full px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-[10px] font-extrabold rounded-md transition-all flex items-center justify-center gap-0.5"
+                            >
+                              <RefreshCw className="w-2.5 h-2.5" /> Thi lại
+                            </button>
+                            <button
+                              onClick={() => navigate(`/exam-room/${item.exam.id}`)}
+                              className="w-full px-2 py-1 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 text-[10px] font-bold rounded-md transition-all flex items-center justify-center gap-0.5"
+                            >
+                              Kết quả 🔍
+                            </button>
+                          </div>
                         </td>
                       )
                     })}
