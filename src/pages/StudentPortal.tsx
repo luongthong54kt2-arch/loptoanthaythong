@@ -1,67 +1,93 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PlaySquare, MonitorPlay, LogOut, ChevronRight, BookOpen, UserCircle, GraduationCap, AlertCircle, Eye, EyeOff, Lock } from 'lucide-react'
+import { 
+  LogOut, 
+  ChevronRight, 
+  BookOpen, 
+  UserCircle, 
+  GraduationCap, 
+  AlertCircle, 
+  Eye, 
+  EyeOff, 
+  Lock, 
+  FileText, 
+  CheckCircle, 
+  Clock 
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
+import { format } from 'date-fns'
 
 export default function StudentPortal() {
   const navigate = useNavigate()
-  const [student, setStudent]   = useState<any>(null)
-  const [courses, setCourses]   = useState<any[]>([])
-  const [loading, setLoading]   = useState(true)
+  const [student, setStudent] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Form đăng nhập
+  // Đăng nhập form
   const [studentCodeInput, setStudentCodeInput] = useState('')
-  const [passwordInput, setPasswordInput]       = useState('')
-  const [roomCodeInput, setRoomCodeInput]       = useState('')
-  const [showPassword, setShowPassword]         = useState(false)
-  const [isLoggingIn, setIsLoggingIn]           = useState(false)
+  const [passwordInput, setPasswordInput] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
 
-  // Dashboard
-  const [dashboardRoomCode, setDashboardRoomCode] = useState('')
+  // Danh sách bài thi và bài làm
+  const [examsList, setExamsList] = useState<any[]>([])
+  const [submissionsList, setSubmissionsList] = useState<any[]>([])
 
   useEffect(() => {
     const sessionStr = sessionStorage.getItem('current_student')
     if (sessionStr) {
-      setStudent(JSON.parse(sessionStr))
-      fetchCourses()
+      const parsed = JSON.parse(sessionStr)
+      setStudent(parsed)
+      fetchStudentData(parsed.id)
     } else {
       setLoading(false)
     }
   }, [])
 
-  // ── Tải khóa học đã xuất bản, đúng lớp ─────────────────────
-  const fetchCourses = async () => {
+  // ── Tải danh sách bài thi và kết quả làm bài ─────────────────
+  const fetchStudentData = async (studentId: string) => {
+    setLoading(true)
     try {
-      const sessionStr = sessionStorage.getItem('current_student')
-      if (!sessionStr) { setLoading(false); return }
-      const studentData = JSON.parse(sessionStr)
-
+      // 1. Lấy danh sách lớp học sinh tham gia
       const { data: enrolls } = await supabase
         .from('enrollments')
         .select('class_id')
-        .eq('student_id', studentData.id)
+        .eq('student_id', studentId)
         .eq('status', 'active')
 
       const myClassIds = enrolls?.map(e => e.class_id) || []
 
-      const { data: allCourses, error } = await supabase
-        .from('courses')
-        .select('*')
+      // 2. Lấy tất cả phòng thi
+      const { data: rooms, error: roomsErr } = await supabase
+        .from('exam_rooms')
+        .select(`
+          *,
+          exams ( title ),
+          classes ( class_name )
+        `)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (roomsErr) throw roomsErr
 
-      const filteredCourses = (allCourses || []).filter(course => {
-        if (!course.is_published) return false
-        if (!course.assigned_class_ids || course.assigned_class_ids.length === 0) return false
-        return course.assigned_class_ids.some((id: string) => myClassIds.includes(id))
+      // Lọc phòng thi học sinh được phép tham gia (phòng thi chung hoặc thuộc lớp của học sinh)
+      const eligibleRooms = (rooms || []).filter((room: any) => {
+        return !room.class_id || myClassIds.includes(room.class_id)
       })
 
-      setCourses(filteredCourses)
+      // 3. Lấy danh sách bài nộp của học sinh
+      const { data: subs, error: subsErr } = await supabase
+        .from('exam_submissions')
+        .select('*')
+        .eq('student_id', studentId)
+
+      if (subsErr) throw subsErr
+
+      setExamsList(eligibleRooms)
+      setSubmissionsList(subs || [])
     } catch (error) {
-      console.error('Lỗi tải khóa học:', error)
+      console.error('Lỗi tải dữ liệu:', error)
+      toast.error('Không thể tải danh sách bài thi.')
     } finally {
       setLoading(false)
     }
@@ -94,7 +120,6 @@ export default function StudentPortal() {
       return null
     }
 
-    // Kiểm tra mật khẩu bắt buộc
     if (!data.password) {
       toast.error('Tài khoản này chưa được đặt mật khẩu. Vui lòng liên hệ giáo viên.')
       return null
@@ -112,50 +137,8 @@ export default function StudentPortal() {
     return data
   }
 
-  // ── Vào thi nhanh (từ trang login) ──────────────────────────
-  const handleQuickJoinExam = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!roomCodeInput.trim()) return toast.error('Vui lòng nhập Mã phòng thi!')
-
-    setIsLoggingIn(true)
-    const toastId = toast.loading('Đang xử lý...')
-
-    try {
-      const studentData = await verifyStudent(studentCodeInput, passwordInput)
-      if (!studentData) { toast.dismiss(toastId); return }
-
-      const { data: room, error: roomErr } = await supabase
-        .from('exam_rooms')
-        .select('*')
-        .ilike('code', roomCodeInput.trim())
-        .maybeSingle()
-
-      if (roomErr || !room) throw new Error('Mã phòng thi không tồn tại')
-      if (room.status === 'closed') throw new Error('Phòng thi này đã đóng')
-
-      if (room.class_id) {
-        const { data: enrolled } = await supabase
-          .from('enrollments')
-          .select('id')
-          .eq('class_id', room.class_id)
-          .eq('student_id', studentData.id)
-          .eq('status', 'active')
-          .maybeSingle()
-
-        if (!enrolled) throw new Error('Bạn không có tên trong danh sách lớp của phòng thi này')
-      }
-
-      toast.success('Đang vào phòng...', { id: toastId })
-      navigate(`/exam-room/${room.id}`, { state: { studentName: studentData.full_name } })
-    } catch (err: any) {
-      toast.error(err.message, { id: toastId })
-    } finally {
-      setIsLoggingIn(false)
-    }
-  }
-
-  // ── Vào Dashboard xem khóa học ───────────────────────────────
-  const handleGoToDashboard = async (e: React.FormEvent) => {
+  // ── Đăng nhập học sinh ─────────────────────────────────────
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoggingIn(true)
     try {
@@ -163,47 +146,12 @@ export default function StudentPortal() {
       if (!studentData) return
 
       setStudent(studentData)
-      toast.success(`Xin chào, ${studentData.full_name}!`)
-      fetchCourses()
-    } catch {
+      toast.success(`Xin chào, ${studentData.full_name}! 👋`)
+      await fetchStudentData(studentData.id)
+    } catch (err) {
       toast.error('Lỗi kết nối máy chủ!')
     } finally {
       setIsLoggingIn(false)
-    }
-  }
-
-  // ── Vào phòng thi từ Dashboard ───────────────────────────────
-  const handleDashboardJoinRoom = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!dashboardRoomCode.trim()) return toast.error('Vui lòng nhập mã phòng!')
-
-    const toastId = toast.loading('Đang tìm phòng thi...')
-    try {
-      const { data: room, error: roomErr } = await supabase
-        .from('exam_rooms')
-        .select('*')
-        .ilike('code', dashboardRoomCode.trim())
-        .maybeSingle()
-
-      if (roomErr || !room) throw new Error('Không tìm thấy phòng thi này!')
-      if (room.status === 'closed') throw new Error('Phòng thi đã đóng!')
-
-      if (room.class_id) {
-        const { data: enrolled } = await supabase
-          .from('enrollments')
-          .select('id')
-          .eq('class_id', room.class_id)
-          .eq('student_id', student.id)
-          .eq('status', 'active')
-          .maybeSingle()
-
-        if (!enrolled) throw new Error('Bạn không có tên trong danh sách lớp của phòng thi này')
-      }
-
-      toast.success('Đang vào phòng...', { id: toastId })
-      navigate(`/exam-room/${room.id}`, { state: { studentName: student.full_name } })
-    } catch (err: any) {
-      toast.error(err.message, { id: toastId })
     }
   }
 
@@ -214,15 +162,16 @@ export default function StudentPortal() {
     setStudent(null)
     setStudentCodeInput('')
     setPasswordInput('')
-    setRoomCodeInput('')
+    setExamsList([])
+    setSubmissionsList([])
   }
 
   // ── Loading ──────────────────────────────────────────────────
-  if (loading) {
+  if (loading && student) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
-        <p className="mt-4 font-bold text-teal-700">Đang tải dữ liệu...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-teal-50">
+        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+        <p className="mt-4 font-bold text-teal-700">Đang tải danh sách bài thi...</p>
       </div>
     )
   }
@@ -230,199 +179,309 @@ export default function StudentPortal() {
   // ── GIAO DIỆN ĐĂNG NHẬP ─────────────────────────────────────
   if (!student) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div 
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{ background: 'linear-gradient(135deg, #ccfbf1 0%, #5eead4 50%, #0d9488 100%)' }}
+      >
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-32 -left-32 w-96 h-96 bg-teal-300/30 rounded-full blur-3xl" />
+          <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-teal-600/20 rounded-full blur-3xl" />
+        </div>
 
-          {/* Header */}
-          <div className="bg-teal-50 p-6 text-center border-b border-teal-100">
-            <div className="w-16 h-16 bg-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <GraduationCap className="w-8 h-8 text-white" />
-            </div>
-            <div className="text-lg font-extrabold uppercase tracking-wide text-teal-600 mb-1">LỚP TOÁN THẦY LĨNH</div>
-            <h1 className="text-2xl font-black text-teal-800">Bài Tập Về Nhà</h1>
-            <p className="text-teal-600 text-xs mt-2 italic max-w-sm mx-auto leading-relaxed">
-              Sau mỗi buổi học thầy sẽ giao 2 đề thi, các học trò cố gắng làm hết 2 đề thi này
-            </p>
-          </div>
-
-          <form className="p-6 space-y-4">
-
-            {/* Mã học sinh */}
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Mã học sinh *</label>
-              <input
-                type="text"
-                value={studentCodeInput}
-                onChange={e => setStudentCodeInput(e.target.value.toUpperCase())}
-                placeholder="VD: HS001"
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20 transition-all font-mono font-bold text-lg text-center uppercase tracking-widest"
-              />
-            </div>
-
-            {/* Mật khẩu */}
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1 flex items-center gap-1">
-                <Lock className="w-3.5 h-3.5 text-teal-500" /> Mật khẩu *
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={passwordInput}
-                  onChange={e => setPasswordInput(e.target.value)}
-                  placeholder="Nhập mật khẩu"
-                  className="w-full px-4 py-3 pr-12 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20 transition-all font-bold text-lg text-center"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-teal-600 transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+        <div className="relative w-full max-w-md animate-fade-in">
+          <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border-2 border-teal-200 overflow-hidden">
+            {/* Header */}
+            <div 
+              className="px-8 pt-10 pb-8 text-center text-white"
+              style={{ background: 'linear-gradient(135deg, #0d9488, #14b8a6, #5eead4)' }}
+            >
+              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg backdrop-blur-sm">
+                <GraduationCap className="w-9 h-9 text-white" />
               </div>
+              <h1 className="font-extrabold text-2xl tracking-wide uppercase">LỚP TOÁN THẦY LĨNH</h1>
+              <h2 className="text-white/90 font-bold text-lg mt-1">Bài Tập Về Nhà</h2>
+              <p className="text-white/75 text-xs mt-2 italic max-w-xs mx-auto leading-relaxed">
+                Sau mỗi buổi học thầy sẽ giao 2 đề thi, các học trò cố gắng làm hết 2 đề thi này
+              </p>
             </div>
 
-            {/* Mã phòng thi (tuỳ chọn) */}
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">
-                Mã phòng thi{' '}
-                <span className="text-gray-400 font-normal text-xs">(Bỏ trống nếu muốn xem khóa học)</span>
-              </label>
-              <input
-                type="text"
-                value={roomCodeInput}
-                onChange={e => setRoomCodeInput(e.target.value.toUpperCase())}
-                placeholder="VD: A8B9C"
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 transition-all font-mono font-bold text-lg text-center uppercase tracking-widest"
-              />
-            </div>
+            <form onSubmit={handleLogin} className="p-8 space-y-5">
+              <h3 className="text-gray-800 font-extrabold text-xl mb-4 text-center">ĐĂNG NHẬP CỔNG THI</h3>
 
-            {/* Cảnh báo giám sát */}
-            <div className="bg-amber-50 text-amber-700 p-3 rounded-lg flex gap-2 text-xs font-medium">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <p>Hệ thống có giám sát chuyển tab. Vui lòng tập trung làm bài.</p>
-            </div>
+              {/* Mã học sinh */}
+              <div>
+                <label className="block text-xs font-bold text-teal-700 mb-1 uppercase tracking-wide">Mã học sinh *</label>
+                <input
+                  type="text"
+                  value={studentCodeInput}
+                  onChange={e => setStudentCodeInput(e.target.value.toUpperCase())}
+                  placeholder="VD: HS001"
+                  className="w-full px-4 py-3 rounded-xl border-2 border-teal-100 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20 transition-all font-mono font-bold text-lg text-center uppercase tracking-widest bg-white"
+                  required
+                />
+              </div>
 
-            {/* Nút hành động */}
-            <div className="flex gap-3 pt-1">
-              <button
-                type="button"
-                onClick={handleGoToDashboard}
-                disabled={isLoggingIn}
-                className="flex-1 py-3.5 bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold rounded-xl transition-all border-2 border-teal-100 hover:border-teal-200 disabled:opacity-50"
-              >
-                📚 KHÓA HỌC
-              </button>
+              {/* Mật khẩu */}
+              <div>
+                <label className="block text-xs font-bold text-teal-700 mb-1 uppercase tracking-wide">Mật khẩu *</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={passwordInput}
+                    onChange={e => setPasswordInput(e.target.value)}
+                    placeholder="Nhập mật khẩu"
+                    className="w-full px-4 py-3 pr-12 rounded-xl border-2 border-teal-100 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20 transition-all font-bold text-lg text-center bg-white"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-teal-400 hover:text-teal-600 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Cảnh báo giám sát */}
+              <div className="bg-amber-50 text-amber-700 p-4 rounded-xl flex gap-2.5 text-xs font-medium border border-amber-100">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <p className="leading-relaxed">Hệ thống có giám sát chuyển tab. Vui lòng tập trung làm bài thi.</p>
+              </div>
+
+              {/* Nút đăng nhập */}
               <button
                 type="submit"
-                onClick={handleQuickJoinExam}
                 disabled={isLoggingIn}
-                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center shadow-lg shadow-teal-500/30 disabled:opacity-50"
+                className="btn-teal w-full flex items-center justify-center gap-2 text-base py-3.5 shadow-lg shadow-teal-500/25"
               >
-                {isLoggingIn ? 'ĐANG VÀO...' : 'VÀO THI ⚡'}
+                {isLoggingIn ? (
+                  <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <span>VÀO HỆ THỐNG</span>
+                )}
               </button>
-            </div>
-          </form>
+            </form>
+          </div>
+          <p className="text-center text-white/60 text-xs mt-4">
+            © 2025 LỚP TOÁN THẦY LĨNH – Powered by React + Supabase
+          </p>
         </div>
       </div>
     )
   }
 
+  // Phân loại danh sách bài thi
+  const submittedRoomIds = submissionsList
+    .filter(s => s.status === 'submitted')
+    .map(s => s.room_id)
+
+  const inProgressSubMap = new Map()
+  submissionsList
+    .filter(s => s.status !== 'submitted')
+    .forEach(s => inProgressSubMap.set(s.room_id, s))
+
+  // Đã thi: có bài nộp status = 'submitted'
+  const completedExams = examsList
+    .filter(room => submittedRoomIds.includes(room.id))
+    .map(room => {
+      const sub = submissionsList.find(s => s.room_id === room.id && s.status === 'submitted')
+      return { room, sub }
+    })
+
+  // Chưa thi: chưa có bài nộp status = 'submitted'
+  const pendingExams = examsList.filter(room => !submittedRoomIds.includes(room.id))
+
   // ── DASHBOARD (đã đăng nhập) ─────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-teal-100 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-teal-700">
-            <BookOpen className="w-8 h-8" />
+          <div className="flex items-center gap-3 text-teal-700">
+            <div className="w-10 h-10 bg-teal-600 rounded-xl flex items-center justify-center shadow-md">
+              <GraduationCap className="w-6 h-6 text-white" />
+            </div>
             <div>
-              <h1 className="font-extrabold text-lg leading-tight text-teal-800">LỚP TOÁN THẦY LĨNH</h1>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-teal-500">Bài Tập Về Nhà</p>
+              <h1 className="font-extrabold text-base leading-tight text-teal-800 uppercase tracking-wide">LỚP TOÁN THẦY LĨNH</h1>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-teal-500">Cổng Thi Học Sinh</p>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 bg-teal-50 px-3 py-1.5 rounded-full border border-teal-100">
+            <div className="flex items-center gap-2 bg-teal-50 px-3.5 py-1.5 rounded-full border border-teal-100">
               <UserCircle className="w-5 h-5 text-teal-600" />
-              <span className="text-sm font-bold text-teal-800">{student.full_name || student.name}</span>
+              <span className="text-sm font-bold text-teal-800">{student.full_name}</span>
+              <span className="bg-teal-200 text-teal-800 text-[10px] font-bold px-1.5 py-0.5 rounded-md ml-1 font-mono">{student.student_code}</span>
             </div>
             <button
               onClick={handleLogout}
-              className="text-sm font-bold text-gray-500 hover:text-red-600 flex items-center gap-1 transition"
+              className="text-sm font-bold text-gray-500 hover:text-red-600 flex items-center gap-1 transition-colors"
             >
-              <LogOut className="w-4 h-4" /> Đăng xuất
+              <LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Đăng xuất</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 space-y-10">
-
-        {/* Vào phòng thi từ Dashboard */}
-        <section className="bg-gradient-to-br from-teal-500 to-teal-700 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 opacity-10 transform translate-x-8 -translate-y-8">
-            <MonitorPlay className="w-64 h-64" />
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 space-y-8 animate-fade-in">
+        {/* Cảnh báo chung */}
+        <div className="bg-amber-50 text-amber-800 p-4 rounded-2xl flex gap-3 text-sm font-medium border border-amber-200/60 shadow-sm">
+          <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600 mt-0.5" />
+          <div>
+            <span className="font-bold">Lưu ý quan trọng:</span> Hệ thống có tính năng giám sát chuyển tab/thoát màn hình khi đang làm bài. Các em hãy tập trung và không chuyển tab khi đang làm bài thi để tránh bị nhắc nhở hoặc khóa bài tự động.
           </div>
-          <div className="relative z-10 max-w-lg">
-            <h2 className="text-3xl font-black mb-2">Tham gia thi trực tuyến</h2>
-            <p className="text-teal-100 mb-6">Nhập mã phòng do giáo viên cung cấp để bắt đầu làm bài kiểm tra.</p>
-            <form onSubmit={handleDashboardJoinRoom} className="flex gap-2">
-              <input
-                type="text"
-                value={dashboardRoomCode}
-                onChange={e => setDashboardRoomCode(e.target.value.toUpperCase())}
-                placeholder="NHẬP MÃ PHÒNG (VD: A1B2C3)"
-                className="flex-1 px-6 py-4 rounded-xl text-gray-800 font-black text-lg outline-none uppercase tracking-widest border-4 border-transparent focus:border-teal-300 shadow-lg placeholder:font-medium placeholder:tracking-normal"
-              />
-              <button
-                type="submit"
-                className="bg-orange-500 hover:bg-orange-600 text-white font-black px-8 py-4 rounded-xl shadow-lg transition-transform active:scale-95"
-              >
-                VÀO THI
-              </button>
-            </form>
-          </div>
-        </section>
+        </div>
 
-        {/* Khóa học của tôi */}
-        <section>
-          <div className="flex items-center gap-2 mb-6">
-            <PlaySquare className="w-6 h-6 text-teal-600" />
-            <h2 className="text-2xl font-black text-gray-800">Khóa học & Bài giảng</h2>
+        {/* DANH SÁCH BÀI THI CHƯA THI */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 border-b-2 border-teal-500 pb-2">
+            <FileText className="w-6 h-6 text-teal-600" />
+            <h2 className="text-xl font-extrabold text-gray-800">Bài Thi Chưa Làm ({pendingExams.length})</h2>
           </div>
 
-          {courses.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border-2 border-dashed border-gray-200">
-              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <BookOpen className="w-10 h-10 text-gray-300" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-600">Chưa có khóa học nào</h3>
-              <p className="text-gray-400 mt-1">Hiện tại bạn chưa được giao khóa học nào hoặc khóa học chưa được xuất bản.</p>
+          {pendingExams.length === 0 ? (
+            <div className="bg-white rounded-2xl p-10 text-center border-2 border-dashed border-gray-200 shadow-sm">
+              <CheckCircle className="w-12 h-12 text-teal-500 mx-auto mb-3" />
+              <h3 className="text-lg font-bold text-gray-700">Tuyệt vời! Đã hoàn thành tất cả bài thi</h3>
+              <p className="text-gray-400 text-sm mt-1">Hiện tại không có bài thi nào đang chờ bạn làm.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {courses.map(course => (
-                <div
-                  key={course.id}
-                  onClick={() => navigate(`/course-viewer/${course.id}/${student.id}`)}
-                  className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group flex flex-col h-full"
-                >
-                  <div className="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition-colors">
-                    <PlaySquare className="w-6 h-6" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {pendingExams.map(room => {
+                const hasSub = inProgressSubMap.has(room.id)
+                const isClosed = room.status === 'closed'
+                const isWaiting = room.status === 'waiting'
+                const isActive = room.status === 'active'
+
+                let statusBadge = null
+                if (isClosed) {
+                  statusBadge = <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200">Đã đóng</span>
+                } else if (isWaiting) {
+                  statusBadge = <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full border border-amber-200">Chưa mở</span>
+                } else {
+                  statusBadge = <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200 animate-pulse">Đang mở</span>
+                }
+
+                return (
+                  <div 
+                    key={room.id} 
+                    className="bg-white rounded-2xl p-5 border border-teal-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex justify-between items-start gap-2 mb-3">
+                        <span className="text-xs font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded border border-teal-100">
+                          {room.classes?.class_name || 'Bài thi tự do'}
+                        </span>
+                        {statusBadge}
+                      </div>
+                      <h3 className="text-base font-extrabold text-gray-800 mb-2 line-clamp-2 leading-snug">
+                        {room.exams?.title || `Phòng thi ${room.code}`}
+                      </h3>
+                      <div className="flex items-center gap-4 text-gray-500 text-xs font-semibold mb-4">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-gray-400" />
+                          Thời gian: {room.time_limit} phút
+                        </span>
+                        {hasSub && (
+                          <span className="bg-orange-50 text-orange-700 px-2 py-0.5 rounded border border-orange-100 text-[10px] uppercase font-black">
+                            Đang làm dở
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                      <span className="text-xs text-gray-400 font-medium">Mã phòng: <span className="font-mono font-bold text-gray-600">{room.code}</span></span>
+                      
+                      {isClosed ? (
+                        <button disabled className="px-4 py-2 bg-gray-100 text-gray-400 text-sm font-bold rounded-xl cursor-not-allowed border border-gray-200">
+                          Hết thời gian
+                        </button>
+                      ) : isWaiting ? (
+                        <button disabled className="px-4 py-2 bg-amber-50 text-amber-500 text-sm font-bold rounded-xl cursor-not-allowed border border-amber-100">
+                          Chờ mở phòng
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => navigate(`/exam-room/${room.id}`)}
+                          className="px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-extrabold rounded-xl transition-all shadow-md shadow-teal-500/20 flex items-center gap-1"
+                        >
+                          {hasSub ? 'Tiếp tục ⚡' : 'Làm bài ⚡'}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2">{course.title}</h3>
-                  <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-1">{course.description || 'Chưa có mô tả'}</p>
-                  <div className="pt-4 border-t border-gray-100 flex items-center justify-between text-teal-600 font-bold text-sm group-hover:text-teal-700">
-                    <span>Vào học ngay</span>
-                    <ChevronRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </section>
 
+        {/* DANH SÁCH BÀI THI ĐÃ THI */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 border-b-2 border-teal-500 pb-2">
+            <CheckCircle className="w-6 h-6 text-teal-600" />
+            <h2 className="text-xl font-extrabold text-gray-800">Bài Thi Đã Hoàn Thành ({completedExams.length})</h2>
+          </div>
+
+          {completedExams.length === 0 ? (
+            <div className="bg-white rounded-2xl p-10 text-center border border-gray-200 shadow-sm text-gray-400 text-sm font-medium">
+              Chưa có bài thi nào hoàn thành. Hãy làm bài để xem kết quả!
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {completedExams.map(({ room, sub }) => {
+                const formattedDate = sub.submitted_at 
+                  ? format(new Date(sub.submitted_at), 'dd/MM/yyyy HH:mm') 
+                  : 'N/A'
+
+                return (
+                  <div 
+                    key={room.id} 
+                    className="bg-white rounded-2xl p-5 border border-gray-150 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex justify-between items-start gap-2 mb-3">
+                        <span className="text-xs font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
+                          {room.classes?.class_name || 'Bài thi tự do'}
+                        </span>
+                        <span className="bg-teal-50 text-teal-700 text-xs font-extrabold px-2.5 py-1 rounded-full border border-teal-150">
+                          Đã nộp bài
+                        </span>
+                      </div>
+                      <h3 className="text-base font-extrabold text-gray-800 mb-2 line-clamp-2 leading-snug">
+                        {room.exams?.title || `Phòng thi ${room.code}`}
+                      </h3>
+                      <p className="text-xs text-gray-400 font-semibold mb-4">
+                        Nộp lúc: {formattedDate}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-xs text-gray-500 font-medium">Điểm:</span>
+                        <span className="text-xl font-black text-teal-600">
+                          {typeof sub.score === 'number' ? sub.score.toFixed(1) : 'Chưa chấm'}
+                        </span>
+                        <span className="text-[10px] text-gray-400">/10</span>
+                      </div>
+
+                      <button 
+                        onClick={() => navigate(`/exam-room/${room.id}`)}
+                        className="px-4 py-2 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 text-sm font-extrabold rounded-xl transition-all flex items-center gap-1"
+                      >
+                        Xem kết quả 🔍
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </section>
       </main>
     </div>
   )
