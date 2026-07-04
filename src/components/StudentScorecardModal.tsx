@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { 
   CalendarCheck, Trophy, ExternalLink, Loader2, CheckCircle,
-  User, Calendar, Phone, MapPin, StickyNote, GraduationCap, Camera
+  User, Calendar, Phone, MapPin, StickyNote, GraduationCap, Camera,
+  AlertTriangle
 } from 'lucide-react'
 import Modal from '@/components/Modal'
 import toast from 'react-hot-toast'
@@ -25,6 +26,7 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
   const [attendance, setAttendance] = useState<any[]>([])
   const [submissions, setSubmissions] = useState<any[]>([])
   const [studentInfo, setStudentInfo] = useState<any>(null)
+  const [pendingExams, setPendingExams] = useState<any[]>([])
 
   useEffect(() => {
     if (open && student?.id) {
@@ -35,7 +37,7 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
   const loadStudentData = async () => {
     setLoading(true)
     try {
-      const [attRes, subRes, infoRes] = await Promise.all([
+      const [attRes, subRes, infoRes, enrollsRes, roomsRes, allSubsRes] = await Promise.all([
         supabase
           .from('attendance')
           .select('date, present, late')
@@ -51,12 +53,36 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
           .from('students')
           .select('*')
           .eq('id', student.id)
-          .maybeSingle()
+          .maybeSingle(),
+        supabase
+          .from('enrollments')
+          .select('class_id')
+          .eq('student_id', student.id)
+          .eq('status', 'active'),
+        supabase
+          .from('exam_rooms')
+          .select('*, exams(title)')
+          .eq('status', 'active'),
+        supabase
+          .from('exam_submissions')
+          .select('room_id, status')
+          .eq('student_id', student.id)
       ])
 
       setAttendance(attRes.data || [])
       setSubmissions(subRes.data || [])
       setStudentInfo(infoRes.data || null)
+
+      // Calculate pending exams
+      const myClassIds = enrollsRes.data?.map((e: any) => e.class_id) || []
+      const eligibleRooms = (roomsRes.data || []).filter((room: any) => {
+        return !room.class_id || myClassIds.includes(room.class_id)
+      })
+      const submittedRoomIds = (allSubsRes.data || [])
+        .filter((s: any) => s.status === 'submitted')
+        .map((s: any) => s.room_id)
+      const pending = eligibleRooms.filter((room: any) => !submittedRoomIds.includes(room.id))
+      setPendingExams(pending)
     } catch (error) {
       console.error('Lỗi khi tải bảng điểm thu gọn:', error)
     } finally {
@@ -369,6 +395,23 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
             {/* Cột phải (Điểm thi gần đây): lg:col-span-7 */}
             <div className="lg:col-span-7 bg-white border border-slate-100 p-5 rounded-2xl flex flex-col justify-between">
               <div>
+                {pendingExams.length > 0 && (
+                  <div className="bg-rose-50/70 border border-rose-100 rounded-2xl p-4 mb-5 text-xs">
+                    <div className="flex items-center gap-2 text-rose-700 font-extrabold mb-2.5">
+                      <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500 animate-bounce" />
+                      <span className="uppercase tracking-wider">Cảnh báo: Còn {pendingExams.length} bài chưa làm!</span>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {pendingExams.map((room) => (
+                        <div key={room.id} className="flex items-center justify-between bg-white border border-rose-100/50 rounded-xl p-2.5 shadow-sm">
+                          <span className="font-bold text-gray-700">{room.exams?.title || 'Bài thi không tên'}</span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200">Chưa làm</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2 mb-4">
                   <Trophy className="w-4 h-4 text-orange-500" />
                   <h3 className="font-bold text-gray-800 text-xs">10 bài thi gần nhất</h3>
