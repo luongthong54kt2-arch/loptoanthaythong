@@ -11,14 +11,21 @@ import toast from 'react-hot-toast';
 // ─── Constants & Types ────────────────────────────────────────────────────────
 
 const SLOGANS = [
-  "Chăm chỉ hôm nay, thành công mai sau",
-  "Toán học là ngôn ngữ của vũ trụ",
-  "Practice makes perfect",
-  "Học hết sức, chơi hết mình",
-  "Tự học là chìa khóa của thành công",
-  "Không ngừng cố gắng, không ngừng tiến xa",
-  "Toán học khơi nguồn sáng tạo",
-  "Keep calm and study Math",
+  "Học tập là hạt giống của thành công.",
+  "Hôm nay chăm chỉ, ngày mai tự hào.",
+  "Thất bại là bài học, cố gắng là câu trả lời.",
+  "Không có lối tắt đến thành công, chỉ có con đường của sự kiên trì.",
+  "Đường tuy ngắn, không đi không đến; việc tuy nhỏ, không làm không thành.",
+  "Tri thức là chìa khóa mở cửa tương lai.",
+  "Học để biết, học để làm, học để khẳng định mình.",
+  "Sách là thế giới, học tập là la bàn.",
+  "Ngừng học tập là ngừng phát triển.",
+  "Đầu tư vào tri thức luôn mang lại lợi nhuận cao nhất.",
+  "Bắt đầu từ đâu cũng được, miễn là bạn không dừng lại.",
+  "Tương lai của bạn được viết bằng chính những trang sách hôm nay.",
+  "Đừng ước mọi chuyện dễ dàng hơn, hãy ước mình giỏi giang hơn.",
+  "Mỗi ngày đi học là một bước tiến gần hơn đến ước mơ.",
+  "Học hết mình, chơi nhiệt tình, tương lai rực rỡ."
 ];
 
 const FONTS_LIST = [
