@@ -136,6 +136,40 @@ interface LabelItem {
 
 type TemplateType = 'teal' | 'math' | 'chibi' | 'minimalist' | 'space' | 'vintage' | 'sporty';
 
+const splitSlogan = (slogan: string, maxLen: number = 42): string[] => {
+  if (!slogan) return [];
+  if (slogan.length <= maxLen) return [slogan];
+
+  // Find the space character closest to the middle of the string
+  const midChar = Math.floor(slogan.length / 2);
+  let bestSplitIndex = -1;
+  let minDistance = Infinity;
+
+  for (let i = 0; i < slogan.length; i++) {
+    if (slogan[i] === ' ') {
+      // Prefer punctuation if close
+      let weight = 0;
+      if (i > 0 && (slogan[i - 1] === ',' || slogan[i - 1] === ';' || slogan[i - 1] === ':')) {
+        weight = -15; // make it highly preferred
+      }
+      const distance = Math.abs(i - midChar) + weight;
+      if (distance < minDistance) {
+        minDistance = distance;
+        bestSplitIndex = i;
+      }
+    }
+  }
+
+  if (bestSplitIndex !== -1) {
+    return [
+      slogan.substring(0, bestSplitIndex).trim(),
+      slogan.substring(bestSplitIndex + 1).trim()
+    ];
+  }
+  
+  return [slogan];
+};
+
 export default function NhanVoPage() {
   const [printMode, setPrintMode] = useState<'curriculum' | 'manual'>('curriculum');
 
@@ -556,14 +590,31 @@ export default function NhanVoPage() {
             <line x1="440" y1="198" x2="770" y2="198" stroke="#ffffff" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
           </g>
 
-          {label.slogan && (
-            <g transform={`translate(${width / 2}, 540)`}>
-              <rect x="-350" y="-38" width="700" height="56" fill="#115e59" rx="10" opacity="0.5" />
-              <text textAnchor="middle" fill="#fef08a" fontSize="30" fontStyle="italic" className="svg-label-text">
-                ★ {label.slogan} ★
-              </text>
-            </g>
-          )}
+          {(() => {
+            if (!label.slogan) return null;
+            const lines = splitSlogan(label.slogan, 42);
+            if (lines.length === 2) {
+              return (
+                <g transform={`translate(${width / 2}, 522)`}>
+                  <rect x="-370" y="-35" width="740" height="90" fill="#115e59" rx="10" opacity="0.5" />
+                  <text textAnchor="middle" fill="#fef08a" fontSize="28" fontStyle="italic" className="svg-label-text">
+                    ★ {lines[0]}
+                  </text>
+                  <text dy="36" textAnchor="middle" fill="#fef08a" fontSize="28" fontStyle="italic" className="svg-label-text">
+                    {lines[1]} ★
+                  </text>
+                </g>
+              );
+            }
+            return (
+              <g transform={`translate(${width / 2}, 540)`}>
+                <rect x="-350" y="-38" width="700" height="56" fill="#115e59" rx="10" opacity="0.5" />
+                <text textAnchor="middle" fill="#fef08a" fontSize="30" fontStyle="italic" className="svg-label-text">
+                  ★ {label.slogan} ★
+                </text>
+              </g>
+            );
+          })()}
         </svg>
       );
     }
@@ -660,11 +711,27 @@ export default function NhanVoPage() {
             <line x1="430" y1="198" x2="730" y2="198" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3,3" />
           </g>
 
-          {label.slogan && (
-            <text x={width / 2} y="540" textAnchor="middle" fill="#0f766e" fontSize="30" fontStyle="italic" fontWeight="bold" className="svg-label-text">
-              “ {label.slogan} ”
-            </text>
-          )}
+          {(() => {
+            if (!label.slogan) return null;
+            const lines = splitSlogan(label.slogan, 42);
+            if (lines.length === 2) {
+              return (
+                <g transform={`translate(${width / 2}, 522)`}>
+                  <text textAnchor="middle" fill="#0f766e" fontSize="28" fontStyle="italic" fontWeight="bold" className="svg-label-text">
+                    “ {lines[0]}
+                  </text>
+                  <text dy="36" textAnchor="middle" fill="#0f766e" fontSize="28" fontStyle="italic" fontWeight="bold" className="svg-label-text">
+                    {lines[1]} ”
+                  </text>
+                </g>
+              );
+            }
+            return (
+              <text x={width / 2} y="540" textAnchor="middle" fill="#0f766e" fontSize="30" fontStyle="italic" fontWeight="bold" className="svg-label-text">
+                “ {label.slogan} ”
+              </text>
+            );
+          })()}
         </svg>
       );
     }
@@ -761,13 +828,29 @@ export default function NhanVoPage() {
             <line x1="420" y1="198" x2="690" y2="198" stroke="#f472b6" strokeWidth="1.5" strokeDasharray="5,5" />
           </g>
 
-          {label.slogan && (
-            <g transform={`translate(${width / 2}, 530)`}>
-              <text textAnchor="middle" fill="#db2777" fontSize="32" fontStyle="italic" className="svg-label-text">
-                ✿ {label.slogan} ✿
-              </text>
-            </g>
-          )}
+          {(() => {
+            if (!label.slogan) return null;
+            const lines = splitSlogan(label.slogan, 42);
+            if (lines.length === 2) {
+              return (
+                <g transform={`translate(${width / 2}, 515)`}>
+                  <text textAnchor="middle" fill="#db2777" fontSize="30" fontStyle="italic" className="svg-label-text">
+                    ✿ {lines[0]}
+                  </text>
+                  <text dy="36" textAnchor="middle" fill="#db2777" fontSize="30" fontStyle="italic" className="svg-label-text">
+                    {lines[1]} ✿
+                  </text>
+                </g>
+              );
+            }
+            return (
+              <g transform={`translate(${width / 2}, 530)`}>
+                <text textAnchor="middle" fill="#db2777" fontSize="32" fontStyle="italic" className="svg-label-text">
+                  ✿ {label.slogan} ✿
+                </text>
+              </g>
+            );
+          })()}
         </svg>
       );
     }
@@ -863,13 +946,29 @@ export default function NhanVoPage() {
             <line x1="440" y1="198" x2="770" y2="198" stroke="#38bdf8" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
           </g>
 
-          {label.slogan && (
-            <g transform={`translate(${width / 2}, 540)`}>
-              <text textAnchor="middle" fill="#818cf8" fontSize="30" fontStyle="italic" className="svg-label-text">
-                ✧ {label.slogan} ✧
-              </text>
-            </g>
-          )}
+          {(() => {
+            if (!label.slogan) return null;
+            const lines = splitSlogan(label.slogan, 42);
+            if (lines.length === 2) {
+              return (
+                <g transform={`translate(${width / 2}, 522)`}>
+                  <text textAnchor="middle" fill="#818cf8" fontSize="28" fontStyle="italic" className="svg-label-text">
+                    ✧ {lines[0]}
+                  </text>
+                  <text dy="36" textAnchor="middle" fill="#818cf8" fontSize="28" fontStyle="italic" className="svg-label-text">
+                    {lines[1]} ✧
+                  </text>
+                </g>
+              );
+            }
+            return (
+              <g transform={`translate(${width / 2}, 540)`}>
+                <text textAnchor="middle" fill="#818cf8" fontSize="30" fontStyle="italic" className="svg-label-text">
+                  ✧ {label.slogan} ✧
+                </text>
+              </g>
+            );
+          })()}
         </svg>
       );
     }
@@ -959,11 +1058,27 @@ export default function NhanVoPage() {
             <line x1="430" y1="198" x2="730" y2="198" stroke="#2D4A22" strokeWidth="1.5" strokeDasharray="3,3" opacity="0.6" />
           </g>
 
-          {label.slogan && (
-            <text x={width / 2} y="545" textAnchor="middle" fill="#2D4A22" fontSize="30" fontStyle="italic" className="svg-label-text">
-              “ {label.slogan} ”
-            </text>
-          )}
+          {(() => {
+            if (!label.slogan) return null;
+            const lines = splitSlogan(label.slogan, 42);
+            if (lines.length === 2) {
+              return (
+                <g transform={`translate(${width / 2}, 527)`}>
+                  <text textAnchor="middle" fill="#2D4A22" fontSize="28" fontStyle="italic" className="svg-label-text">
+                    “ {lines[0]}
+                  </text>
+                  <text dy="36" textAnchor="middle" fill="#2D4A22" fontSize="28" fontStyle="italic" className="svg-label-text">
+                    {lines[1]} ”
+                  </text>
+                </g>
+              );
+            }
+            return (
+              <text x={width / 2} y="545" textAnchor="middle" fill="#2D4A22" fontSize="30" fontStyle="italic" className="svg-label-text">
+                “ {label.slogan} ”
+              </text>
+            );
+          })()}
         </svg>
       );
     }
@@ -1045,11 +1160,27 @@ export default function NhanVoPage() {
             <line x1="410" y1="198" x2="680" y2="198" stroke="#0f172a" strokeWidth="2" />
           </g>
 
-          {label.slogan && (
-            <text x={width / 2} y="545" textAnchor="middle" fill="#ea580c" fontSize="30" fontWeight="900" className="svg-label-text">
-              ⚡ {label.slogan.toUpperCase()} ⚡
-            </text>
-          )}
+          {(() => {
+            if (!label.slogan) return null;
+            const lines = splitSlogan(label.slogan, 42);
+            if (lines.length === 2) {
+              return (
+                <g transform={`translate(${width / 2}, 527)`}>
+                  <text textAnchor="middle" fill="#ea580c" fontSize="28" fontWeight="900" className="svg-label-text">
+                    ⚡ {lines[0].toUpperCase()}
+                  </text>
+                  <text dy="36" textAnchor="middle" fill="#ea580c" fontSize="28" fontWeight="900" className="svg-label-text">
+                    {lines[1].toUpperCase()} ⚡
+                  </text>
+                </g>
+              );
+            }
+            return (
+              <text x={width / 2} y="545" textAnchor="middle" fill="#ea580c" fontSize="30" fontWeight="900" className="svg-label-text">
+                ⚡ {label.slogan.toUpperCase()} ⚡
+              </text>
+            );
+          })()}
         </svg>
       );
     }
@@ -1127,11 +1258,27 @@ export default function NhanVoPage() {
           <line x1="430" y1="220" x2="800" y2="220" stroke="#000000" strokeWidth="1.5" strokeDasharray="5,5" />
         </g>
 
-        {label.slogan && (
-          <text x={width / 2} y="540" textAnchor="middle" fill="#000000" fontSize="30" fontStyle="italic" className="svg-label-text">
-            “ {label.slogan} ”
-          </text>
-        )}
+        {(() => {
+          if (!label.slogan) return null;
+          const lines = splitSlogan(label.slogan, 42);
+          if (lines.length === 2) {
+            return (
+              <g transform={`translate(${width / 2}, 522)`}>
+                <text textAnchor="middle" fill="#000000" fontSize="28" fontStyle="italic" className="svg-label-text">
+                  “ {lines[0]}
+                </text>
+                <text dy="36" textAnchor="middle" fill="#000000" fontSize="28" fontStyle="italic" className="svg-label-text">
+                  {lines[1]} ”
+                </text>
+              </g>
+            );
+          }
+          return (
+            <text x={width / 2} y="540" textAnchor="middle" fill="#000000" fontSize="30" fontStyle="italic" className="svg-label-text">
+              “ {label.slogan} ”
+            </text>
+          );
+        })()}
       </svg>
     );
   };
