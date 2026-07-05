@@ -35,6 +35,7 @@ import PhieuGrader from '@/pages/PhieuGrader'
 import OcrToolPage from '@/pages/OcrToolPage'
 import LatexToolsPage from '@/pages/LatexToolsPage'
 import WordToolsPage from '@/pages/WordToolsPage'
+import NhanVoPage from '@/pages/NhanVoPage'
 
 // Pages Thẻ học viên & Tiến trình
 import StudentCards from '@/pages/StudentCards'
@@ -109,9 +110,10 @@ export default function App() {
         <Route path="phieu-grader"         element={<PhieuGrader />} />
 
         {/* --- Nhóm Công cụ chuyên dụng --- */}
-        <Route path="ocr"         element={<OcrToolPage />} />
-        <Route path="latex-tools" element={<LatexToolsPage />} />
-        <Route path="word-tools"  element={<WordToolsPage />} />
+        <Route path="ocr"            element={<OcrToolPage />} />
+        <Route path="latex-tools"    element={<LatexToolsPage />} />
+        <Route path="word-tools"     element={<WordToolsPage />} />
+        <Route path="student-labels" element={<NhanVoPage />} />
 
         {/* --- Nhóm Hệ thống (Chỉ Admin) --- */}
         <Route path="student-cards" element={<ProtectedRoute adminOnly><StudentCards /></ProtectedRoute>} />

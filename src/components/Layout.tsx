@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, BookOpen, CalendarCheck, Banknote,
   Mail, Settings, LogOut, FileText, MonitorPlay, ScanText,
   GraduationCap, Sigma, FilePlus, PlaySquare, Zap, FileType, CreditCard,
-  ClipboardList,                                                  // ← MỚI
+  ClipboardList, Tag,                                             // ← MỚI
 } from 'lucide-react'
 
 export default function Layout() {
@@ -46,9 +46,10 @@ export default function Layout() {
     {
       title: 'Công cụ bổ trợ',
       items: [
-        { path: '/ocr',         icon: ScanText, label: 'Smart OCR' },
-        { path: '/latex-tools', icon: Sigma,    label: 'Công cụ LaTeX' },
-        { path: '/word-tools',  icon: FileType, label: 'Công cụ Word' },
+        { path: '/ocr',            icon: ScanText, label: 'Smart OCR' },
+        { path: '/latex-tools',    icon: Sigma,    label: 'Công cụ LaTeX' },
+        { path: '/word-tools',     icon: FileType, label: 'Công cụ Word' },
+        { path: '/student-labels', icon: Tag,      label: 'Nhãn vở học sinh' },
       ],
     },
     {
