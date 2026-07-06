@@ -387,6 +387,7 @@ export default function StudentPortal() {
 
   // Chưa thi: chưa có bài nộp status = 'submitted'
   const pendingExams = examsList.filter(room => !submittedRoomIds.includes(room.id))
+  const activePendingCount = pendingExams.filter(room => room.status !== 'closed' && room.status !== 'waiting').length
 
   // --- PHÂN TÍCH TIẾN ĐỘ THEO BUỔI & BÀI ---
   const parsedExams = examsList.map(room => {
@@ -483,6 +484,23 @@ export default function StudentPortal() {
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 space-y-8 animate-fade-in">
+        {/* Cảnh báo bài tập chưa làm */}
+        {activePendingCount > 0 && (
+          <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5 flex items-center gap-4 shadow-md shadow-rose-100/50 transition-all hover:scale-[1.01]">
+            <div className="w-12 h-12 rounded-xl bg-rose-600 flex items-center justify-center text-white flex-shrink-0 animate-bounce">
+              <AlertCircle className="w-7 h-7" />
+            </div>
+            <div>
+              <h3 className="text-rose-800 font-extrabold text-lg uppercase tracking-wide flex items-center gap-2">
+                <span>⚠️ CẢNH BÁO HOÀN THÀNH BÀI TẬP</span>
+              </h3>
+              <p className="text-rose-700 font-bold text-base mt-0.5">
+                Em còn <span className="text-2xl font-black text-rose-600 mx-1">{activePendingCount}</span> bài tập chưa làm. Vui lòng hoàn thành hết bài tập về nhà!
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Cảnh báo chung */}
         <div className="bg-amber-50 text-amber-800 p-4 rounded-2xl flex gap-3 text-sm font-medium border border-amber-200/60 shadow-sm">
           <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600 mt-0.5" />
