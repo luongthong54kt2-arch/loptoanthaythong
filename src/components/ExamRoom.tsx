@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Room, Exam, StudentInfo, Submission, Question, QuestionOption } from '../types';
-import { ensureSignedIn, createSubmission, submitExam } from '../services/submissionService';
+import { ensureSignedIn, createSubmission, submitExam, saveAnswersProgress } from '../services/submissionService';
 import { getTabDetectionService } from '../services/tabDetectionService';
 import { useExamSession, generateSessionId } from '../services/sessionService';
 import MathText from './MathText';
@@ -232,6 +232,17 @@ const ExamRoom: React.FC<ExamRoomProps> = ({ room, exam, student, existingSubmis
     });
     return () => tabService.stop();
   }, []);
+
+  // Tự động lưu tiến trình làm bài có debounce (2 giây)
+  useEffect(() => {
+    if (!submissionId || isSubmitting) return;
+
+    const timer = setTimeout(() => {
+      void saveAnswersProgress(submissionId, userAnswers);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [userAnswers, submissionId, isSubmitting]);
 
   const formatMMSS = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
   const formatTimeHuman = (s: number): { line1: string; line2?: string } => {

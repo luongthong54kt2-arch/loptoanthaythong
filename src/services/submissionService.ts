@@ -199,3 +199,28 @@ export const submitExam = async (
   }
   return data;
 };
+
+export const saveAnswersProgress = async (
+  submissionId: string,
+  answers: Record<number, string>
+) => {
+  const normalizedAnswers: Record<string, string> = {};
+  Object.entries(answers).forEach(([key, val]) => {
+    if (val !== undefined && val !== null) {
+      normalizedAnswers[String(key)] = String(val);
+    }
+  });
+
+  const { error } = await supabase
+    .from('exam_submissions')
+    .update({
+      answers: normalizedAnswers
+    })
+    .eq('id', submissionId);
+
+  if (error) {
+    console.error('saveAnswersProgress DB error:', error);
+    throw error;
+  }
+};
+

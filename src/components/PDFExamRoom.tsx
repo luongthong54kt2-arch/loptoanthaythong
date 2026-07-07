@@ -9,6 +9,7 @@ import {
   ensureSignedIn,
   createSubmission,
   submitExam,
+  saveAnswersProgress,
 } from '../services/submissionService';
 import { getTabDetectionService } from '../services/tabDetectionService';
 import { useExamSession, generateSessionId } from '../services/sessionService';
@@ -347,6 +348,18 @@ const PDFExamRoom: React.FC<PDFExamRoomProps> = ({
     });
     return () => svc.stop();
   }, [reportTabSwitch]);
+
+  // Tự động lưu tiến trình làm bài có debounce (2 giây)
+  useEffect(() => {
+    if (!submissionId || isSubmitting || isSubmitted) return;
+
+    const timer = setTimeout(() => {
+      const merged = mergeAnswers(mcAnswers, tfAnswers, saAnswers, writingAnswers);
+      void saveAnswersProgress(submissionId, merged);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [mcAnswers, tfAnswers, saAnswers, writingAnswers, submissionId, isSubmitting, isSubmitted]);
 
   // Answer handlers
   const setMC = (qNum: number, letter: string) => setMcAnswers(p => ({ ...p, [qNum]: p[qNum] === letter ? '' : letter }));

@@ -37,7 +37,7 @@ export default function StudentPortal() {
   const [submissionsList, setSubmissionsList] = useState<any[]>([])
 
   useEffect(() => {
-    const sessionStr = sessionStorage.getItem('current_student')
+    const sessionStr = localStorage.getItem('current_student')
     if (sessionStr) {
       const parsed = JSON.parse(sessionStr)
       setStudent(parsed)
@@ -85,33 +85,9 @@ export default function StudentPortal() {
 
       if (subsErr) throw subsErr
 
-      // Tự động nộp bài (0 điểm) nếu có bài thi đang ở trạng thái 'in_progress'
-      // vì học sinh đã thoát khỏi phòng thi đột ngột (quay về portal/đóng tab)
-      const inProgressSubs = subs?.filter(s => s.status === 'in_progress') || []
-      if (inProgressSubs.length > 0) {
-        for (const s of inProgressSubs) {
-          await supabase
-            .from('exam_submissions')
-            .update({
-              status: 'submitted',
-              score: 0,
-              submitted_at: new Date().toISOString()
-            })
-            .eq('id', s.id)
-        }
-
-        // Tải lại danh sách bài nộp mới sau khi cập nhật
-        const { data: updatedSubs } = await supabase
-          .from('exam_submissions')
-          .select('*')
-          .eq('student_id', studentId)
-
-        setExamsList(eligibleRooms)
-        setSubmissionsList(updatedSubs || [])
-      } else {
-        setExamsList(eligibleRooms)
-        setSubmissionsList(subs || [])
-      }
+      // Đã loại bỏ logic tự động nộp bài (0 điểm) khi quay về portal để hỗ trợ làm tiếp
+      setExamsList(eligibleRooms)
+      setSubmissionsList(subs || [])
     } catch (error) {
       console.error('Lỗi tải dữ liệu:', error)
       toast.error('Không thể tải danh sách bài thi.')
@@ -157,9 +133,9 @@ export default function StudentPortal() {
       return null
     }
 
-    sessionStorage.setItem('current_student', JSON.stringify(data))
-    sessionStorage.setItem('studentName', data.full_name)
-    sessionStorage.setItem('student_name', data.full_name)
+    localStorage.setItem('current_student', JSON.stringify(data))
+    localStorage.setItem('studentName', data.full_name)
+    localStorage.setItem('student_name', data.full_name)
 
     return data
   }
@@ -183,9 +159,9 @@ export default function StudentPortal() {
   }
 
   const handleLogout = () => {
-    sessionStorage.removeItem('current_student')
-    sessionStorage.removeItem('studentName')
-    sessionStorage.removeItem('student_name')
+    localStorage.removeItem('current_student')
+    localStorage.removeItem('studentName')
+    localStorage.removeItem('student_name')
     setStudent(null)
     setStudentCodeInput('')
     setPasswordInput('')

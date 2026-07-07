@@ -34,7 +34,7 @@ export default function StudentCourseViewer({ courseId: propCourseId, studentId:
   const [activePdfUrl, setActivePdfUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    const sessionStr = sessionStorage.getItem('current_student')
+    const sessionStr = localStorage.getItem('current_student')
     if (sessionStr) {
       const currentStudent = JSON.parse(sessionStr)
       setStudentName(currentStudent.full_name || currentStudent.name || 'Học sinh')

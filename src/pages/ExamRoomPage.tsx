@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import ResultView from '@/components/ResultView' 
@@ -21,48 +21,12 @@ export default function ExamRoomPage() {
   const [submissionId, setSubmissionId] = useState<string | undefined>()
   const [submittedResult, setSubmittedResult] = useState<any>(null)
 
-  const submissionStateRef = useRef({ submissionId, isSubmitted: false })
-  useEffect(() => {
-    submissionStateRef.current = { submissionId, isSubmitted: !!submittedResult }
-  }, [submissionId, submittedResult])
-
-  useEffect(() => {
-    return () => {
-      const { submissionId: subId, isSubmitted } = submissionStateRef.current
-      if (subId && !isSubmitted) {
-        void supabase
-          .from('exam_submissions')
-          .update({
-            status: 'submitted',
-            score: 0,
-            submitted_at: new Date().toISOString()
-          })
-          .eq('id', subId)
-      }
-    }
-  }, [])
-
   const handleExit = async () => {
-    const { submissionId: subId, isSubmitted } = submissionStateRef.current
-    if (subId && !isSubmitted) {
-      try {
-        await supabase
-          .from('exam_submissions')
-          .update({
-            status: 'submitted',
-            score: 0,
-            submitted_at: new Date().toISOString()
-          })
-          .eq('id', subId)
-      } catch (err) {
-        console.error('Lỗi khi nộp bài 0 điểm:', err)
-      }
-    }
     navigate('/thi')
   }
 
   useEffect(() => {
-    const sessionStr = sessionStorage.getItem('current_student')
+    const sessionStr = localStorage.getItem('current_student')
     if (!sessionStr) {
       toast.error('Vui lòng đăng nhập qua cổng thi')
       navigate('/thi')
