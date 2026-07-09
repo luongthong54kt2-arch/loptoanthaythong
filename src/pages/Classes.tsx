@@ -31,6 +31,7 @@ export default function Classes() {
   const [search, setSearch]     = useState('')
   const [leftSearch, setLeftSearch]   = useState('')
   const [rightSearch, setRightSearch] = useState('')
+  const [selectedGrade, setSelectedGrade] = useState<string | null>(null)
 
   useEffect(() => {
     loadClasses(); loadStudents(); loadEnrollments(); loadProfiles();
@@ -87,10 +88,13 @@ export default function Classes() {
   // ✅ LỌC LỚP HỌC: Admin thấy hết, Giáo viên chỉ thấy lớp do mình phụ trách
   const myClasses = isAdmin() ? classes : classes.filter((c: any) => c.teacher_id === user?.id)
 
-  const filtered = myClasses.filter(c =>
-    (c as any).class_name?.toLowerCase().includes(search.toLowerCase()) ||
-    ((c as any).subject || '').toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = myClasses.filter(c => {
+    const matchesSearch =
+      (c as any).class_name?.toLowerCase().includes(search.toLowerCase()) ||
+      ((c as any).subject || '').toLowerCase().includes(search.toLowerCase())
+    const matchesGrade = selectedGrade === null || String((c as any).grade) === selectedGrade
+    return matchesSearch && matchesGrade
+  })
 
   const currentClass = classes.find(c => c.id === selClass?.id) || (filtered.length > 0 ? filtered[0] : null)
 
@@ -162,6 +166,33 @@ export default function Classes() {
                 placeholder="Tìm lớp học, môn học..."
                 className="input pl-9 w-full text-sm py-2 bg-gray-50/50 focus:bg-white border-gray-200"
               />
+            </div>
+
+            {/* Grade filter buttons */}
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              <button
+                onClick={() => setSelectedGrade(null)}
+                className={`flex-1 min-w-[55px] text-center py-1.5 px-2 rounded-lg text-xs font-bold transition-all duration-200 ${
+                  selectedGrade === null
+                    ? 'bg-teal-600 text-white shadow-sm shadow-teal-100'
+                    : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200'
+                }`}
+              >
+                Tất cả
+              </button>
+              {['6', '7', '8', '9'].map(grade => (
+                <button
+                  key={grade}
+                  onClick={() => setSelectedGrade(grade)}
+                  className={`flex-1 min-w-[55px] text-center py-1.5 px-2 rounded-lg text-xs font-bold transition-all duration-200 ${
+                    selectedGrade === grade
+                      ? 'bg-teal-600 text-white shadow-sm shadow-teal-100'
+                      : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200'
+                  }`}
+                >
+                  Khối {grade}
+                </button>
+              ))}
             </div>
             
             <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-280px)] pr-1 custom-scrollbar">
