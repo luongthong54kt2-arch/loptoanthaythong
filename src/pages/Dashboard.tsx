@@ -38,6 +38,23 @@ function StatCard({ icon: Icon, label, value, sub, color = 'teal' }: StatCardPro
   )
 }
 
+function parseTimeToMinutes(timeStr: string | null | undefined): number {
+  if (!timeStr) return 9999
+  const cleanStr = timeStr.trim().toLowerCase()
+  const firstPart = cleanStr.split(/[-–đ]/)[0].trim()
+  const match = firstPart.match(/(\d{1,2})\s*[h:]\s*(\d{2})?/)
+  if (match) {
+    const hours = parseInt(match[1], 10)
+    const minutes = match[2] ? parseInt(match[2], 10) : 0
+    return hours * 60 + minutes
+  }
+  const hourOnlyMatch = firstPart.match(/^(\d{1,2})$/)
+  if (hourOnlyMatch) {
+    return parseInt(hourOnlyMatch[1], 10) * 60
+  }
+  return 9999
+}
+
 export default function Dashboard() {
   const { profile, isAdmin } = useAuthStore()
   const { classes, students, payments, loadClasses, loadStudents, loadPayments } = useDataStore()
@@ -92,9 +109,7 @@ export default function Dashboard() {
         }))
       })
       .sort((a, b) => {
-        const timeA = a.time || ''
-        const timeB = b.time || ''
-        return timeA.localeCompare(timeB)
+        return parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time)
       })
   }
 
