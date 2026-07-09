@@ -5,10 +5,11 @@ import { format } from 'date-fns'
 import { 
   CalendarCheck, Trophy, ExternalLink, Loader2, CheckCircle,
   User, Calendar, Phone, MapPin, StickyNote, GraduationCap, Camera,
-  AlertTriangle
+  AlertTriangle, Eye
 } from 'lucide-react'
 import Modal from '@/components/Modal'
 import toast from 'react-hot-toast'
+import SubmissionDetailView from '@/components/SubmissionDetailView'
 
 interface StudentScorecardModalProps {
   student: {
@@ -27,6 +28,7 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
   const [submissions, setSubmissions] = useState<any[]>([])
   const [studentInfo, setStudentInfo] = useState<any>(null)
   const [pendingExams, setPendingExams] = useState<any[]>([])
+  const [selectedSubId, setSelectedSubId] = useState<string | null>(null)
 
   useEffect(() => {
     if (open && student?.id) {
@@ -45,7 +47,7 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
           .order('date', { ascending: false }),
         supabase
           .from('exam_submissions')
-          .select('score, score_breakdown, submitted_at, status, exam_rooms(exams(title, data))')
+          .select('id, score, score_breakdown, submitted_at, status, exam_rooms(exams(title, data))')
           .eq('student_id', student.id)
           .order('submitted_at', { ascending: false })
           .limit(10),
@@ -444,9 +446,21 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
                         ((sb.multipleChoice?.total || 0) + (sb.trueFalse?.total || 0) + (sb.shortAnswer?.total || 0))
 
                       return (
-                        <div key={idx} className="flex items-center justify-between p-3 border border-slate-50 hover:border-slate-100 hover:bg-slate-50/50 rounded-xl transition-all gap-4">
+                        <div 
+                          key={idx} 
+                          onClick={() => {
+                            if (isSubmitted && sub.id) {
+                              setSelectedSubId(sub.id)
+                            }
+                          }}
+                          className={`flex items-center justify-between p-3 border rounded-xl transition-all gap-4 group ${
+                            isSubmitted 
+                              ? 'border-slate-100 hover:border-teal-300 hover:bg-teal-50/10 cursor-pointer shadow-sm' 
+                              : 'border-slate-50 bg-slate-50/30'
+                          }`}
+                        >
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-bold text-gray-700 truncate" title={title}>
+                            <h4 className="text-xs font-bold text-gray-700 truncate group-hover:text-teal-700" title={title}>
                               {title}
                             </h4>
                             <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-400 font-medium">
@@ -464,8 +478,11 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
                             </div>
                           </div>
 
-                          <div className={`px-3 py-1.5 rounded-xl border font-black text-xs shrink-0 ${scoreBg}`}>
-                            {!isSubmitted ? 'Đang làm' : `${score.toFixed(2)}đ`}
+                          <div className={`px-3 py-1.5 rounded-xl border font-black text-xs shrink-0 flex items-center gap-1.5 ${scoreBg}`}>
+                            <span>{!isSubmitted ? 'Đang làm' : `${score.toFixed(2)}đ`}</span>
+                            {isSubmitted && (
+                              <Eye className="w-3.5 h-3.5 text-teal-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            )}
                           </div>
                         </div>
                       )
@@ -478,6 +495,17 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
           </div>
         )}
       </div>
+
+      {/* Modal chi tiết bài làm học sinh */}
+      {selectedSubId && (
+        <SubmissionDetailView
+          submissionId={selectedSubId}
+          onClose={() => {
+            setSelectedSubId(null)
+            void loadStudentData()
+          }}
+        />
+      )}
     </Modal>
   )
 }

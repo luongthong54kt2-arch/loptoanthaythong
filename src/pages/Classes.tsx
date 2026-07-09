@@ -305,76 +305,13 @@ export default function Classes() {
         <div className="lg:col-span-8 space-y-6">
           {currentClass ? (
             <>
-              {/* Thông tin chi tiết lớp học */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm relative overflow-hidden">
-                <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-teal-500/10 to-transparent rounded-full -mr-10 -mt-10" />
-                
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 relative z-10">
-                  <div>
-                    <h2 className="text-xl font-extrabold text-gray-800 flex items-center gap-2">
-                      {currentClass.class_name}
-                    </h2>
-                    <p className="text-gray-500 text-sm mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <span>Môn: <strong className="text-gray-700">{currentClass.subject}</strong></span>
-                      <span>•</span>
-                      <span>Khối: <strong className="text-gray-700">{currentClass.grade}</strong></span>
-                      <span>•</span>
-                      <span>Học phí/buổi: <strong className="text-teal-700 font-bold">{fmtVNDShort(currentClass.fee_per_session)}</strong></span>
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => openEdit(currentClass)}
-                      className="p-2 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl transition-all flex items-center gap-1.5 text-xs font-semibold"
-                    >
-                      <Pencil className="w-3.5 h-3.5" /> Sửa thông tin
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClass(currentClass.id, currentClass.class_name)}
-                      className="p-2 border border-red-100 text-red-500 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1.5 text-xs font-semibold"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" /> Xóa lớp học
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200 text-xs relative z-10">
-                  <div className="flex items-start gap-2.5">
-                    <User className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="text-gray-400 font-semibold">Giáo viên phụ trách</div>
-                      <div className="text-gray-850 font-bold mt-0.5">
-                        {profiles.find(p => p.id === currentClass.teacher_id)?.name || profiles.find(p => p.id === currentClass.teacher_id)?.email || 'Chưa phân công'}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-2.5">
-                    <Calendar className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="text-gray-400 font-semibold">Lịch học chi tiết</div>
-                      <div className="text-gray-850 font-bold mt-0.5">{currentClass.schedule || '—'}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-2.5">
-                    <MapPin className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="text-gray-400 font-semibold">Phòng học</div>
-                      <div className="text-gray-850 font-bold mt-0.5">{currentClass.room || '—'}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* Danh sách học sinh trong lớp */}
               <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200">
                   <div>
-                    <h3 className="font-extrabold text-gray-800 text-base flex items-center gap-2">
-                      Danh sách học sinh
-                      <span className="text-xs font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full">
+                    <h3 className="font-extrabold text-gray-800 text-base flex flex-col sm:flex-row sm:items-center gap-2">
+                      <span>Danh sách học sinh · Lớp {currentClass.class_name}</span>
+                      <span className="text-xs font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full self-start sm:self-auto">
                         {rosterStudents.length} học sinh
                       </span>
                     </h3>
