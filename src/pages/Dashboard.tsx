@@ -173,155 +173,124 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card p-6 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h3 className="font-bold text-gray-800 flex items-center gap-2">
-              <CalendarCheck className="w-5 h-5 text-teal-600" />
-              Lịch học tuần này
-            </h3>
-            
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={prevWeek} 
-                className="p-1 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition"
-                title="Tuần trước"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button 
-                onClick={goToday} 
-                className="text-xs font-semibold px-2 py-1 rounded bg-teal-50 text-teal-600 hover:bg-teal-100 transition"
-              >
-                Hôm nay
-              </button>
-              <button 
-                onClick={nextWeek} 
-                className="p-1 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition"
-                title="Tuần sau"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-              <span className="text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100">
-                {formatWeekRange(weekDays)}
-              </span>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto -mx-2 px-2 scrollbar-thin">
-            <div className="grid grid-cols-7 gap-2 min-w-[750px] py-1">
-              {weekDays.map((dayDate) => {
-                const dayNum = dayDate.getDay()
-                const isDayToday = isToday(dayDate)
-                const dayClasses = getClassesForDay(dayNum)
-                const dayNames = ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
-
-                return (
-                  <div 
-                    key={dayDate.toISOString()} 
-                    className={`flex flex-col gap-2 p-1.5 rounded-xl transition-all duration-300 ${
-                      isDayToday 
-                        ? 'bg-teal-50/50 border border-teal-200 shadow-sm' 
-                        : 'border border-transparent'
-                    }`}
-                  >
-                    {/* Day Header */}
-                    <div className={`flex flex-col items-center py-2 rounded-lg border ${
-                      isDayToday 
-                        ? 'bg-teal-100/50 border-teal-200' 
-                        : 'bg-gray-50/60 border-gray-100'
-                    }`}>
-                      <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                        isDayToday ? 'text-teal-700' : 'text-gray-400'
-                      }`}>
-                        {dayNames[dayNum]}
-                      </span>
-                      <span className={`w-7 h-7 flex items-center justify-center rounded-full text-xs font-extrabold mt-1 transition-all duration-300 ${
-                        isDayToday 
-                          ? 'bg-teal-600 text-white shadow-sm' 
-                          : 'text-gray-700'
-                      }`}>
-                        {String(dayDate.getDate()).padStart(2, '0')}
-                      </span>
-                      {isDayToday && (
-                        <span className="text-[8px] font-bold text-teal-600 mt-1 bg-white px-1.5 py-0.5 rounded-full uppercase tracking-tight shadow-sm border border-teal-100">
-                          Hôm nay
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Classes list */}
-                    <div className="flex flex-col gap-2 flex-1 min-h-[160px]">
-                      {dayClasses.length === 0 ? (
-                        <div className="flex-1 flex items-center justify-center py-6 border border-dashed border-gray-200 rounded-lg bg-gray-50/20">
-                          <span className="text-[9px] text-gray-400 font-medium italic">Không có lớp</span>
-                        </div>
-                      ) : (
-                        dayClasses.map(cls => (
-                          <div 
-                            key={`${cls.id}-${cls.time}`} 
-                            className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-teal-300 transition-all duration-200 flex flex-col gap-1"
-                          >
-                            <div className="font-extrabold text-gray-800 text-[10px] leading-tight line-clamp-2">
-                              {(cls as any).class_name || (cls as any).name}
-                            </div>
-                            
-                            <div className="flex flex-wrap gap-1 mt-0.5">
-                              <span className="inline-block px-1 py-0.2 text-[8px] font-bold rounded bg-teal-50 text-teal-600 border border-teal-100">
-                                {(cls as any).subject || 'Toán'}
-                              </span>
-                              {(cls as any).room && (
-                                <div className="flex items-center gap-0.5 text-[8px] text-gray-500 bg-gray-50 border border-gray-200 px-1 py-0.2 rounded">
-                                  <MapPin className="w-2 h-2 text-gray-400" />
-                                  <span className="truncate max-w-[45px]">{(cls as any).room}</span>
-                                </div>
-                              )}
-                            </div>
-                            
-                            {cls.time && (
-                              <div className="flex items-center gap-1 text-[9px] font-medium text-teal-700 mt-1">
-                                <Clock className="w-2.5 h-2.5 flex-shrink-0" />
-                                <span>{cls.time}</span>
-                              </div>
-                            )}
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+      <div className="card p-6 flex flex-col justify-between">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h3 className="font-bold text-gray-800 flex items-center gap-2">
+            <CalendarCheck className="w-5 h-5 text-teal-600" />
+            Lịch học tuần này
+          </h3>
+          
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={prevWeek} 
+              className="p-1 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition"
+              title="Tuần trước"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={goToday} 
+              className="text-xs font-semibold px-2 py-1 rounded bg-teal-50 text-teal-600 hover:bg-teal-100 transition"
+            >
+              Hôm nay
+            </button>
+            <button 
+              onClick={nextWeek} 
+              className="p-1 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition"
+              title="Tuần sau"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <span className="text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100">
+              {formatWeekRange(weekDays)}
+            </span>
           </div>
         </div>
 
-        <div className="card p-6">
-          <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-teal-600" />
-            Lớp học đang mở
-          </h3>
-          {classes.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-8">Chưa có lớp học</p>
-          ) : (
-            <div className="space-y-3">
-              {classes.filter(c => c.status === 'active').slice(0, 5).map(c => (
-                <div key={c.id} className="flex items-center justify-between py-2 border-b border-teal-50">
-                  <div>
-                    <p className="font-semibold text-sm text-gray-800">
-                      {(c as any).class_name || (c as any).name}
-                    </p>
-                    {/* ✅ FIX 4: c.description không có trong schema → dùng subject + schedule */}
-                    <p className="text-xs text-gray-400">
-                      {[(c as any).subject, (c as any).schedule].filter(Boolean).join(' · ') || '—'}
-                    </p>
+        <div className="overflow-x-auto -mx-2 px-2 scrollbar-thin">
+          <div className="grid grid-cols-7 gap-2 min-w-[750px] py-1">
+            {weekDays.map((dayDate) => {
+              const dayNum = dayDate.getDay()
+              const isDayToday = isToday(dayDate)
+              const dayClasses = getClassesForDay(dayNum)
+              const dayNames = ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
+
+              return (
+                <div 
+                  key={dayDate.toISOString()} 
+                  className={`flex flex-col gap-2 p-1.5 rounded-xl transition-all duration-300 ${
+                    isDayToday 
+                      ? 'bg-teal-50/50 border border-teal-200 shadow-sm' 
+                      : 'border border-transparent'
+                  }`}
+                >
+                  {/* Day Header */}
+                  <div className={`flex flex-col items-center py-2 rounded-lg border ${
+                    isDayToday 
+                      ? 'bg-teal-100/50 border-teal-200' 
+                      : 'bg-gray-50/60 border-gray-100'
+                  }`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                      isDayToday ? 'text-teal-700' : 'text-gray-400'
+                    }`}>
+                      {dayNames[dayNum]}
+                    </span>
+                    <span className={`w-7 h-7 flex items-center justify-center rounded-full text-xs font-extrabold mt-1 transition-all duration-300 ${
+                      isDayToday 
+                        ? 'bg-teal-600 text-white shadow-sm' 
+                        : 'text-gray-700'
+                    }`}>
+                      {String(dayDate.getDate()).padStart(2, '0')}
+                    </span>
+                    {isDayToday && (
+                      <span className="text-[8px] font-bold text-teal-600 mt-1 bg-white px-1.5 py-0.5 rounded-full uppercase tracking-tight shadow-sm border border-teal-100">
+                        Hôm nay
+                      </span>
+                    )}
                   </div>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">
-                    Đang mở
-                  </span>
+
+                  {/* Classes list */}
+                  <div className="flex flex-col gap-2 flex-1 min-h-[160px]">
+                    {dayClasses.length === 0 ? (
+                      <div className="flex-1 flex items-center justify-center py-6 border border-dashed border-gray-200 rounded-lg bg-gray-50/20">
+                        <span className="text-[9px] text-gray-400 font-medium italic">Không có lớp</span>
+                      </div>
+                    ) : (
+                      dayClasses.map(cls => (
+                        <div 
+                          key={`${cls.id}-${cls.time}`} 
+                          className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-teal-300 transition-all duration-200 flex flex-col gap-1"
+                        >
+                          <div className="font-extrabold text-gray-800 text-[10px] leading-tight line-clamp-2">
+                            {(cls as any).class_name || (cls as any).name}
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-1 mt-0.5">
+                            <span className="inline-block px-1 py-0.2 text-[8px] font-bold rounded bg-teal-50 text-teal-600 border border-teal-100">
+                              {(cls as any).subject || 'Toán'}
+                            </span>
+                            {(cls as any).room && (
+                              <div className="flex items-center gap-0.5 text-[8px] text-gray-500 bg-gray-50 border border-gray-200 px-1 py-0.2 rounded">
+                                <MapPin className="w-2 h-2 text-gray-400" />
+                                <span className="truncate max-w-[45px]">{(cls as any).room}</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {cls.time && (
+                            <div className="flex items-center gap-1 text-[9px] font-medium text-teal-700 mt-1">
+                              <Clock className="w-2.5 h-2.5 flex-shrink-0" />
+                              <span>{cls.time}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>
