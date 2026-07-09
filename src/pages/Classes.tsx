@@ -347,84 +347,31 @@ export default function Classes() {
                       {leftSearch ? 'Không tìm thấy học sinh phù hợp' : 'Chưa có học sinh nào đăng ký lớp này'}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                       {filteredRoster.map(s => {
-                        const studentClasses = enrollments
-                          .filter(e => e.student_id === s.id && e.status === 'active')
-                          .map(e => classes.find(c => c.id === e.class_id))
-                          .filter(Boolean)
-
-                        const initials = s.full_name
-                          ?.split(' ')
-                          .slice(-2)
-                          .map((w: string) => w[0])
-                          .join('')
-                          .toUpperCase() || 'HS'
-
                         return (
                           <div
                             key={s.id}
-                            className="flex items-start justify-between p-4 border border-gray-200 hover:border-teal-300 rounded-2xl bg-white hover:bg-slate-50/10 hover:shadow-sm transition-all relative group"
+                            onClick={() => setScorecardStudent(s)}
+                            className="relative group border border-gray-200 hover:border-teal-300 rounded-xl bg-white hover:bg-teal-50/5 hover:shadow-sm transition-all duration-200 cursor-pointer flex items-center justify-center py-4 px-3 min-h-[56px] text-center"
                           >
-                            <div
-                              onClick={() => setScorecardStudent(s)}
-                              className="flex gap-3 cursor-pointer flex-1 min-w-0"
-                            >
-                              {/* Avatar */}
-                              {s.avatar_url ? (
-                                <img
-                                  src={s.avatar_url}
-                                  alt={s.full_name}
-                                  className="w-10 h-10 rounded-full object-cover border border-teal-100 shadow-sm shrink-0"
-                                />
-                              ) : (
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-xs font-black shadow-sm shrink-0">
-                                  {initials}
-                                </div>
-                              )}
-
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <h4 className="font-bold text-sm text-gray-800 hover:text-teal-700 truncate">
-                                    {s.full_name}
-                                  </h4>
-                                  <span className="text-[9px] text-gray-400 font-mono shrink-0 bg-gray-100 px-1 py-0.5 rounded">
-                                    {s.student_code}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-gray-400 mt-0.5 truncate">
-                                  {s.school || 'Không rõ trường'} • Khối {s.grade}
-                                </p>
-                                
-                                {/* Badge các lớp đang học */}
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {studentClasses.map(sc => (
-                                    <span
-                                      key={sc.id}
-                                      className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold border ${
-                                        sc.id === currentClass.id
-                                          ? 'bg-teal-50 text-teal-700 border-teal-200'
-                                          : 'bg-gray-100 text-gray-600 border-gray-200'
-                                      }`}
-                                    >
-                                      {sc.class_name}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-
+                            <span className="font-extrabold text-xs text-gray-800 tracking-wide uppercase line-clamp-2">
+                              {s.full_name}
+                            </span>
+                            
+                            {/* Bỏ ghi danh học sinh (hiển thị khi di chuột qua) */}
                             <button
-                              onClick={async () => {
+                              onClick={async (e) => {
+                                e.stopPropagation()
                                 const confirmMsg = `Bạn muốn xóa học sinh "${s.full_name}" khỏi lớp "${currentClass.class_name}"?`
                                 if (!window.confirm(confirmMsg)) return
                                 await unenroll(s.id, currentClass.id)
                                 toast.success('Đã bỏ ghi danh học sinh')
                               }}
-                              className="text-xs text-red-500 hover:bg-red-50 hover:text-red-700 p-1.5 rounded-lg border border-red-150 transition-colors font-bold shrink-0 self-start opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                              title="Bỏ ghi danh"
+                              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 text-red-500 hover:bg-red-50 rounded-full"
+                              title="Xóa khỏi lớp"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         )
