@@ -5,7 +5,7 @@ import { format } from 'date-fns'
 import { 
   CalendarCheck, Trophy, ExternalLink, Loader2, CheckCircle,
   User, Calendar, Phone, MapPin, StickyNote, GraduationCap, Camera,
-  AlertTriangle, Eye
+  AlertTriangle, Eye, QrCode
 } from 'lucide-react'
 import Modal from '@/components/Modal'
 import toast from 'react-hot-toast'
@@ -29,6 +29,7 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
   const [studentInfo, setStudentInfo] = useState<any>(null)
   const [pendingExams, setPendingExams] = useState<any[]>([])
   const [selectedSubId, setSelectedSubId] = useState<string | null>(null)
+  const [showQrModal, setShowQrModal] = useState(false)
 
   useEffect(() => {
     if (open && student?.id) {
@@ -243,9 +244,14 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
                   </div>
 
                   <h3 className="font-bold text-gray-800 text-lg line-clamp-1">{displayName}</h3>
-                  <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-mono font-bold text-teal-700 bg-teal-50 border border-teal-100 mt-1">
-                    {displayCode}
-                  </span>
+                  <button
+                    onClick={() => setShowQrModal(true)}
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold text-teal-700 bg-teal-50 border border-teal-100 mt-1 hover:bg-teal-100 hover:text-teal-900 transition-all cursor-pointer"
+                    title="Click để xem mã QR tiến trình học"
+                  >
+                    <span>{displayCode}</span>
+                    <QrCode className="w-3 h-3 text-teal-600" />
+                  </button>
                 </div>
 
                 {/* Thông tin liên hệ / học vấn */}
@@ -506,6 +512,77 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
           }}
         />
       )}
+
+      {/* Modal hiển thị mã QR */}
+      <Modal
+        open={showQrModal}
+        onClose={() => setShowQrModal(false)}
+        title="Mã QR Tiến độ học tập"
+        size="sm"
+      >
+        <div className="flex flex-col items-center justify-center p-6 text-center space-y-4" onClick={e => e.stopPropagation()}>
+          <p className="text-sm text-gray-500 font-medium">
+            Quét mã QR dưới đây để truy cập trang tiến độ học tập của <strong className="text-teal-700">{displayName}</strong>.
+          </p>
+          
+          <div className="p-4 bg-white border-2 border-slate-100 rounded-2xl shadow-md">
+            <img
+              src={`https://quickchart.io/qr?text=${encodeURIComponent(
+                `${window.location.origin}/progress?code=${displayCode}`
+              )}&size=240&margin=2&dark=0d9488&light=ffffff`}
+              alt={`QR Code ${displayName}`}
+              className="w-48 h-48 block mx-auto animate-fade-in"
+            />
+          </div>
+
+          <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 w-full space-y-1">
+            <div className="text-[10px] uppercase font-bold text-gray-400">Đường dẫn tiến độ</div>
+            <a
+              href={`${window.location.origin}/progress?code=${displayCode}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-bold text-teal-600 hover:underline break-all block"
+            >
+              {window.location.origin}/progress?code={displayCode}
+            </a>
+          </div>
+
+          <div className="flex gap-2 w-full pt-2">
+            <button
+              onClick={async () => {
+                try {
+                  const qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(
+                    `${window.location.origin}/progress?code=${displayCode}`
+                  )}&size=300&margin=2&dark=0d9488&light=ffffff`;
+                  const res = await fetch(qrUrl);
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `QR_${displayCode}.png`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                  toast.success('Tải ảnh mã QR thành công!');
+                } catch (err) {
+                  console.error(err);
+                  toast.error('Lỗi khi tải ảnh QR');
+                }
+              }}
+              className="flex-1 py-2 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl transition-all shadow-sm cursor-pointer"
+            >
+              Tải ảnh QR
+            </button>
+            <button
+              onClick={() => setShowQrModal(false)}
+              className="flex-1 py-2 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all cursor-pointer"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      </Modal>
     </Modal>
   )
 }
