@@ -30,6 +30,7 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
   const [pendingExams, setPendingExams] = useState<any[]>([])
   const [selectedSubId, setSelectedSubId] = useState<string | null>(null)
   const [showQrModal, setShowQrModal] = useState(false)
+  const [showDetails, setShowDetails] = useState(false)
 
   useEffect(() => {
     if (open && student?.id) {
@@ -247,101 +248,132 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
                   <button
                     onClick={() => setShowQrModal(true)}
                     className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold text-teal-700 bg-teal-50 border border-teal-100 mt-1 hover:bg-teal-100 hover:text-teal-900 transition-all cursor-pointer"
-                    title="Click để xem mã QR tiến trình học"
+                    title="Click để xem phóng to / tải mã QR"
                   >
                     <span>{displayCode}</span>
                     <QrCode className="w-3 h-3 text-teal-600" />
                   </button>
+
+                  {/* QR code directly below displayCode */}
+                  <div className="mt-3.5 flex flex-col items-center justify-center">
+                    <div 
+                      onClick={() => setShowQrModal(true)}
+                      className="p-1.5 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 hover:scale-[1.03]"
+                      title="Click để phóng to / tải mã QR"
+                    >
+                      <img
+                        src={`https://quickchart.io/qr?text=${encodeURIComponent(
+                          `${window.location.origin}/progress?code=${displayCode}`
+                        )}&size=160&margin=2&dark=0d9488&light=ffffff`}
+                        alt={`QR Code ${displayName}`}
+                        className="w-24 h-24 block rounded-lg"
+                      />
+                    </div>
+                    <span className="text-[10px] text-gray-400 font-semibold mt-1">Mã QR tiến độ</span>
+                  </div>
+                </div>
+
+                {/* Nút Xem/Thu gọn thông tin cá nhân */}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowDetails(!showDetails)}
+                    className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-bold text-gray-500 hover:text-gray-700 bg-slate-100 hover:bg-slate-255 border border-slate-200 rounded-xl transition-all"
+                  >
+                    {showDetails ? 'Thu gọn thông tin cá nhân' : 'Xem thông tin cá nhân'}
+                  </button>
                 </div>
 
                 {/* Thông tin liên hệ / học vấn */}
-                <div className="space-y-3.5 text-xs">
-                  {/* Ngày sinh & Lớp */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-start gap-2">
-                      <Calendar className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-                      <div className="min-w-0">
-                        <div className="text-gray-400 font-semibold">Ngày sinh</div>
-                        <div className="text-gray-700 font-bold truncate">{formatDate(studentInfo?.date_of_birth)}</div>
+                {showDetails && (
+                  <div className="space-y-3.5 text-xs pt-1 border-t border-slate-100 animate-fade-in">
+                    {/* Ngày sinh & Lớp */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-start gap-2">
+                        <Calendar className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-gray-400 font-semibold">Ngày sinh</div>
+                          <div className="text-gray-700 font-bold truncate">{formatDate(studentInfo?.date_of_birth)}</div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <GraduationCap className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-                      <div className="min-w-0">
-                        <div className="text-gray-400 font-semibold">Khối lớp</div>
-                        <div className="text-gray-700 font-bold truncate">{studentInfo?.grade || '—'}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Trường học */}
-                  <div className="flex items-start gap-2">
-                    <GraduationCap className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-                    <div className="min-w-0">
-                      <div className="text-gray-400 font-semibold">Trường học</div>
-                      <div className="text-gray-700 font-bold truncate" title={studentInfo?.school || ''}>
-                        {studentInfo?.school || '—'}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Họ tên phụ huynh */}
-                  <div className="flex items-start gap-2">
-                    <User className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-                    <div className="min-w-0">
-                      <div className="text-gray-400 font-semibold">Phụ huynh</div>
-                      <div className="text-gray-700 font-bold truncate" title={studentInfo?.parent_name || ''}>
-                        {studentInfo?.parent_name || '—'}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Số điện thoại phụ huynh */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-start gap-2">
-                      <Phone className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-                      <div className="min-w-0">
-                        <div className="text-gray-400 font-semibold">SĐT Phụ huynh</div>
-                        <div className="text-gray-700 font-bold truncate">
-                          {studentInfo?.parent_phone ? (
-                            <a href={`tel:${studentInfo.parent_phone}`} className="text-teal-600 hover:underline">
-                              {studentInfo.parent_phone}
-                            </a>
-                          ) : '—'}
+                      <div className="flex items-start gap-2">
+                        <GraduationCap className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-gray-400 font-semibold">Khối lớp</div>
+                          <div className="text-gray-700 font-bold truncate">{studentInfo?.grade || '—'}</div>
                         </div>
                       </div>
                     </div>
+
+                    {/* Trường học */}
                     <div className="flex items-start gap-2">
-                      <Phone className="w-3.5 h-3.5 text-blue-400 mt-0.5 shrink-0" />
+                      <GraduationCap className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
                       <div className="min-w-0">
-                        <div className="text-gray-400 font-semibold">Zalo</div>
-                        <div className="text-gray-700 font-bold truncate">{studentInfo?.zalo || '—'}</div>
+                        <div className="text-gray-400 font-semibold">Trường học</div>
+                        <div className="text-gray-700 font-bold truncate" title={studentInfo?.school || ''}>
+                          {studentInfo?.school || '—'}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Địa chỉ */}
-                  <div className="flex items-start gap-2">
-                    <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-                    <div className="min-w-0">
-                      <div className="text-gray-400 font-semibold">Địa chỉ</div>
-                      <div className="text-gray-700 font-bold line-clamp-2" title={studentInfo?.address || ''}>
-                        {studentInfo?.address || '—'}
+                    {/* Họ tên phụ huynh */}
+                    <div className="flex items-start gap-2">
+                      <User className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-gray-400 font-semibold">Phụ huynh</div>
+                        <div className="text-gray-700 font-bold truncate" title={studentInfo?.parent_name || ''}>
+                          {studentInfo?.parent_name || '—'}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Ghi chú */}
-                  <div className="flex items-start gap-2 pt-1 border-t border-slate-100">
-                    <StickyNote className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-                    <div className="min-w-0">
-                      <div className="text-gray-400 font-semibold">Ghi chú</div>
-                      <div className="text-gray-600 italic font-medium line-clamp-3" title={studentInfo?.note || ''}>
-                        {studentInfo?.note || '—'}
+                    {/* Số điện thoại phụ huynh */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-start gap-2">
+                        <Phone className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-gray-400 font-semibold">SĐT Phụ huynh</div>
+                          <div className="text-gray-700 font-bold truncate">
+                            {studentInfo?.parent_phone ? (
+                              <a href={`tel:${studentInfo.parent_phone}`} className="text-teal-600 hover:underline">
+                                {studentInfo.parent_phone}
+                              </a>
+                            ) : '—'}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <Phone className="w-3.5 h-3.5 text-blue-400 mt-0.5 shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-gray-400 font-semibold">Zalo</div>
+                          <div className="text-gray-700 font-bold truncate">{studentInfo?.zalo || '—'}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Địa chỉ */}
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-gray-400 font-semibold">Địa chỉ</div>
+                        <div className="text-gray-700 font-bold line-clamp-2" title={studentInfo?.address || ''}>
+                          {studentInfo?.address || '—'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Ghi chú */}
+                    <div className="flex items-start gap-2 pt-1 border-t border-slate-100">
+                      <StickyNote className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-gray-400 font-semibold">Ghi chú</div>
+                        <div className="text-gray-600 italic font-medium line-clamp-3" title={studentInfo?.note || ''}>
+                          {studentInfo?.note || '—'}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Link liên kết tiến độ */}
                 <div className="pt-2">
