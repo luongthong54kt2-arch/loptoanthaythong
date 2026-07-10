@@ -8,7 +8,6 @@ import MathText from '@/components/MathText'
 export default function StudentProgressPage() {
   const code = new URLSearchParams(window.location.search).get('code') || ''
   const [student, setStudent]         = useState<any>(null)
-  const [attendance, setAttendance]   = useState<any[]>([])
   const [submissions, setSubmissions] = useState<any[]>([])
   const [courseProgress, setCourseProgress] = useState<any[]>([])
   const [centerName]   = useState(import.meta.env.VITE_CENTER_NAME || 'LỚP TOÁN THẦY LĨNH')
@@ -17,6 +16,8 @@ export default function StudentProgressPage() {
   const [expandedSub, setExpandedSub] = useState<number | null>(null)
   const [detailSub, setDetailSub]     = useState<any>(null)   // bài thi đang xem chi tiết
   const [loadingDetail, setLoadingDetail] = useState(false)
+  const [pendingExams, setPendingExams] = useState<any[]>([])
+  const [classNames, setClassNames] = useState<string[]>([])
 
   useEffect(() => {
     if (code) load()
@@ -30,20 +31,8 @@ export default function StudentProgressPage() {
       if (!s) { setNotFound(true); setLoading(false); return }
       setStudent(s)
 
-      // ✅ FIX 1: Load 90 ngày gần nhất thay vì chỉ tháng hiện tại
-      //    → không bị trống nếu tháng này chưa có buổi học
-      const toDate   = format(new Date(), 'yyyy-MM-dd')
-      const fromDate = format(subDays(new Date(), 90), 'yyyy-MM-dd')
-
-      const [attRes, subRes, progRes] = await Promise.all([
-        supabase.from('attendance')
-          .select('date, present, late, class_id, classes(class_name, subject)')
-          .eq('student_id', s.id)
-          .gte('date', fromDate)
-          .lte('date', toDate)
-          .order('date', { ascending: false }),
-
-        // ✅ FIX 2: Lấy thêm score_breakdown để hiện chi tiết
+      const [subRes, progRes, enrollsRes, roomsRes, allSubsRes] = await Promise.all([
+        // Lấy các bài thi đã nộp để hiện kết quả bài thi
         supabase.from('exam_submissions')
           .select('score, score_breakdown, answers, submitted_at, status, exam_rooms(exams(title, data))')
           .eq('student_id', s.id)
@@ -51,15 +40,49 @@ export default function StudentProgressPage() {
           .order('submitted_at', { ascending: false })
           .limit(10),
 
+        // Lấy tiến trình khóa học
         supabase.from('student_progress')
           .select('is_passed, is_unlocked, highest_score, lessons(title, chapters(title, courses(title)))')
           .eq('student_id', s.id),
+
+        // Lấy danh sách lớp học sinh tham gia
+        supabase.from('enrollments')
+          .select('class_id, classes(class_name)')
+          .eq('student_id', s.id)
+          .eq('status', 'active'),
+
+        // Lấy tất cả phòng thi đang hoạt động
+        supabase.from('exam_rooms')
+          .select('*, exams(title)')
+          .eq('status', 'active'),
+
+        // Lấy tất cả bài nộp của học sinh (để so sánh)
+        supabase.from('exam_submissions')
+          .select('room_id, status')
+          .eq('student_id', s.id)
       ])
 
-      setAttendance(attRes.data || [])
       setSubmissions(subRes.data || [])
       setCourseProgress(progRes.data || [])
-    } catch {
+
+      // Tính các lớp tham gia
+      const myClasses = enrollsRes.data
+        ?.map((e: any) => e.classes?.class_name)
+        .filter(Boolean) || []
+      setClassNames(myClasses)
+
+      // Tính các đề chưa nộp
+      const myClassIds = enrollsRes.data?.map((e: any) => e.class_id) || []
+      const eligibleRooms = (roomsRes.data || []).filter((room: any) => {
+        return !room.class_id || myClassIds.includes(room.class_id)
+      })
+      const submittedRoomIds = (allSubsRes.data || [])
+        .filter((sub: any) => sub.status === 'submitted')
+        .map((sub: any) => sub.room_id)
+      const pending = eligibleRooms.filter((room: any) => !submittedRoomIds.includes(room.id))
+      setPendingExams(pending)
+    } catch (err) {
+      console.error(err)
       setNotFound(true)
     } finally {
       setLoading(false)
@@ -70,12 +93,10 @@ export default function StudentProgressPage() {
   const openDetail = async (sub: any) => {
     setLoadingDetail(true)
     try {
-      // Lấy câu hỏi từ shuffled_exam (bộ đề học sinh đã làm) hoặc đề gốc
       const bd = sub.score_breakdown || {}
       let examData = bd.shuffled_exam
 
       if (!examData) {
-        // Fetch đề gốc từ exam_rooms → exams
         const roomId = sub.exam_rooms?.id || sub.room_id
         if (roomId) {
           const { data: room } = await supabase
@@ -103,31 +124,6 @@ export default function StudentProgressPage() {
     </div>
   )
 
-  // ── Điểm danh ──────────────────────────────────────────
-  const presentCount   = attendance.filter(a => a.present && !a.late).length
-  const lateCount      = attendance.filter(a => a.late).length
-  const absentCount    = attendance.filter(a => !a.present).length
-  const totalSessions  = attendance.length
-  const attendanceRate = totalSessions > 0
-    ? Math.round(((presentCount + lateCount) / totalSessions) * 100)
-    : 0
-
-  // Group by tháng để hiện timeline
-  const byMonth: Record<string, any[]> = {}
-  for (const a of attendance) {
-    const key = format(new Date(a.date), 'MM/yyyy')
-    if (!byMonth[key]) byMonth[key] = []
-    byMonth[key].push(a)
-  }
-
-  // Group by lớp
-  const byClass: Record<string, any[]> = {}
-  for (const a of attendance) {
-    const key = a.classes?.class_name || 'Lớp học'
-    if (!byClass[key]) byClass[key] = []
-    byClass[key].push(a)
-  }
-
   // ── Tiến độ khóa học ───────────────────────────────────
   const byCourse: Record<string, { total: number; passed: number }> = {}
   for (const p of courseProgress) {
@@ -138,9 +134,6 @@ export default function StudentProgressPage() {
   }
 
   const initials = student.full_name?.split(' ').slice(-2).map((w: string) => w[0]).join('').toUpperCase() || 'HS'
-  const rateColor = attendanceRate >= 80 ? '#0d9488' : attendanceRate >= 60 ? '#f59e0b' : '#ef4444'
-  const circumference = 2 * Math.PI * 40
-  const strokeDash = (attendanceRate / 100) * circumference
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -163,9 +156,9 @@ export default function StudentProgressPage() {
           )}
           <h1 className="text-2xl font-black leading-tight">{student.full_name}</h1>
           <p className="text-teal-200 text-sm mt-1 font-mono tracking-widest">{student.student_code}</p>
-          {Object.keys(byClass).length > 0 && (
+          {classNames.length > 0 && (
             <div className="mt-3 flex flex-wrap justify-center gap-2">
-              {Object.keys(byClass).map(cls => (
+              {classNames.map(cls => (
                 <span key={cls} className="bg-white/15 border border-white/25 px-3 py-1 rounded-full text-xs font-bold">{cls}</span>
               ))}
             </div>
@@ -175,91 +168,49 @@ export default function StudentProgressPage() {
 
       <div className="-mt-12 relative z-10 px-4 pb-12 space-y-4 max-w-md mx-auto">
 
-        {/* Điểm danh */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-5 pt-5 pb-4 flex items-center gap-2 border-b border-gray-50">
-            <CalendarCheck className="w-5 h-5 text-teal-600" />
-            <h2 className="font-bold text-gray-800">Chuyên cần (90 ngày gần nhất)</h2>
+        {/* Cảnh báo đề chưa làm */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+          <div className="px-5 pt-5 pb-4 flex items-center gap-2 border-b border-gray-50 bg-rose-50/30">
+            <AlertCircle className={`w-5 h-5 ${pendingExams.length > 0 ? 'text-red-500 animate-pulse' : 'text-green-500'}`} />
+            <h2 className="font-bold text-gray-800">
+              {pendingExams.length > 0 ? `Cảnh báo: Còn ${pendingExams.length} bài chưa làm!` : 'Tuyệt vời! Đã hoàn thành các bài tập'}
+            </h2>
           </div>
 
-          {totalSessions === 0 ? (
-            <div className="px-5 py-10 text-center">
-              <Clock className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-              <p className="text-gray-400 text-sm">Chưa có dữ liệu điểm danh</p>
-            </div>
-          ) : (
-            <div className="p-5">
-              {/* Donut chart + stats */}
-              <div className="flex items-center gap-5">
-                <div className="relative w-24 h-24 shrink-0">
-                  <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#f1f5f9" strokeWidth="13" />
-                    <circle cx="50" cy="50" r="40" fill="none"
-                      stroke={rateColor} strokeWidth="13"
-                      strokeDasharray={`${strokeDash} ${circumference}`}
-                      strokeLinecap="round"
-                      style={{ transition: 'stroke-dasharray 0.6s ease' }}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-black text-gray-800 leading-none">{attendanceRate}%</span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-2 flex-1">
-                  {[
-                    { label: 'Có mặt', value: presentCount, bg: 'bg-green-50', text: 'text-green-600' },
-                    { label: 'Trễ',    value: lateCount,    bg: 'bg-amber-50', text: 'text-amber-600' },
-                    { label: 'Vắng',   value: absentCount,  bg: 'bg-red-50',   text: 'text-red-600'  },
-                  ].map(item => (
-                    <div key={item.label} className={`text-center p-2 ${item.bg} rounded-xl`}>
-                      <div className={`text-2xl font-black ${item.text}`}>{item.value}</div>
-                      <div className={`text-[10px] font-bold mt-0.5 ${item.text}`}>{item.label}</div>
-                    </div>
-                  ))}
-                </div>
+          <div className="p-5 space-y-4">
+            {pendingExams.length === 0 ? (
+              <div className="text-center py-6">
+                <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
+                <p className="text-green-600 text-sm font-bold">Con đã hoàn thành đầy đủ tất cả bài tập về nhà!</p>
               </div>
-
-              {/* Theo lớp */}
-              {Object.keys(byClass).length > 1 && (
-                <div className="mt-5 space-y-2.5 border-t border-gray-50 pt-4">
-                  {Object.entries(byClass).map(([cls, records]) => {
-                    const p = records.filter(r => r.present || r.late).length
-                    const t = records.length
-                    const r = Math.round((p / t) * 100)
-                    return (
-                      <div key={cls} className="flex items-center gap-3">
-                        <span className="text-xs text-gray-600 w-28 truncate font-semibold">{cls}</span>
-                        <div className="flex-1 bg-gray-100 rounded-full h-2">
-                          <div className="h-2 rounded-full bg-teal-500 transition-all" style={{ width: `${r}%` }} />
-                        </div>
-                        <span className="text-xs font-bold text-gray-600 w-10 text-right shrink-0">{p}/{t}</span>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                {pendingExams.map((room) => (
+                  <div key={room.id} className="flex items-center justify-between bg-rose-50/40 border border-rose-100/50 rounded-xl p-3 shadow-sm">
+                    <div className="flex-1 min-w-0 pr-2">
+                      <div className="font-bold text-xs text-gray-700 truncate" title={room.exams?.title}>
+                        {room.exams?.title || 'Bài thi không tên'}
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-
-              {/* ✅ Timeline theo tháng */}
-              <div className="mt-5 border-t border-gray-50 pt-4 space-y-4">
-                {Object.entries(byMonth).map(([month, records]) => (
-                  <div key={month}>
-                    <p className="text-xs font-bold text-gray-400 mb-2">Tháng {month}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {records.map((a, i) => (
-                        <div key={i} title={`${a.date} – ${a.late ? 'Trễ' : a.present ? 'Có mặt' : 'Vắng'}`}
-                          className={`w-7 h-7 rounded-lg text-[9px] font-bold flex items-center justify-center
-                            ${a.late    ? 'bg-amber-100 text-amber-600'
-                            : a.present ? 'bg-green-100 text-green-600'
-                            :             'bg-red-100 text-red-500'}`}>
-                          {format(new Date(a.date), 'd')}
-                        </div>
-                      ))}
+                      <div className="text-[10px] text-gray-400 font-mono mt-0.5">Mã phòng: {room.code}</div>
                     </div>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black text-red-600 bg-red-50 border border-red-200 uppercase tracking-wide shrink-0">
+                      Chưa nộp
+                    </span>
                   </div>
                 ))}
               </div>
+            )}
+
+            {/* Lời nhắn gửi phụ huynh */}
+            <div className="bg-gradient-to-br from-violet-50 via-purple-50/50 to-white border border-purple-100 rounded-xl p-4 space-y-2">
+              <div className="flex items-center gap-1.5 text-purple-700 font-extrabold text-xs">
+                <span>💡 Lời nhắn gửi từ Thầy Lĩnh:</span>
+              </div>
+              <p className="text-xs text-purple-950 leading-relaxed font-medium">
+                Kính gửi phụ huynh, sự đồng hành của gia đình là động lực lớn nhất của con. Trung tâm rất mong phụ huynh dành thêm thời gian kèm cặp, đôn đốc con học hành nhiều hơn, chăm chỉ tự giác làm bài tập đầy đủ để đạt kết quả học tập tốt nhất!
+              </p>
             </div>
-          )}
+          </div>
         </div>
 
         {/* ✅ FIX 2: Kết quả bài thi có chi tiết mở rộng */}
