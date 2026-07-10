@@ -135,6 +135,61 @@ export default function Classes() {
 
   const teachers = profiles.filter(p => p.role === 'TEACHER' || p.role === 'ADMIN')
 
+  const [statsLoading, setStatsLoading] = useState(false)
+  const [completedStats, setCompletedStats] = useState<Record<string, number>>({})
+
+  const fetchClassStats = async () => {
+    if (!currentClass?.id) {
+      setCompletedStats({})
+      return
+    }
+    setStatsLoading(true)
+    try {
+      const { data: rooms, error: roomsErr } = await supabase
+        .from('exam_rooms')
+        .select('id')
+        .eq('class_id', currentClass.id)
+        .eq('status', 'active')
+
+      if (roomsErr) throw roomsErr
+
+      const roomIds = rooms?.map(r => r.id) || []
+      if (roomIds.length === 0) {
+        setCompletedStats({})
+        return
+      }
+
+      const { data: subs, error: subsErr } = await supabase
+        .from('exam_submissions')
+        .select('student_id, room_id')
+        .in('room_id', roomIds)
+        .eq('status', 'submitted')
+
+      if (subsErr) throw subsErr
+
+      const stats: Record<string, number> = {}
+      const studentIds = rosterStudents.map(s => s.id)
+
+      studentIds.forEach(studentId => {
+        const studentSubs = subs?.filter(sub => sub.student_id === studentId) || []
+        const submittedRooms = new Set(studentSubs.map(sub => sub.room_id))
+        const completedCount = submittedRooms.size
+        const pct = Math.round((completedCount / roomIds.length) * 100)
+        stats[studentId] = pct
+      })
+
+      setCompletedStats(stats)
+    } catch (err) {
+      console.error('Lỗi tính toán phần trăm bài tập:', err)
+    } finally {
+      setStatsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void fetchClassStats()
+  }, [currentClass?.id, rosterStudents.length])
+
   return (
     <div className="space-y-6">
       {/* Header Bar */}
@@ -349,15 +404,26 @@ export default function Classes() {
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                       {filteredRoster.map(s => {
+                        const pct = completedStats[s.id]
+                        const bgStyle = pct !== undefined
+                          ? { background: `linear-gradient(to right, #dcfce7 ${pct}%, #fee2e2 ${pct}%)` }
+                          : { backgroundColor: '#ffffff' }
+
                         return (
                           <div
                             key={s.id}
                             onClick={() => setScorecardStudent(s)}
-                            className="relative group border border-gray-200 hover:border-teal-300 rounded-xl bg-white hover:bg-teal-50/5 hover:shadow-sm transition-all duration-200 cursor-pointer flex items-center justify-center py-4 px-3 min-h-[56px] text-center"
+                            style={bgStyle}
+                            className="relative group border border-gray-200 hover:border-teal-300 rounded-xl hover:shadow-sm transition-all duration-200 cursor-pointer flex flex-col items-center justify-center py-4 px-3 min-h-[56px] text-center"
                           >
                             <span className="font-extrabold text-xs text-gray-800 tracking-wide uppercase line-clamp-2">
                               {s.full_name}
                             </span>
+                            {pct !== undefined && (
+                              <span className="absolute bottom-1 left-2 text-[9px] font-black font-mono text-gray-650 bg-white/70 px-1 py-0.2 rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                                {pct}%
+                              </span>
+                            )}
                             
                             {/* Bỏ ghi danh học sinh (hiển thị khi di chuột qua) */}
                             <button
@@ -590,7 +656,10 @@ export default function Classes() {
       <StudentScorecardModal
         student={scorecardStudent}
         open={!!scorecardStudent}
-        onClose={() => setScorecardStudent(null)}
+        onClose={() => {
+          setScorecardStudent(null)
+          void fetchClassStats()
+        }}
       />
     </div>
   )
