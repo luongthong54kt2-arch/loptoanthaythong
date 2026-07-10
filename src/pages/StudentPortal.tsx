@@ -522,15 +522,19 @@ export default function StudentPortal() {
             </div>
             <button
               onClick={() => setIsChangePasswordOpen(true)}
-              className="text-sm font-bold text-teal-600 hover:text-teal-800 flex items-center gap-1 transition-colors"
+              className="w-10 sm:w-auto h-10 px-0 sm:px-4 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-xl border border-teal-200 flex items-center justify-center gap-1.5 transition-all flex-shrink-0 shadow-sm"
+              title="Đổi mật khẩu"
             >
-              <Lock className="w-4 h-4" /> <span className="hidden sm:inline">Đổi mật khẩu</span>
+              <Lock className="w-5 h-5 text-teal-600" />
+              <span className="hidden sm:inline text-sm font-bold">Đổi mật khẩu</span>
             </button>
             <button
               onClick={handleLogout}
-              className="text-sm font-bold text-gray-500 hover:text-red-600 flex items-center gap-1 transition-colors"
+              className="w-10 sm:w-auto h-10 px-0 sm:px-4 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl border border-rose-200 flex items-center justify-center gap-1.5 transition-all flex-shrink-0 shadow-sm"
+              title="Đăng xuất"
             >
-              <LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Đăng xuất</span>
+              <LogOut className="w-5 h-5 text-rose-600" />
+              <span className="hidden sm:inline text-sm font-bold">Đăng xuất</span>
             </button>
           </div>
         </div>
