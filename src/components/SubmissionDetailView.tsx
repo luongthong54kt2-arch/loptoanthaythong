@@ -4,11 +4,14 @@ import { createPortal } from 'react-dom';
 import { Submission, Exam, Question, QuestionOption, Room } from '../types';
 import { formatScore, getGrade } from '../services/scoringService';
 import MathText from './MathText';
+import { supabase } from '@/lib/supabase';
+import toast from 'react-hot-toast';
 
 interface SubmissionDetailViewProps {
-  submission: Submission;
-  exam: Exam;
+  submission?: Submission;
+  exam?: Exam;
   room?: Room;
+  submissionId?: string;
   onClose: () => void;
 }
 
@@ -52,13 +55,101 @@ function parseEssayAnswer(raw: any) {
 }
 
 const SubmissionDetailView: React.FC<SubmissionDetailViewProps> = ({
-  submission,
-  exam,
-  room,
+  submission: propSubmission,
+  exam: propExam,
+  room: propRoom,
+  submissionId,
   onClose
 }) => {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [localSubmission, setLocalSubmission] = useState<any>(null);
+  const [localExam, setLocalExam] = useState<any>(null);
+  const [localRoom, setLocalRoom] = useState<any>(null);
+  const [loading, setLoading] = useState(!!submissionId && !propSubmission);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (submissionId && !propSubmission) {
+      const fetchSubmission = async () => {
+        setLoading(true);
+        try {
+          const { data, error } = await supabase
+            .from('exam_submissions')
+            .select('*, students(id, full_name, student_code), exam_rooms(*, exams(*))')
+            .eq('id', submissionId)
+            .single();
+          if (error) throw error;
+          if (data) {
+            const sb = data.score_breakdown || {};
+            const mcCorrect = sb.multipleChoice?.correct || 0;
+            const tfCorrect = sb.trueFalse?.correct || 0;
+            const saCorrect = sb.shortAnswer?.correct || 0;
+            const computedCorrectCount = mcCorrect + tfCorrect + saCorrect;
+
+            const examData = data.exam_rooms?.exams;
+            const examQuestions = examData?.data?.questions || [];
+            const totalQCount = examQuestions.length ||
+              ((sb.multipleChoice?.total || 0) + (sb.trueFalse?.total || 0) + (sb.shortAnswer?.total || 0));
+
+            const totalTabSwitches = (data.tab_switches || 0) + (sb.history || []).reduce((sum: number, att: any) => sum + (att.tab_switches || 0), 0);
+
+            const formattedSub = {
+              ...data,
+              student: {
+                name: data.students?.full_name,
+                className: '',
+                studentCode: data.students?.student_code
+              },
+              roomCode: data.exam_rooms?.code,
+              totalScore: data.score || sb.totalScore || 0,
+              percentage: sb.percentage || 0,
+              correctCount: data.correct_count ?? computedCorrectCount,
+              totalQuestions: totalQCount,
+              duration: data.duration || 0,
+              tabSwitchCount: totalTabSwitches,
+              scoreBreakdown: sb,
+              answers: data.answers
+            };
+
+            setLocalSubmission(formattedSub);
+            
+            const studentExam = sb.shuffled_exam || data.score_breakdown?.shuffled_exam || examData?.data;
+            setLocalExam({ ...studentExam, title: examData?.title });
+            setLocalRoom(data.exam_rooms);
+          }
+        } catch (err) {
+          console.error(err);
+          toast.error('Không thể tải chi tiết bài làm');
+        } finally {
+          setLoading(false);
+        }
+      };
+      void fetchSubmission();
+    }
+  }, [submissionId, propSubmission]);
+
+  const submission = propSubmission || localSubmission;
+  const exam = propExam || localExam;
+  const room = propRoom || localRoom;
+
+  if (loading || !submission || !exam) {
+    const modalContentLoading = (
+      <div
+        className="fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <div className="bg-white rounded-2xl p-6 flex flex-col items-center gap-3" onClick={e => e.stopPropagation()}>
+          <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-sm font-semibold text-gray-600">Đang tải chi tiết bài làm...</span>
+        </div>
+      </div>
+    );
+    if (!mounted) return null;
+    return createPortal(modalContentLoading, document.body);
+  }
 
   // ✅ FIX: dùng scoreBreakdown (camelCase) với fallback sang score_breakdown (snake_case từ Supabase)
   const sbRaw = submission.scoreBreakdown || (submission as any).score_breakdown || {};
