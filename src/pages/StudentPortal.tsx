@@ -36,6 +36,16 @@ export default function StudentPortal() {
   const [examsList, setExamsList] = useState<any[]>([])
   const [submissionsList, setSubmissionsList] = useState<any[]>([])
 
+  // Đổi mật khẩu
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
+  const [oldPassword, setOldPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showOldPass, setShowOldPass] = useState(false)
+  const [showNewPass, setShowNewPass] = useState(false)
+  const [showConfirmPass, setShowConfirmPass] = useState(false)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+
   useEffect(() => {
     const sessionStr = localStorage.getItem('current_student')
     if (sessionStr) {
@@ -167,6 +177,67 @@ export default function StudentPortal() {
     setPasswordInput('')
     setExamsList([])
     setSubmissionsList([])
+  }
+
+  const resetChangePasswordForm = () => {
+    setOldPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setShowOldPass(false)
+    setShowNewPass(false)
+    setShowConfirmPass(false)
+  }
+
+  const handleChangePassword = async () => {
+    if (!oldPassword.trim()) {
+      toast.error('Vui lòng nhập mật khẩu hiện tại!')
+      return
+    }
+    if (!newPassword.trim()) {
+      toast.error('Vui lòng nhập mật khẩu mới!')
+      return
+    }
+    if (newPassword.trim() === oldPassword.trim()) {
+      toast.error('Mật khẩu mới không được trùng với mật khẩu cũ!')
+      return
+    }
+    if (newPassword.trim().length < 4) {
+      toast.error('Mật khẩu mới phải từ 4 ký tự trở lên!')
+      return
+    }
+    if (newPassword.trim() !== confirmPassword.trim()) {
+      toast.error('Xác nhận mật khẩu mới không khớp!')
+      return
+    }
+
+    if (student.password !== oldPassword.trim()) {
+      toast.error('Mật khẩu hiện tại không chính xác!')
+      return
+    }
+
+    setIsChangingPassword(true)
+    try {
+      const { error } = await supabase
+        .from('students')
+        .update({ password: newPassword.trim() })
+        .eq('id', student.id)
+
+      if (error) throw error
+
+      // Cập nhật state cục bộ và localStorage
+      const updatedStudent = { ...student, password: newPassword.trim() }
+      setStudent(updatedStudent)
+      localStorage.setItem('current_student', JSON.stringify(updatedStudent))
+
+      toast.success('Đổi mật khẩu thành công! 🔑')
+      setIsChangePasswordOpen(false)
+      resetChangePasswordForm()
+    } catch (err: any) {
+      console.error(err)
+      toast.error(err.message || 'Lỗi khi đổi mật khẩu.')
+    } finally {
+      setIsChangingPassword(false)
+    }
   }
 
   const handleRetakeExam = async (room: any, sub: any) => {
@@ -449,6 +520,12 @@ export default function StudentPortal() {
               <span className="text-sm font-bold text-teal-800">{student.full_name}</span>
               <span className="bg-teal-200 text-teal-800 text-[10px] font-bold px-1.5 py-0.5 rounded-md ml-1 font-mono">{student.student_code}</span>
             </div>
+            <button
+              onClick={() => setIsChangePasswordOpen(true)}
+              className="text-sm font-bold text-teal-600 hover:text-teal-800 flex items-center gap-1 transition-colors"
+            >
+              <Lock className="w-4 h-4" /> <span className="hidden sm:inline">Đổi mật khẩu</span>
+            </button>
             <button
               onClick={handleLogout}
               className="text-sm font-bold text-gray-500 hover:text-red-600 flex items-center gap-1 transition-colors"
@@ -769,6 +846,121 @@ export default function StudentPortal() {
           )}
         </section>
       </main>
+
+      {/* MODAL ĐỔI MẬT KHẨU */}
+      {isChangePasswordOpen && (
+        <div className="fixed inset-0 bg-slate-900/55 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-teal-150 shadow-2xl space-y-4 animate-scale-up">
+            <div className="flex justify-between items-center border-b border-teal-100 pb-3">
+              <h3 className="text-lg font-black text-teal-800 flex items-center gap-2">
+                <Lock className="w-5 h-5 text-teal-650" /> Đổi mật khẩu học sinh
+              </h3>
+              <button
+                onClick={() => {
+                  setIsChangePasswordOpen(false)
+                  resetChangePasswordForm()
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Mật khẩu hiện tại */}
+              <div>
+                <label className="block text-xs font-bold text-teal-700 mb-1 uppercase tracking-wide">Mật khẩu hiện tại *</label>
+                <div className="relative">
+                  <input
+                    type={showOldPass ? 'text' : 'password'}
+                    value={oldPassword}
+                    onChange={e => setOldPassword(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border-2 border-teal-100 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all font-bold text-sm bg-white"
+                    placeholder="Nhập mật khẩu hiện tại"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOldPass(p => !p)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-teal-400 hover:text-teal-600 transition-colors"
+                  >
+                    {showOldPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Mật khẩu mới */}
+              <div>
+                <label className="block text-xs font-bold text-teal-700 mb-1 uppercase tracking-wide">Mật khẩu mới *</label>
+                <div className="relative">
+                  <input
+                    type={showNewPass ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border-2 border-teal-100 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all font-bold text-sm bg-white"
+                    placeholder="Nhập mật khẩu mới (tối thiểu 4 ký tự)"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPass(p => !p)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-teal-400 hover:text-teal-600 transition-colors"
+                  >
+                    {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Xác nhận mật khẩu mới */}
+              <div>
+                <label className="block text-xs font-bold text-teal-700 mb-1 uppercase tracking-wide">Xác nhận mật khẩu mới *</label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPass ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border-2 border-teal-100 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all font-bold text-sm bg-white"
+                    placeholder="Nhập lại mật khẩu mới"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPass(p => !p)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-teal-400 hover:text-teal-600 transition-colors"
+                  >
+                    {showConfirmPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsChangePasswordOpen(false)
+                  resetChangePasswordForm()
+                }}
+                className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 hover:bg-slate-50 rounded-xl transition-all"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={() => { void handleChangePassword() }}
+                disabled={isChangingPassword}
+                className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-black rounded-xl transition-all shadow-md shadow-teal-500/10 flex items-center gap-1.5"
+              >
+                {isChangingPassword ? (
+                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                ) : (
+                  'Cập nhật'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
