@@ -1294,6 +1294,14 @@ export default function NhanVoPage() {
         }
 
         @media print {
+          /* Force body background to white to prevent color bleed */
+          html, body {
+            background: white !important;
+            background-color: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
           /* Hide the main React root to prevent dashboard layout/background leakage */
           #root {
             display: none !important;
@@ -1304,7 +1312,7 @@ export default function NhanVoPage() {
             display: block !important;
             position: absolute !important;
             left: 50% !important;
-            top: 1.3cm !important;
+            top: 1.0cm !important;
             transform: translateX(-50%) !important;
             width: 28.0cm !important;
             padding: 0 !important;
@@ -1341,7 +1349,7 @@ export default function NhanVoPage() {
 
           @page {
             size: A4 landscape;
-            margin: 1.3cm 0.85cm !important;
+            margin: 0 !important;
           }
         }
       `}} />
@@ -1775,9 +1783,9 @@ export default function NhanVoPage() {
             <li>Khi chọn in, trong hộp thoại cài đặt in của trình duyệt (Chrome/Edge):</li>
             <ul className="list-circle pl-4 space-y-0.5 mt-1 font-semibold text-[11px]">
               <li>Khổ giấy: chọn **A4**.</li>
-              <li>Hướng giấy: chọn **Dọc (Portrait)**.</li>
+              <li>Hướng giấy: chọn **Nằm ngang (Landscape)**.</li>
               <li>Tỉ lệ (Scale): chọn **Mặc định (Default)** hoặc **100%**.</li>
-              <li>Tùy chọn khác: bật **Đồ họa nền (Background graphics)** để hiện đầy đủ màu sắc nhãn vở.</li>
+              <li>Tùy chọn khác: bật **Đồ họa nền (Background graphics)** và tắt **Đầu trang và chân trang (Headers and footers)**.</li>
               <li>Lề (Margins): chọn **Không có (None)** hoặc **Mặc định (Default)**.</li>
             </ul>
             <li>Sử dụng giấy đề-can bóc dán sẵn khổ A4 để in, sau đó bóc ra và dán trực tiếp lên bìa sách/vở học sinh.</li>
