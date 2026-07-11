@@ -391,8 +391,8 @@ export default function NhanVoPage() {
         })
       );
 
-      // Distribute labels onto PDF pages (3 columns x 4 rows = 12 labels per A4 page)
-      const labelsPerPage = 12;
+      // Distribute labels onto PDF pages (4 columns x 4 rows = 16 labels per A4 page)
+      const labelsPerPage = 16;
       const totalPages = Math.ceil(labels.length / labelsPerPage);
 
       for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
@@ -405,16 +405,16 @@ export default function NhanVoPage() {
         const pageLabels = labelImages.slice(startIndex, endIndex);
 
         pageLabels.forEach((imgData, i) => {
-          const row = Math.floor(i / 3);
-          const col = i % 3;
+          const row = Math.floor(i / 4);
+          const col = i % 4;
 
           // Positions matching absolute A4 landscape print coordinates exactly:
-          // x-coordinate: margin 36mm + col * 75mm (Total 225mm)
-          // y-coordinate: margin 7mm + row * 49mm (Total 196mm)
-          const x = 36.0 + col * 75;
-          const y = 7.0 + row * 49;
+          // x-coordinate: margin 8.5mm + col * 70mm (Total 280mm)
+          // y-coordinate: margin 13mm + row * 46mm (Total 184mm)
+          const x = 8.5 + col * 70;
+          const y = 13.0 + row * 46;
 
-          doc.addImage(imgData, 'PNG', x, y, 75, 49);
+          doc.addImage(imgData, 'PNG', x, y, 70, 46);
         });
       }
 
@@ -1299,14 +1299,14 @@ export default function NhanVoPage() {
             display: none !important;
           }
           
-          /* Display the body print portal cleanly on A4 landscape page (3 cols x 4 rows = 12 labels) */
+          /* Display the body print portal cleanly on A4 landscape page (4 cols x 4 rows = 16 labels) */
           #print-area-portal {
             display: block !important;
             position: absolute !important;
             left: 50% !important;
-            top: 0.7cm !important;
+            top: 1.3cm !important;
             transform: translateX(-50%) !important;
-            width: 22.5cm !important;
+            width: 28.0cm !important;
             padding: 0 !important;
             margin: 0 !important;
             background: white !important;
@@ -1320,15 +1320,15 @@ export default function NhanVoPage() {
 
           .print-grid {
             display: grid !important;
-            grid-template-columns: repeat(3, 1fr) !important;
+            grid-template-columns: repeat(4, 1fr) !important;
             gap: 0 !important;
             width: 100% !important;
             background: white !important;
           }
 
           .print-card {
-            width: 7.5cm !important;
-            height: 4.9cm !important;
+            width: 7.0cm !important;
+            height: 4.6cm !important;
             border: 1px dashed #ccc !important;
             box-shadow: none !important;
             page-break-inside: avoid !important;
@@ -1341,7 +1341,7 @@ export default function NhanVoPage() {
 
           @page {
             size: A4 landscape;
-            margin: 0.7cm 3.6cm !important;
+            margin: 1.3cm 0.85cm !important;
           }
         }
       `}} />
@@ -1708,12 +1708,12 @@ export default function NhanVoPage() {
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2 mb-6">
               <div>
-                <h3 className="font-bold text-slate-800 text-lg">Khung xem trước trang in (Khổ A4 nằm ngang - 12 Nhãn)</h3>
-                <p className="text-xs text-slate-500">Mỗi trang A4 sẽ in tối đa **12 nhãn** (3 cột x 4 hàng). Nhấp và sửa chữ trực tiếp ngay trên bìa nhãn vở dưới đây.</p>
+                <h3 className="font-bold text-slate-800 text-lg">Khung xem trước trang in (Khổ A4 nằm ngang - 16 Nhãn)</h3>
+                <p className="text-xs text-slate-500">Mỗi trang A4 sẽ in tối đa **16 nhãn** (4 cột x 4 hàng). Nhấp và sửa chữ trực tiếp ngay trên bìa nhãn vở dưới đây.</p>
               </div>
               {labels.length > 0 && (
                 <span className="text-xs bg-teal-50 text-teal-700 font-bold px-3 py-1.5 rounded-lg border border-teal-100">
-                  Tổng cộng: {labels.length} nhãn ({Math.ceil(labels.length / 12)} trang A4)
+                  Tổng cộng: {labels.length} nhãn ({Math.ceil(labels.length / 16)} trang A4)
                 </span>
               )}
             </div>
@@ -1727,7 +1727,7 @@ export default function NhanVoPage() {
             ) : (
               /* Screen Grid for preview and interactively editing on screen */
               <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200 overflow-x-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-w-[950px] mx-auto bg-white p-6 rounded-xl shadow-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 max-w-[950px] mx-auto bg-white p-6 rounded-xl shadow-sm">
                   {labels.map((label, idx) => (
                     <div
                       key={label.id}
