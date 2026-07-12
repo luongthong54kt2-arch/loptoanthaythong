@@ -516,12 +516,12 @@ export default function Students() {
   const [saving, setSaving]             = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  const [activeGrade, setActiveGrade] = useState<number | 'others'>(() => {
+  const [activeGrade, setActiveGrade] = useState<number | 'others' | 'all'>(() => {
     const saved = sessionStorage.getItem('students_active_grade')
     if (saved) {
-      return saved === 'others' ? 'others' : Number(saved)
+      return saved === 'all' ? 'all' : saved === 'others' ? 'others' : Number(saved)
     }
-    return 9
+    return 'all'
   })
 
   // Lưu activeGrade vào sessionStorage khi thay đổi
@@ -691,10 +691,10 @@ export default function Students() {
       
       const saved = sessionStorage.getItem('students_active_grade')
       if (saved) {
-        const savedVal = saved === 'others' ? 'others' : Number(saved)
-        const isValid = savedVal === 'others'
-          ? hasOtherStudents
-          : gradesWithStudents.includes(savedVal)
+        const savedVal = saved === 'all' ? 'all' : saved === 'others' ? 'others' : Number(saved)
+        const isValid = savedVal === 'all'
+          || (savedVal === 'others' && hasOtherStudents)
+          || (typeof savedVal === 'number' && gradesWithStudents.includes(savedVal))
         if (isValid) {
           setActiveGrade(savedVal)
           setHasInitGrade(true)
@@ -702,17 +702,16 @@ export default function Students() {
         }
       }
 
-      if (gradesWithStudents.length > 0) {
-        setActiveGrade(gradesWithStudents[0] as any)
-      } else if (hasOtherStudents) {
-        setActiveGrade('others')
-      }
+      setActiveGrade('all')
       setHasInitGrade(true)
     }
   }, [myStudents, hasInitGrade, hasOtherStudents])
 
   const activeGradeStudents = myStudents.filter(s => {
     const g = getStudentGrade(s)
+    if (activeGrade === 'all') {
+      return true
+    }
     if (activeGrade === 'others') {
       return g === null || !displayGrades.includes(g)
     }
@@ -721,6 +720,9 @@ export default function Students() {
 
   const classesInActiveGrade = classes.filter(c => {
     const grade = getClassGrade(c)
+    if (activeGrade === 'all') {
+      return c.status === 'active'
+    }
     const belongsToGrade = activeGrade === 'others'
       ? (grade === null || !displayGrades.includes(grade))
       : grade === activeGrade
@@ -806,6 +808,28 @@ export default function Students() {
       <div className="flex flex-col lg:flex-row gap-6">
         {/* LEFT SIDEBAR: GRADE BUTTONS (25% area) */}
         <div className="w-full lg:w-1/4 flex flex-row lg:flex-col gap-2.5 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 shrink-0">
+          {/* TOÀN TRƯỜNG BUTTON */}
+          <button
+            onClick={() => setActiveGrade('all')}
+            className={`flex items-center justify-between px-5 py-4 rounded-2xl border-2 text-left transition-all duration-200 shrink-0 lg:w-full ${
+              activeGrade === 'all'
+                ? 'bg-teal-600 border-teal-600 text-white shadow-md shadow-teal-500/20 lg:translate-x-1'
+                : 'bg-white border-gray-100 text-gray-750 hover:border-teal-200 hover:bg-teal-50/20'
+            }`}
+          >
+            <span className="font-bold text-sm lg:text-base flex items-center gap-2">
+              <span className={`w-2.5 h-2.5 rounded-full ${activeGrade === 'all' ? 'bg-white' : 'bg-teal-500'}`}></span>
+              Toàn trường
+            </span>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-lg border ${
+              activeGrade === 'all'
+                ? 'bg-teal-700/50 border-teal-500 text-white'
+                : 'bg-gray-50 border-gray-200 text-gray-500'
+            }`}>
+              {myStudents.length} HS
+            </span>
+          </button>
+
           {[6, 7, 8, 9, ...(hasOtherStudents ? ['others'] : [])].map((col) => {
             const isOther = col === 'others'
             const gradeStudents = myStudents.filter(s => isOther ? (getStudentGrade(s) === null || !displayGrades.includes(getStudentGrade(s)!)) : getStudentGrade(s) === col)
@@ -844,7 +868,13 @@ export default function Students() {
             <div className="flex flex-col justify-center items-center py-24 text-gray-400 bg-white rounded-3xl border border-slate-200/60 p-6 min-h-[400px]">
               <Users className="w-12 h-12 opacity-25 mb-3 text-teal-600" />
               <p className="text-base font-bold text-gray-700">Chưa có học sinh nào</p>
-              <p className="text-sm italic text-gray-400 mt-1">Khối {activeGrade === 'others' ? 'Khác' : activeGrade} hiện tại chưa có học sinh nào.</p>
+              <p className="text-sm italic text-gray-400 mt-1">
+                {activeGrade === 'all' 
+                  ? 'Hệ thống hiện tại chưa có học sinh nào.' 
+                  : activeGrade === 'others' 
+                    ? 'Khối Khác hiện tại chưa có học sinh nào.' 
+                    : `Khối ${activeGrade} hiện tại chưa có học sinh nào.`}
+              </p>
             </div>
           ) : (
             <>
