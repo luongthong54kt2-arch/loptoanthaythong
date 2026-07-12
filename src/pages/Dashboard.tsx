@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Users, BookOpen, CalendarCheck, Banknote, ChevronLeft, ChevronRight, Clock, MapPin } from 'lucide-react'
+import { Users, BookOpen, CalendarCheck, Banknote, ChevronLeft, ChevronRight, Clock, MapPin, Search } from 'lucide-react'
 import { useDataStore } from '@/store/dataStore'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { fmtVNDShort, fmt, parseScheduleToDays } from '@/lib/helpers'
 import type { LucideIcon } from 'lucide-react'
+import Modal from '@/components/Modal'
+import StudentScorecardModal from '@/components/StudentScorecardModal'
 
 type Color = 'teal' | 'green' | 'amber' | 'red'
 
@@ -57,10 +59,16 @@ function parseTimeToMinutes(timeStr: string | null | undefined): number {
 
 export default function Dashboard() {
   const { profile, isAdmin } = useAuthStore()
-  const { classes, students, payments, loadClasses, loadStudents, loadPayments } = useDataStore()
+  const { classes, students, enrollments, payments, loadClasses, loadStudents, loadEnrollments, loadPayments } = useDataStore()
 
   const [loaded, setLoaded]       = useState(false)
   const [todayAtt, setTodayAtt]   = useState(0)
+
+  const [detailClass, setDetailClass] = useState<any>(null)
+  const [modalSearch, setModalSearch] = useState('')
+  const [scorecardStudent, setScorecardStudent] = useState<any>(null)
+  const [statsLoading, setStatsLoading] = useState(false)
+  const [completedStats, setCompletedStats] = useState<Record<string, number>>({})
 
   const [viewDate, setViewDate] = useState(new Date())
 
@@ -143,6 +151,7 @@ export default function Dashboard() {
         loadClasses(),
         loadStudents(),
         loadPayments(),
+        loadEnrollments(),
         // ✅ FIX 3: Fetch điểm danh hôm nay trực tiếp, không qua store
         supabase
           .from('attendance')
@@ -156,6 +165,78 @@ export default function Dashboard() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { void loadDashboard() }, [loadDashboard])
+
+  const fetchClassStats = async (classId: string, roster: any[]) => {
+    if (!classId) {
+      setCompletedStats({})
+      return
+    }
+    setStatsLoading(true)
+    try {
+      const { data: rooms, error: roomsErr } = await supabase
+        .from('exam_rooms')
+        .select('id')
+        .eq('class_id', classId)
+        .eq('status', 'active')
+
+      if (roomsErr) throw roomsErr
+
+      const roomIds = rooms?.map(r => r.id) || []
+      if (roomIds.length === 0) {
+        setCompletedStats({})
+        return
+      }
+
+      const { data: subs, error: subsErr } = await supabase
+        .from('exam_submissions')
+        .select('student_id, room_id')
+        .in('room_id', roomIds)
+        .eq('status', 'submitted')
+
+      if (subsErr) throw subsErr
+
+      const stats: Record<string, number> = {}
+      const studentIds = roster.map(s => s.id)
+
+      studentIds.forEach(studentId => {
+        const studentSubs = subs?.filter(sub => sub.student_id === studentId) || []
+        const submittedRooms = new Set(studentSubs.map(sub => sub.room_id))
+        const completedCount = submittedRooms.size
+        const pct = Math.round((completedCount / roomIds.length) * 100)
+        stats[studentId] = pct
+      })
+
+      setCompletedStats(stats)
+    } catch (err) {
+      console.error('Lỗi tính toán phần trăm bài tập:', err)
+    } finally {
+      setStatsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (detailClass) {
+      const roster = enrollments
+        .filter(e => e.class_id === detailClass.id && e.status === 'active')
+        .map(e => students.find(s => s.id === e.student_id))
+        .filter(Boolean)
+      void fetchClassStats(detailClass.id, roster)
+    } else {
+      setCompletedStats({})
+    }
+  }, [detailClass, enrollments, students])
+
+  const rosterStudents: any[] = detailClass
+    ? enrollments
+        .filter(e => e.class_id === detailClass.id && e.status === 'active')
+        .map(e => students.find(s => s.id === e.student_id))
+        .filter(Boolean)
+    : []
+
+  const filteredRoster = rosterStudents.filter(s =>
+    s.full_name?.toLowerCase().includes(modalSearch.toLowerCase()) ||
+    s.student_code?.toLowerCase().includes(modalSearch.toLowerCase())
+  )
 
   const activeClasses  = classes.filter(c => c.status === 'active').length
   const activeStudents = students.filter(s => s.status === 'active').length
@@ -274,7 +355,11 @@ export default function Dashboard() {
                       dayClasses.map(cls => (
                         <div 
                           key={`${cls.id}-${cls.time}`} 
-                          className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-teal-300 transition-all duration-200 flex flex-col gap-1"
+                          onClick={() => {
+                            setDetailClass(cls)
+                            setModalSearch('')
+                          }}
+                          className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-teal-300 transition-all duration-200 flex flex-col gap-1 cursor-pointer"
                         >
                           <div className="font-extrabold text-gray-800 text-[10px] leading-tight line-clamp-2">
                             {(cls as any).class_name || (cls as any).name}
@@ -308,6 +393,79 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Modal: Danh sách học sinh của lớp */}
+      <Modal
+        open={!!detailClass}
+        onClose={() => setDetailClass(null)}
+        title={`Danh sách học sinh · Lớp ${detailClass?.class_name || detailClass?.name}`}
+        size="2xl"
+      >
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Tìm tên hoặc mã học sinh trong lớp..."
+              value={modalSearch}
+              onChange={e => setModalSearch(e.target.value)}
+              className="input pl-9 w-full text-xs py-2 bg-gray-50/30 border-gray-200 focus:bg-white"
+            />
+          </div>
+
+          <div className="space-y-3 mt-4">
+            {statsLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-2">
+                <div className="w-8 h-8 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
+                <span className="text-xs text-gray-500 font-medium">Đang tải tiến độ học sinh...</span>
+              </div>
+            ) : filteredRoster.length === 0 ? (
+              <div className="text-center py-12 text-gray-400 text-sm font-medium">
+                {modalSearch ? 'Không tìm thấy học sinh phù hợp' : 'Chưa có học sinh nào đăng ký lớp này'}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {filteredRoster.map(s => {
+                  const pct = completedStats[s.id]
+                  const bgStyle = pct !== undefined
+                    ? { background: `linear-gradient(to right, #dcfce7 ${pct}%, #fee2e2 ${pct}%)` }
+                    : { backgroundColor: '#ffffff' }
+
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => setScorecardStudent(s)}
+                      style={bgStyle}
+                      className="relative border border-gray-200 hover:border-teal-300 rounded-xl hover:shadow-sm transition-all duration-200 cursor-pointer flex flex-col items-center justify-center py-4 px-3 min-h-[56px] text-center"
+                    >
+                      <span className="font-extrabold text-xs text-gray-800 tracking-wide uppercase line-clamp-2">
+                        {s.full_name}
+                      </span>
+                      {pct !== undefined && (
+                        <span className="absolute bottom-1 left-2 text-[9px] font-black font-mono text-gray-650 bg-white/70 px-1 py-0.2 rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                          {pct}%
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal: Xem hồ sơ và bảng điểm rút gọn của học sinh */}
+      <StudentScorecardModal
+        student={scorecardStudent}
+        open={!!scorecardStudent}
+        onClose={() => {
+          setScorecardStudent(null)
+          if (detailClass) {
+            void fetchClassStats(detailClass.id, rosterStudents)
+          }
+        }}
+      />
     </div>
   )
 }
