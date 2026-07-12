@@ -734,15 +734,15 @@ export default function Students() {
     !enrollments.some(e => e.student_id === s.id && e.status === 'active')
   ).length
 
-  const defaultClassId = classesInActiveGrade[0]?.id || 'unassigned'
-  const currentClassId = selectedClassId !== null ? selectedClassId : defaultClassId
-
   const studentsInClass = activeGradeStudents.filter(s => {
-    if (currentClassId === 'unassigned') {
+    if (selectedClassId === null) {
+      return true
+    }
+    if (selectedClassId === 'unassigned') {
       const hasActiveEnrollment = enrollments.some(e => e.student_id === s.id && e.status === 'active')
       return !hasActiveEnrollment
     }
-    return enrollments.some(e => e.student_id === s.id && e.class_id === currentClassId && e.status === 'active')
+    return enrollments.some(e => e.student_id === s.id && e.class_id === selectedClassId && e.status === 'active')
   })
 
   // ── Tab counts ─────────────────────────────────────────────────────────
@@ -881,11 +881,32 @@ export default function Students() {
               {/* CLASS FILTER BUTTONS */}
               {(classesInActiveGrade.length > 0 || unassignedStudentsCount > 0) && (
                 <div className="flex flex-wrap gap-2 pb-4 border-b border-slate-100">
+                  {/* TẤT CẢ LỚP BUTTON */}
+                  <button
+                    onClick={() => setSelectedClassId(null)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border duration-200 flex items-center gap-1.5 ${
+                      selectedClassId === null
+                        ? 'bg-teal-600 border-teal-600 text-white shadow-md shadow-teal-500/10'
+                        : 'bg-white border-slate-200 text-gray-600 hover:border-teal-300 hover:bg-teal-50/20'
+                    }`}
+                  >
+                    Tất cả lớp
+                    <span
+                      className={`px-1.5 py-0.5 rounded-md text-[10px] ${
+                        selectedClassId === null
+                          ? 'bg-teal-700/50 text-teal-50'
+                          : 'bg-slate-100 text-slate-500 border border-slate-200/50'
+                      }`}
+                    >
+                      {activeGradeStudents.length}
+                    </span>
+                  </button>
+
                   {classesInActiveGrade.map((cls) => {
                     const count = activeGradeStudents.filter(s => 
                       enrollments.some(e => e.student_id === s.id && e.class_id === cls.id && e.status === 'active')
                     ).length
-                    const isActive = currentClassId === cls.id
+                    const isActive = selectedClassId === cls.id
                     return (
                       <button
                         key={cls.id}
@@ -914,7 +935,7 @@ export default function Students() {
                     <button
                       onClick={() => setSelectedClassId('unassigned')}
                       className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border duration-200 flex items-center gap-1.5 ${
-                        currentClassId === 'unassigned'
+                        selectedClassId === 'unassigned'
                           ? 'bg-amber-600 border-amber-600 text-white shadow-md shadow-amber-500/10'
                           : 'bg-white border-slate-200 text-amber-600 hover:border-amber-300 hover:bg-amber-50/20'
                       }`}
@@ -922,7 +943,7 @@ export default function Students() {
                       Chưa xếp lớp 👻
                       <span
                         className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-                          currentClassId === 'unassigned'
+                          selectedClassId === 'unassigned'
                             ? 'bg-amber-700/50 text-amber-50'
                             : 'bg-amber-50 text-amber-600 border border-amber-100'
                         }`}
