@@ -16,6 +16,9 @@ interface StatCardProps {
   value: string | number
   sub?: string
   color?: Color
+  hideable?: boolean
+  isHidden?: boolean
+  onToggleHide?: () => void
 }
 
 const colorMap: Record<Color, string> = {
@@ -25,17 +28,30 @@ const colorMap: Record<Color, string> = {
   red:   'from-red-500 to-red-400',
 }
 
-function StatCard({ icon: Icon, label, value, sub, color = 'teal' }: StatCardProps) {
+function StatCard({ icon: Icon, label, value, sub, color = 'teal', hideable, isHidden, onToggleHide }: StatCardProps) {
   return (
-    <div className="card p-6 flex items-center gap-4">
-      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${colorMap[color]} flex items-center justify-center flex-shrink-0`}>
-        <Icon className="w-7 h-7 text-white" />
+    <div className="card p-6 flex items-center justify-between gap-4">
+      <div className="flex items-center gap-4">
+        <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${colorMap[color]} flex items-center justify-center flex-shrink-0`}>
+          <Icon className="w-7 h-7 text-white" />
+        </div>
+        <div>
+          <p className="text-gray-500 text-sm font-semibold">{label}</p>
+          <p className="text-2xl font-extrabold text-gray-800">
+            {hideable && isHidden ? '•••' : value}
+          </p>
+          {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+        </div>
       </div>
-      <div>
-        <p className="text-gray-500 text-sm font-semibold">{label}</p>
-        <p className="text-2xl font-extrabold text-gray-800">{value}</p>
-        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
-      </div>
+      {hideable && onToggleHide && (
+        <button 
+          onClick={onToggleHide}
+          className="p-2 text-gray-400 hover:text-teal-600 hover:bg-gray-100 rounded-lg transition"
+          title={isHidden ? "Hiện số lượng" : "Ẩn số lượng"}
+        >
+          {isHidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+        </button>
+      )}
     </div>
   )
 }
@@ -69,7 +85,7 @@ export default function Dashboard() {
   const [scorecardStudent, setScorecardStudent] = useState<any>(null)
   const [statsLoading, setStatsLoading] = useState(false)
   const [completedStats, setCompletedStats] = useState<Record<string, number>>({})
-  const [showRoster, setShowRoster] = useState(false)
+  const [showStudentCount, setShowStudentCount] = useState(false)
 
   const [viewDate, setViewDate] = useState(new Date())
 
@@ -263,7 +279,16 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard icon={BookOpen}      label="Lớp đang mở"      value={activeClasses}             sub="lớp học đang hoạt động" color="teal"  />
-        <StatCard icon={Users}         label="Học sinh"          value={activeStudents}            sub="đang theo học"          color="green" />
+        <StatCard 
+          icon={Users}         
+          label="Học sinh"          
+          value={activeStudents}            
+          sub="đang theo học"          
+          color="green" 
+          hideable={true}
+          isHidden={!showStudentCount}
+          onToggleHide={() => setShowStudentCount(!showStudentCount)}
+        />
         <StatCard icon={CalendarCheck} label="Điểm danh hôm nay" value={todayAtt}                 sub="bản ghi hôm nay"        color="amber" />
         {isAdmin() && (
           <StatCard icon={Banknote}    label="Tổng thu"          value={fmtVNDShort(totalRevenue)} sub="tổng doanh thu"         color="teal"  />
@@ -359,7 +384,6 @@ export default function Dashboard() {
                           onClick={() => {
                             setDetailClass(cls)
                             setModalSearch('')
-                            setShowRoster(false)
                           }}
                           className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-teal-300 transition-all duration-200 flex flex-col gap-1 cursor-pointer"
                         >
@@ -400,121 +424,60 @@ export default function Dashboard() {
       <Modal
         open={!!detailClass}
         onClose={() => setDetailClass(null)}
-        title={`Chi tiết lớp · ${detailClass?.class_name || detailClass?.name}`}
+        title={`Danh sách học sinh · Lớp ${detailClass?.class_name || detailClass?.name}`}
         size="2xl"
       >
         <div className="space-y-4">
-          {/* Thông tin lớp học */}
-          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-            <div>
-              <span className="text-gray-400 font-semibold block">Môn học</span>
-              <span className="text-gray-800 font-bold">{(detailClass as any)?.subject || 'Toán'}</span>
-            </div>
-            <div>
-              <span className="text-gray-400 font-semibold block">Phòng học</span>
-              <span className="text-gray-800 font-bold">{(detailClass as any)?.room || '—'}</span>
-            </div>
-            <div>
-              <span className="text-gray-400 font-semibold block">Thời gian</span>
-              <span className="text-gray-800 font-bold">{(detailClass as any)?.time || '—'}</span>
-            </div>
-            <div>
-              <span className="text-gray-400 font-semibold block">Lịch học</span>
-              <span className="text-gray-800 font-bold truncate block" title={(detailClass as any)?.schedule || ''}>
-                {(detailClass as any)?.schedule || '—'}
-              </span>
-            </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Tìm tên hoặc mã học sinh trong lớp..."
+              value={modalSearch}
+              onChange={e => setModalSearch(e.target.value)}
+              className="input pl-9 w-full text-xs py-2 bg-gray-50/30 border-gray-200 focus:bg-white"
+            />
           </div>
 
-          {/* Thanh tiêu đề Roster & Nút Bật/Tắt con mắt */}
-          <div className="flex items-center justify-between border-t border-gray-100 pt-4 mt-2">
-            <h4 className="text-xs font-bold text-gray-700">
-              Danh sách học sinh ({rosterStudents.length})
-            </h4>
-            <button
-              onClick={() => setShowRoster(!showRoster)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-700 hover:bg-teal-100 transition duration-150"
-            >
-              {showRoster ? (
-                <>
-                  <EyeOff className="w-3.5 h-3.5" />
-                  Ẩn danh sách
-                </>
-              ) : (
-                <>
-                  <Eye className="w-3.5 h-3.5" />
-                  Xem danh sách
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Phần nội dung Danh sách học sinh */}
-          {!showRoster ? (
-            <div className="flex flex-col items-center justify-center py-10 bg-slate-50/40 border border-dashed border-gray-200 rounded-2xl mt-2">
-              <Eye className="w-8 h-8 text-gray-300 mb-2" />
-              <p className="text-xs text-gray-400 font-medium">Danh sách học sinh đang ẩn để bảo mật</p>
-              <button
-                onClick={() => setShowRoster(true)}
-                className="mt-3 px-4 py-2 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-sm transition"
-              >
-                Nhấn để xem danh sách
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Tìm tên hoặc mã học sinh trong lớp..."
-                  value={modalSearch}
-                  onChange={e => setModalSearch(e.target.value)}
-                  className="input pl-9 w-full text-xs py-2 bg-gray-50/30 border-gray-200 focus:bg-white"
-                />
+          <div className="space-y-3 mt-4">
+            {statsLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-2">
+                <div className="w-8 h-8 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
+                <span className="text-xs text-gray-500 font-medium">Đang tải tiến độ học sinh...</span>
               </div>
+            ) : filteredRoster.length === 0 ? (
+              <div className="text-center py-12 text-gray-400 text-sm font-medium">
+                {modalSearch ? 'Không tìm thấy học sinh phù hợp' : 'Chưa có học sinh nào đăng ký lớp này'}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {filteredRoster.map(s => {
+                  const pct = completedStats[s.id]
+                  const bgStyle = pct !== undefined
+                    ? { background: `linear-gradient(to right, #dcfce7 ${pct}%, #fee2e2 ${pct}%)` }
+                    : { backgroundColor: '#ffffff' }
 
-              <div className="space-y-3 mt-4">
-                {statsLoading ? (
-                  <div className="flex flex-col items-center justify-center py-12 gap-2">
-                    <div className="w-8 h-8 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
-                    <span className="text-xs text-gray-500 font-medium">Đang tải tiến độ học sinh...</span>
-                  </div>
-                ) : filteredRoster.length === 0 ? (
-                  <div className="text-center py-12 text-gray-400 text-sm font-medium">
-                    {modalSearch ? 'Không tìm thấy học sinh phù hợp' : 'Chưa có học sinh nào đăng ký lớp này'}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {filteredRoster.map(s => {
-                      const pct = completedStats[s.id]
-                      const bgStyle = pct !== undefined
-                        ? { background: `linear-gradient(to right, #dcfce7 ${pct}%, #fee2e2 ${pct}%)` }
-                        : { backgroundColor: '#ffffff' }
-
-                      return (
-                        <div
-                          key={s.id}
-                          onClick={() => setScorecardStudent(s)}
-                          style={bgStyle}
-                          className="relative border border-gray-200 hover:border-teal-300 rounded-xl hover:shadow-sm transition-all duration-200 cursor-pointer flex flex-col items-center justify-center py-4 px-3 min-h-[56px] text-center"
-                        >
-                          <span className="font-extrabold text-xs text-gray-800 tracking-wide uppercase line-clamp-2">
-                            {s.full_name}
-                          </span>
-                          {pct !== undefined && (
-                            <span className="absolute bottom-1 left-2 text-[9px] font-black font-mono text-gray-650 bg-white/70 px-1 py-0.2 rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-                              {pct}%
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => setScorecardStudent(s)}
+                      style={bgStyle}
+                      className="relative border border-gray-200 hover:border-teal-300 rounded-xl hover:shadow-sm transition-all duration-200 cursor-pointer flex flex-col items-center justify-center py-4 px-3 min-h-[56px] text-center"
+                    >
+                      <span className="font-extrabold text-xs text-gray-800 tracking-wide uppercase line-clamp-2">
+                        {s.full_name}
+                      </span>
+                      {pct !== undefined && (
+                        <span className="absolute bottom-1 left-2 text-[9px] font-black font-mono text-gray-650 bg-white/70 px-1 py-0.2 rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                          {pct}%
                         </span>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  )
+                })}
               </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </Modal>
 
