@@ -8,6 +8,8 @@ import Modal from '@/components/Modal'
 import type { Student } from '@/types'
 import toast from 'react-hot-toast'
 import * as XLSX from 'xlsx'
+import { toTitleCase } from '@/lib/helpers'
+
 
 // ─── Helper: Detect học sinh ẩn danh (thi tự do không có lớp) ─────────────
 // Học sinh ẩn danh thường được tạo tự động bởi hệ thống thi, không có password
@@ -150,7 +152,7 @@ function fmtDOB(iso: string | null): string {
 function validateRow(row: any, idx: number, existingCodes: Set<string>): ImportRow {
   const errors: string[] = []
   const code = String(row.student_code || '').trim()
-  const name = String(row.full_name || '').trim()
+  const name = toTitleCase(String(row.full_name || '').trim())
   const pwd  = String(row.password || '').trim()
 
   if (!code) errors.push('Thiếu mã học sinh')
@@ -619,7 +621,7 @@ export default function Students() {
     try {
       const payload: any = {
         student_code:  form.student_code,
-        full_name:     form.full_name,
+        full_name:     toTitleCase(form.full_name),
         date_of_birth: form.date_of_birth || null,
         parent_name:   form.parent_name,
         parent_phone:  form.parent_phone,

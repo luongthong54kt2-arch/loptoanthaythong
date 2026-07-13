@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
+import { toTitleCase } from '@/lib/helpers'
 import type {
   Class, Student, Enrollment, AttendanceRecord,
   Payment, EmailLog, Profile, AttendanceStatus,
@@ -98,7 +99,11 @@ export const useDataStore = create<DataState>((set, _get) => ({
   },
 
   addStudent: async (student) => {
-    const { data, error } = await supabase.from('students').insert([student]).select().single()
+    const studentWithFormattedName = {
+      ...student,
+      full_name: toTitleCase(student.full_name)
+    }
+    const { data, error } = await supabase.from('students').insert([studentWithFormattedName]).select().single()
     if (error) throw error
     const row = data as Student
     set(s => ({ students: [row, ...s.students] }))
@@ -106,7 +111,11 @@ export const useDataStore = create<DataState>((set, _get) => ({
   },
 
   updateStudent: async (id, updates) => {
-    const { data, error } = await supabase.from('students').update(updates).eq('id', id).select().single()
+    const formattedUpdates = { ...updates }
+    if (formattedUpdates.full_name !== undefined) {
+      formattedUpdates.full_name = toTitleCase(formattedUpdates.full_name)
+    }
+    const { data, error } = await supabase.from('students').update(formattedUpdates).eq('id', id).select().single()
     if (error) throw error
     const row = data as Student
     set(s => ({ students: s.students.map(st => st.id === id ? row : st) }))

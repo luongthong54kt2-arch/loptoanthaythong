@@ -157,3 +157,17 @@ export function generateStudentCode(index: number): string {
 }
 
 export const WEEKDAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'] as const
+
+/** Convert a string to Title Case (capitalizing only the first letter of each word) */
+export function toTitleCase(str: string | null | undefined): string {
+  if (!str) return ''
+  return str
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map(word => {
+      if (word.length === 0) return ''
+      return word.charAt(0).toUpperCase() + word.slice(1)
+    })
+    .join(' ')
+}
