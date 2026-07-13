@@ -206,7 +206,7 @@ export default function Dashboard() {
 
       const { data: subs, error: subsErr } = await supabase
         .from('exam_submissions')
-        .select('student_id, room_id')
+        .select('student_id, room_id, score')
         .in('room_id', roomIds)
         .eq('status', 'submitted')
 
@@ -216,7 +216,7 @@ export default function Dashboard() {
       const studentIds = roster.map(s => s.id)
 
       studentIds.forEach(studentId => {
-        const studentSubs = subs?.filter(sub => sub.student_id === studentId) || []
+        const studentSubs = subs?.filter(sub => sub.student_id === studentId && sub.score !== 0) || []
         const submittedRooms = new Set(studentSubs.map(sub => sub.room_id))
         const completedCount = submittedRooms.size
         const pct = Math.round((completedCount / roomIds.length) * 100)

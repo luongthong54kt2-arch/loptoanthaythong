@@ -45,7 +45,10 @@ export default function ExamResultsPage() {
         .eq('room_id', roomId)
         .order('submitted_at', { ascending: false })
 
-      setSubmissions(subs || [])
+      const rawSubs = subs || []
+      // Bài có điểm 0 (hoặc 0.0) sẽ được xem như chưa làm
+      const activeSubs = rawSubs.filter((s: any) => s.score !== 0)
+      setSubmissions(activeSubs)
 
       // Lấy danh sách học sinh thuộc lớp của phòng thi để tìm ai chưa nộp
       if (roomData?.class_id) {
@@ -56,9 +59,9 @@ export default function ExamResultsPage() {
           .eq('status', 'active')
 
         if (enrolledStudents) {
-          const submittedStudentIds = new Set((subs || []).map((s: any) => s.student_id))
+          const activeStudentIds = new Set(activeSubs.map((s: any) => s.student_id))
           const notSubmitted = enrolledStudents
-            .filter((e: any) => !submittedStudentIds.has(e.student_id))
+            .filter((e: any) => !activeStudentIds.has(e.student_id))
             .map((e: any) => e.students)
             .filter(Boolean)
           setNotSubmittedStudents(notSubmitted)

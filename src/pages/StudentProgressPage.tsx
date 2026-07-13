@@ -58,7 +58,7 @@ export default function StudentProgressPage() {
 
         // Lấy tất cả bài nộp của học sinh (để so sánh)
         supabase.from('exam_submissions')
-          .select('room_id, status')
+          .select('room_id, status, score')
           .eq('student_id', s.id)
       ])
 
@@ -77,7 +77,7 @@ export default function StudentProgressPage() {
         return !room.class_id || myClassIds.includes(room.class_id)
       })
       const submittedRoomIds = (allSubsRes.data || [])
-        .filter((sub: any) => sub.status === 'submitted')
+        .filter((sub: any) => sub.status === 'submitted' && sub.score !== 0)
         .map((sub: any) => sub.room_id)
       const pending = eligibleRooms.filter((room: any) => !submittedRoomIds.includes(room.id))
       setPendingExams(pending)

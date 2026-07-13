@@ -416,7 +416,7 @@ export default function StudentPortal() {
 
   // Phân loại danh sách bài thi
   const submittedRoomIds = submissionsList
-    .filter(s => s.status === 'submitted')
+    .filter(s => s.status === 'submitted' && s.score !== 0)
     .map(s => s.room_id)
 
   const inProgressSubMap = new Map()

@@ -69,7 +69,7 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
           .eq('status', 'active'),
         supabase
           .from('exam_submissions')
-          .select('room_id, status')
+          .select('room_id, status, score')
           .eq('student_id', student.id)
       ])
 
@@ -83,7 +83,7 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
         return !room.class_id || myClassIds.includes(room.class_id)
       })
       const submittedRoomIds = (allSubsRes.data || [])
-        .filter((s: any) => s.status === 'submitted')
+        .filter((s: any) => s.status === 'submitted' && s.score !== 0)
         .map((s: any) => s.room_id)
       const pending = eligibleRooms.filter((room: any) => !submittedRoomIds.includes(room.id))
       setPendingExams(pending)
