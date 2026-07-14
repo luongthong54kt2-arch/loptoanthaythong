@@ -39,150 +39,150 @@ const FONTS_LIST = [
 
 const DEFAULT_SUBJECTS_BY_GRADE: Record<string, string[]> = {
   '6': [
-    'Toán Đại số - Vở ghi', 'Toán Đại số - Vở bài tập',
-    'Toán Đại số - Sách giáo khoa', 'Toán Đại số - Sách bài tập',
-    'Toán Hình học - Vở ghi', 'Toán Hình học - Vở bài tập',
-    'Toán Hình học - Sách giáo khoa', 'Toán Hình học - Sách bài tập',
-    'Ngữ văn - Vở ghi (Tập 1)', 'Ngữ văn - Vở ghi (Tập 2)',
-    'Ngữ văn - Vở soạn văn (Tập 1)', 'Ngữ văn - Vở soạn văn (Tập 2)',
-    'Ngữ văn - Vở bài tập',
-    'Ngữ văn - Sách giáo khoa (Tập 1)', 'Ngữ văn - Sách giáo khoa (Tập 2)',
-    'Ngữ văn - Sách bài tập',
-    'Tiếng Anh - Vở ghi', 'Tiếng Anh - Vở bài tập',
-    'Tiếng Anh - Sách giáo khoa', 'Tiếng Anh - Sách bài tập',
-    'Khoa học tự nhiên - Vở ghi', 'Khoa học tự nhiên - Vở bài tập',
-    'Khoa học tự nhiên - Sách giáo khoa', 'Khoa học tự nhiên - Sách bài tập',
-    'Lịch sử và Địa lí - Vở ghi', 'Lịch sử và Địa lí - Sách giáo khoa', 'Lịch sử và Địa lí - Sách bài tập',
-    'Giáo dục công dân - Vở ghi', 'Giáo dục công dân - Sách giáo khoa', 'Giáo dục công dân - Sách bài tập',
-    'Tin học - Vở ghi', 'Tin học - Sách giáo khoa', 'Tin học - Sách bài tập',
-    'Công nghệ - Vở ghi', 'Công nghệ - Sách giáo khoa', 'Công nghệ - Sách bài tập',
-    'Hoạt động trải nghiệm - Vở ghi', 'Hoạt động trải nghiệm - Sách giáo khoa'
+    'Vở ghi Toán Đại số', 'Vở bài tập Toán Đại số',
+    'Sách giáo khoa Toán Đại số', 'Sách bài tập Toán Đại số',
+    'Vở ghi Toán Hình học', 'Vở bài tập Toán Hình học',
+    'Sách giáo khoa Toán Hình học', 'Sách bài tập Toán Hình học',
+    'Vở ghi Ngữ văn (Tập 1)', 'Vở ghi Ngữ văn (Tập 2)',
+    'Vở soạn văn Ngữ văn (Tập 1)', 'Vở soạn văn Ngữ văn (Tập 2)',
+    'Vở bài tập Ngữ văn',
+    'Sách giáo khoa Ngữ văn (Tập 1)', 'Sách giáo khoa Ngữ văn (Tập 2)',
+    'Sách bài tập Ngữ văn',
+    'Vở ghi Tiếng Anh', 'Vở bài tập Tiếng Anh',
+    'Sách giáo khoa Tiếng Anh', 'Sách bài tập Tiếng Anh',
+    'Vở ghi Khoa học tự nhiên', 'Vở bài tập Khoa học tự nhiên',
+    'Sách giáo khoa Khoa học tự nhiên', 'Sách bài tập Khoa học tự nhiên',
+    'Vở ghi Lịch sử và Địa lí', 'Sách giáo khoa Lịch sử và Địa lí', 'Sách bài tập Lịch sử và Địa lí',
+    'Vở ghi Giáo dục công dân', 'Sách giáo khoa Giáo dục công dân', 'Sách bài tập Giáo dục công dân',
+    'Vở ghi Tin học', 'Sách giáo khoa Tin học', 'Sách bài tập Tin học',
+    'Vở ghi Công nghệ', 'Sách giáo khoa Công nghệ', 'Sách bài tập Công nghệ',
+    'Vở ghi Hoạt động trải nghiệm', 'Sách giáo khoa Hoạt động trải nghiệm'
   ],
   '7': [
-    'Toán Đại số - Vở ghi', 'Toán Đại số - Vở bài tập',
-    'Toán Đại số - Sách giáo khoa', 'Toán Đại số - Sách bài tập',
-    'Toán Hình học - Vở ghi', 'Toán Hình học - Vở bài tập',
-    'Toán Hình học - Sách giáo khoa', 'Toán Hình học - Sách bài tập',
-    'Ngữ văn - Vở ghi (Tập 1)', 'Ngữ văn - Vở ghi (Tập 2)',
-    'Ngữ văn - Vở soạn văn (Tập 1)', 'Ngữ văn - Vở soạn văn (Tập 2)',
-    'Ngữ văn - Vở bài tập',
-    'Ngữ văn - Sách giáo khoa (Tập 1)', 'Ngữ văn - Sách giáo khoa (Tập 2)',
-    'Ngữ văn - Sách bài tập',
-    'Tiếng Anh - Vở ghi', 'Tiếng Anh - Vở bài tập',
-    'Tiếng Anh - Sách giáo khoa', 'Tiếng Anh - Sách bài tập',
-    'Khoa học tự nhiên - Vở ghi', 'Khoa học tự nhiên - Vở bài tập',
-    'Khoa học tự nhiên - Sách giáo khoa', 'Khoa học tự nhiên - Sách bài tập',
-    'Lịch sử và Địa lí - Vở ghi', 'Lịch sử và Địa lí - Sách giáo khoa', 'Lịch sử và Địa lí - Sách bài tập',
-    'Giáo dục công dân - Vở ghi', 'Giáo dục công dân - Sách giáo khoa', 'Giáo dục công dân - Sách bài tập',
-    'Tin học - Vở ghi', 'Tin học - Sách giáo khoa', 'Tin học - Sách bài tập',
-    'Công nghệ - Vở ghi', 'Công nghệ - Sách giáo khoa', 'Công nghệ - Sách bài tập',
-    'Hoạt động trải nghiệm - Vở ghi', 'Hoạt động trải nghiệm - Sách giáo khoa'
+    'Vở ghi Toán Đại số', 'Vở bài tập Toán Đại số',
+    'Sách giáo khoa Toán Đại số', 'Sách bài tập Toán Đại số',
+    'Vở ghi Toán Hình học', 'Vở bài tập Toán Hình học',
+    'Sách giáo khoa Toán Hình học', 'Sách bài tập Toán Hình học',
+    'Vở ghi Ngữ văn (Tập 1)', 'Vở ghi Ngữ văn (Tập 2)',
+    'Vở soạn văn Ngữ văn (Tập 1)', 'Vở soạn văn Ngữ văn (Tập 2)',
+    'Vở bài tập Ngữ văn',
+    'Sách giáo khoa Ngữ văn (Tập 1)', 'Sách giáo khoa Ngữ văn (Tập 2)',
+    'Sách bài tập Ngữ văn',
+    'Vở ghi Tiếng Anh', 'Vở bài tập Tiếng Anh',
+    'Sách giáo khoa Tiếng Anh', 'Sách bài tập Tiếng Anh',
+    'Vở ghi Khoa học tự nhiên', 'Vở bài tập Khoa học tự nhiên',
+    'Sách giáo khoa Khoa học tự nhiên', 'Sách bài tập Khoa học tự nhiên',
+    'Vở ghi Lịch sử và Địa lí', 'Sách giáo khoa Lịch sử và Địa lí', 'Sách bài tập Lịch sử và Địa lí',
+    'Vở ghi Giáo dục công dân', 'Sách giáo khoa Giáo dục công dân', 'Sách bài tập Giáo dục công dân',
+    'Vở ghi Tin học', 'Sách giáo khoa Tin học', 'Sách bài tập Tin học',
+    'Vở ghi Công nghệ', 'Sách giáo khoa Công nghệ', 'Sách bài tập Công nghệ',
+    'Vở ghi Hoạt động trải nghiệm', 'Sách giáo khoa Hoạt động trải nghiệm'
   ],
   '8': [
-    'Toán Đại số - Vở ghi', 'Toán Đại số - Vở bài tập',
-    'Toán Đại số - Sách giáo khoa', 'Toán Đại số - Sách bài tập',
-    'Toán Hình học - Vở ghi', 'Toán Hình học - Vở bài tập',
-    'Toán Hình học - Sách giáo khoa', 'Toán Hình học - Sách bài tập',
-    'Ngữ văn - Vở ghi (Tập 1)', 'Ngữ văn - Vở ghi (Tập 2)',
-    'Ngữ văn - Vở soạn văn (Tập 1)', 'Ngữ văn - Vở soạn văn (Tập 2)',
-    'Ngữ văn - Vở bài tập',
-    'Ngữ văn - Sách giáo khoa (Tập 1)', 'Ngữ văn - Sách giáo khoa (Tập 2)',
-    'Ngữ văn - Sách bài tập',
-    'Tiếng Anh - Vở ghi', 'Tiếng Anh - Vở bài tập',
-    'Tiếng Anh - Sách giáo khoa', 'Tiếng Anh - Sách bài tập',
-    'Khoa học tự nhiên - Vở ghi', 'Khoa học tự nhiên - Vở bài tập',
-    'Khoa học tự nhiên - Sách giáo khoa', 'Khoa học tự nhiên - Sách bài tập',
-    'Lịch sử và Địa lí - Vở ghi', 'Lịch sử và Địa lí - Sách giáo khoa', 'Lịch sử và Địa lí - Sách bài tập',
-    'Giáo dục công dân - Vở ghi', 'Giáo dục công dân - Sách giáo khoa', 'Giáo dục công dân - Sách bài tập',
-    'Tin học - Vở ghi', 'Tin học - Sách giáo khoa', 'Tin học - Sách bài tập',
-    'Công nghệ - Vở ghi', 'Công nghệ - Sách giáo khoa', 'Công nghệ - Sách bài tập',
-    'Hoạt động trải nghiệm - Vở ghi', 'Hoạt động trải nghiệm - Sách giáo khoa'
+    'Vở ghi Toán Đại số', 'Vở bài tập Toán Đại số',
+    'Sách giáo khoa Toán Đại số', 'Sách bài tập Toán Đại số',
+    'Vở ghi Toán Hình học', 'Vở bài tập Toán Hình học',
+    'Sách giáo khoa Toán Hình học', 'Sách bài tập Toán Hình học',
+    'Vở ghi Ngữ văn (Tập 1)', 'Vở ghi Ngữ văn (Tập 2)',
+    'Vở soạn văn Ngữ văn (Tập 1)', 'Vở soạn văn Ngữ văn (Tập 2)',
+    'Vở bài tập Ngữ văn',
+    'Sách giáo khoa Ngữ văn (Tập 1)', 'Sách giáo khoa Ngữ văn (Tập 2)',
+    'Sách bài tập Ngữ văn',
+    'Vở ghi Tiếng Anh', 'Vở bài tập Tiếng Anh',
+    'Sách giáo khoa Tiếng Anh', 'Sách bài tập Tiếng Anh',
+    'Vở ghi Khoa học tự nhiên', 'Vở bài tập Khoa học tự nhiên',
+    'Sách giáo khoa Khoa học tự nhiên', 'Sách bài tập Khoa học tự nhiên',
+    'Vở ghi Lịch sử và Địa lí', 'Sách giáo khoa Lịch sử và Địa lí', 'Sách bài tập Lịch sử và Địa lí',
+    'Vở ghi Giáo dục công dân', 'Sách giáo khoa Giáo dục công dân', 'Sách bài tập Giáo dục công dân',
+    'Vở ghi Tin học', 'Sách giáo khoa Tin học', 'Sách bài tập Tin học',
+    'Vở ghi Công nghệ', 'Sách giáo khoa Công nghệ', 'Sách bài tập Công nghệ',
+    'Vở ghi Hoạt động trải nghiệm', 'Sách giáo khoa Hoạt động trải nghiệm'
   ],
   '9': [
-    'Toán Đại số - Vở ghi', 'Toán Đại số - Vở bài tập',
-    'Toán Đại số - Sách giáo khoa', 'Toán Đại số - Sách bài tập',
-    'Toán Hình học - Vở ghi', 'Toán Hình học - Vở bài tập',
-    'Toán Hình học - Sách giáo khoa', 'Toán Hình học - Sách bài tập',
-    'Ngữ văn - Vở ghi (Tập 1)', 'Ngữ văn - Vở ghi (Tập 2)',
-    'Ngữ văn - Vở soạn văn (Tập 1)', 'Ngữ văn - Vở soạn văn (Tập 2)',
-    'Ngữ văn - Vở bài tập',
-    'Ngữ văn - Sách giáo khoa (Tập 1)', 'Ngữ văn - Sách giáo khoa (Tập 2)',
-    'Ngữ văn - Sách bài tập',
-    'Tiếng Anh - Vở ghi', 'Tiếng Anh - Vở bài tập',
-    'Tiếng Anh - Sách giáo khoa', 'Tiếng Anh - Sách bài tập',
-    'Khoa học tự nhiên - Vở ghi', 'Khoa học tự nhiên - Vở bài tập',
-    'Khoa học tự nhiên - Sách giáo khoa', 'Khoa học tự nhiên - Sách bài tập',
-    'Lịch sử và Địa lí - Vở ghi', 'Lịch sử và Địa lí - Sách giáo khoa', 'Lịch sử và Địa lí - Sách bài tập',
-    'Giáo dục công dân - Vở ghi', 'Giáo dục công dân - Sách giáo khoa', 'Giáo dục công dân - Sách bài tập',
-    'Tin học - Vở ghi', 'Tin học - Sách giáo khoa', 'Tin học - Sách bài tập',
-    'Công nghệ - Vở ghi', 'Công nghệ - Sách giáo khoa', 'Công nghệ - Sách bài tập',
-    'Hoạt động trải nghiệm - Vở ghi', 'Hoạt động trải nghiệm - Sách giáo khoa'
+    'Vở ghi Toán Đại số', 'Vở bài tập Toán Đại số',
+    'Sách giáo khoa Toán Đại số', 'Sách bài tập Toán Đại số',
+    'Vở ghi Toán Hình học', 'Vở bài tập Toán Hình học',
+    'Sách giáo khoa Toán Hình học', 'Sách bài tập Toán Hình học',
+    'Vở ghi Ngữ văn (Tập 1)', 'Vở ghi Ngữ văn (Tập 2)',
+    'Vở soạn văn Ngữ văn (Tập 1)', 'Vở soạn văn Ngữ văn (Tập 2)',
+    'Vở bài tập Ngữ văn',
+    'Sách giáo khoa Ngữ văn (Tập 1)', 'Sách giáo khoa Ngữ văn (Tập 2)',
+    'Sách bài tập Ngữ văn',
+    'Vở ghi Tiếng Anh', 'Vở bài tập Tiếng Anh',
+    'Sách giáo khoa Tiếng Anh', 'Sách bài tập Tiếng Anh',
+    'Vở ghi Khoa học tự nhiên', 'Vở bài tập Khoa học tự nhiên',
+    'Sách giáo khoa Khoa học tự nhiên', 'Sách bài tập Khoa học tự nhiên',
+    'Vở ghi Lịch sử và Địa lí', 'Sách giáo khoa Lịch sử và Địa lí', 'Sách bài tập Lịch sử và Địa lí',
+    'Vở ghi Giáo dục công dân', 'Sách giáo khoa Giáo dục công dân', 'Sách bài tập Giáo dục công dân',
+    'Vở ghi Tin học', 'Sách giáo khoa Tin học', 'Sách bài tập Tin học',
+    'Vở ghi Công nghệ', 'Sách giáo khoa Công nghệ', 'Sách bài tập Công nghệ',
+    'Vở ghi Hoạt động trải nghiệm', 'Sách giáo khoa Hoạt động trải nghiệm'
   ],
   '10': [
-    'Toán học - Vở ghi', 'Toán học - Vở bài tập',
-    'Toán học - Sách giáo khoa', 'Toán học - Sách bài tập',
-    'Ngữ văn - Vở ghi (Tập 1)', 'Ngữ văn - Vở ghi (Tập 2)',
-    'Ngữ văn - Vở soạn văn (Tập 1)', 'Ngữ văn - Vở soạn văn (Tập 2)',
-    'Ngữ văn - Vở bài tập',
-    'Ngữ văn - Sách giáo khoa (Tập 1)', 'Ngữ văn - Sách giáo khoa (Tập 2)',
-    'Ngữ văn - Sách bài tập',
-    'Tiếng Anh - Vở ghi', 'Tiếng Anh - Vở bài tập',
-    'Tiếng Anh - Sách giáo khoa', 'Tiếng Anh - Sách bài tập',
-    'Vật lí - Vở ghi', 'Vật lí - Vở bài tập',
-    'Vật lí - Sách giáo khoa', 'Vật lí - Sách bài tập',
-    'Hóa học - Vở ghi', 'Hóa học - Vở bài tập',
-    'Hóa học - Sách giáo khoa', 'Hóa học - Sách bài tập',
-    'Sinh học - Vở ghi', 'Sinh học - Vở bài tập',
-    'Sinh học - Sách giáo khoa', 'Sinh học - Sách bài tập',
-    'Lịch sử - Vở ghi', 'Lịch sử - Sách giáo khoa', 'Lịch sử - Sách bài tập',
-    'Địa lí - Vở ghi', 'Địa lí - Sách giáo khoa', 'Địa lí - Sách bài tập',
-    'Giáo dục Kinh tế và Pháp luật - Vở ghi', 'Giáo dục Kinh tế và Pháp luật - Sách giáo khoa', 'Giáo dục Kinh tế và Pháp luật - Sách bài tập',
-    'Tin học - Vở ghi', 'Tin học - Sách giáo khoa', 'Tin học - Sách bài tập',
-    'Công nghệ - Vở ghi', 'Công nghệ - Sách giáo khoa', 'Công nghệ - Sách bài tập'
+    'Vở ghi Toán học', 'Vở bài tập Toán học',
+    'Sách giáo khoa Toán học', 'Sách bài tập Toán học',
+    'Vở ghi Ngữ văn (Tập 1)', 'Vở ghi Ngữ văn (Tập 2)',
+    'Vở soạn văn Ngữ văn (Tập 1)', 'Vở soạn văn Ngữ văn (Tập 2)',
+    'Vở bài tập Ngữ văn',
+    'Sách giáo khoa Ngữ văn (Tập 1)', 'Sách giáo khoa Ngữ văn (Tập 2)',
+    'Sách bài tập Ngữ văn',
+    'Vở ghi Tiếng Anh', 'Vở bài tập Tiếng Anh',
+    'Sách giáo khoa Tiếng Anh', 'Sách bài tập Tiếng Anh',
+    'Vở ghi Vật lí', 'Vở bài tập Vật lí',
+    'Sách giáo khoa Vật lí', 'Sách bài tập Vật lí',
+    'Vở ghi Hóa học', 'Vở bài tập Hóa học',
+    'Sách giáo khoa Hóa học', 'Sách bài tập Hóa học',
+    'Vở ghi Sinh học', 'Vở bài tập Sinh học',
+    'Sách giáo khoa Sinh học', 'Sách bài tập Sinh học',
+    'Vở ghi Lịch sử', 'Sách giáo khoa Lịch sử', 'Sách bài tập Lịch sử',
+    'Vở ghi Địa lí', 'Sách giáo khoa Địa lí', 'Sách bài tập Địa lí',
+    'Vở ghi Giáo dục Kinh tế và Pháp luật', 'Sách giáo khoa Giáo dục Kinh tế và Pháp luật', 'Sách bài tập Giáo dục Kinh tế và Pháp luật',
+    'Vở ghi Tin học', 'Sách giáo khoa Tin học', 'Sách bài tập Tin học',
+    'Vở ghi Công nghệ', 'Sách giáo khoa Công nghệ', 'Sách bài tập Công nghệ'
   ],
   '11': [
-    'Toán học - Vở ghi', 'Toán học - Vở bài tập',
-    'Toán học - Sách giáo khoa', 'Toán học - Sách bài tập',
-    'Ngữ văn - Vở ghi (Tập 1)', 'Ngữ văn - Vở ghi (Tập 2)',
-    'Ngữ văn - Vở soạn văn (Tập 1)', 'Ngữ văn - Vở soạn văn (Tập 2)',
-    'Ngữ văn - Vở bài tập',
-    'Ngữ văn - Sách giáo khoa (Tập 1)', 'Ngữ văn - Sách giáo khoa (Tập 2)',
-    'Ngữ văn - Sách bài tập',
-    'Tiếng Anh - Vở ghi', 'Tiếng Anh - Vở bài tập',
-    'Tiếng Anh - Sách giáo khoa', 'Tiếng Anh - Sách bài tập',
-    'Vật lí - Vở ghi', 'Vật lí - Vở bài tập',
-    'Vật lí - Sách giáo khoa', 'Vật lí - Sách bài tập',
-    'Hóa học - Vở ghi', 'Hóa học - Vở bài tập',
-    'Hóa học - Sách giáo khoa', 'Hóa học - Sách bài tập',
-    'Sinh học - Vở ghi', 'Sinh học - Vở bài tập',
-    'Sinh học - Sách giáo khoa', 'Sinh học - Sách bài tập',
-    'Lịch sử - Vở ghi', 'Lịch sử - Sách giáo khoa', 'Lịch sử - Sách bài tập',
-    'Địa lí - Vở ghi', 'Địa lí - Sách giáo khoa', 'Địa lí - Sách bài tập',
-    'Giáo dục Kinh tế và Pháp luật - Vở ghi', 'Giáo dục Kinh tế và Pháp luật - Sách giáo khoa', 'Giáo dục Kinh tế và Pháp luật - Sách bài tập',
-    'Tin học - Vở ghi', 'Tin học - Sách giáo khoa', 'Tin học - Sách bài tập',
-    'Công nghệ - Vở ghi', 'Công nghệ - Sách giáo khoa', 'Công nghệ - Sách bài tập'
+    'Vở ghi Toán học', 'Vở bài tập Toán học',
+    'Sách giáo khoa Toán học', 'Sách bài tập Toán học',
+    'Vở ghi Ngữ văn (Tập 1)', 'Vở ghi Ngữ văn (Tập 2)',
+    'Vở soạn văn Ngữ văn (Tập 1)', 'Vở soạn văn Ngữ văn (Tập 2)',
+    'Vở bài tập Ngữ văn',
+    'Sách giáo khoa Ngữ văn (Tập 1)', 'Sách giáo khoa Ngữ văn (Tập 2)',
+    'Sách bài tập Ngữ văn',
+    'Vở ghi Tiếng Anh', 'Vở bài tập Tiếng Anh',
+    'Sách giáo khoa Tiếng Anh', 'Sách bài tập Tiếng Anh',
+    'Vở ghi Vật lí', 'Vở bài tập Vật lí',
+    'Sách giáo khoa Vật lí', 'Sách bài tập Vật lí',
+    'Vở ghi Hóa học', 'Vở bài tập Hóa học',
+    'Sách giáo khoa Hóa học', 'Sách bài tập Hóa học',
+    'Vở ghi Sinh học', 'Vở bài tập Sinh học',
+    'Sách giáo khoa Sinh học', 'Sách bài tập Sinh học',
+    'Vở ghi Lịch sử', 'Sách giáo khoa Lịch sử', 'Sách bài tập Lịch sử',
+    'Vở ghi Địa lí', 'Sách giáo khoa Địa lí', 'Sách bài tập Địa lí',
+    'Vở ghi Giáo dục Kinh tế và Pháp luật', 'Sách giáo khoa Giáo dục Kinh tế và Pháp luật', 'Sách bài tập Giáo dục Kinh tế và Pháp luật',
+    'Vở ghi Tin học', 'Sách giáo khoa Tin học', 'Sách bài tập Tin học',
+    'Vở ghi Công nghệ', 'Sách giáo khoa Công nghệ', 'Sách bài tập Công nghệ'
   ],
   '12': [
-    'Toán học - Vở ghi', 'Toán học - Vở bài tập',
-    'Toán học - Sách giáo khoa', 'Toán học - Sách bài tập',
-    'Ngữ văn - Vở ghi (Tập 1)', 'Ngữ văn - Vở ghi (Tập 2)',
-    'Ngữ văn - Vở soạn văn (Tập 1)', 'Ngữ văn - Vở soạn văn (Tập 2)',
-    'Ngữ văn - Vở bài tập',
-    'Ngữ văn - Sách giáo khoa (Tập 1)', 'Ngữ văn - Sách giáo khoa (Tập 2)',
-    'Ngữ văn - Sách bài tập',
-    'Tiếng Anh - Vở ghi', 'Tiếng Anh - Vở bài tập',
-    'Tiếng Anh - Sách giáo khoa', 'Tiếng Anh - Sách bài tập',
-    'Vật lí - Vở ghi', 'Vật lí - Vở bài tập',
-    'Vật lí - Sách giáo khoa', 'Vật lí - Sách bài tập',
-    'Hóa học - Vở ghi', 'Hóa học - Vở bài tập',
-    'Hóa học - Sách giáo khoa', 'Hóa học - Sách bài tập',
-    'Sinh học - Vở ghi', 'Sinh học - Vở bài tập',
-    'Sinh học - Sách giáo khoa', 'Sinh học - Sách bài tập',
-    'Lịch sử - Vở ghi', 'Lịch sử - Sách giáo khoa', 'Lịch sử - Sách bài tập',
-    'Địa lí - Vở ghi', 'Địa lí - Sách giáo khoa', 'Địa lí - Sách bài tập',
-    'Giáo dục Kinh tế và Pháp luật - Vở ghi', 'Giáo dục Kinh tế và Pháp luật - Sách giáo khoa', 'Giáo dục Kinh tế và Pháp luật - Sách bài tập',
-    'Tin học - Vở ghi', 'Tin học - Sách giáo khoa', 'Tin học - Sách bài tập',
-    'Công nghệ - Vở ghi', 'Công nghệ - Sách giáo khoa', 'Công nghệ - Sách bài tập'
+    'Vở ghi Toán học', 'Vở bài tập Toán học',
+    'Sách giáo khoa Toán học', 'Sách bài tập Toán học',
+    'Vở ghi Ngữ văn (Tập 1)', 'Vở ghi Ngữ văn (Tập 2)',
+    'Vở soạn văn Ngữ văn (Tập 1)', 'Vở soạn văn Ngữ văn (Tập 2)',
+    'Vở bài tập Ngữ văn',
+    'Sách giáo khoa Ngữ văn (Tập 1)', 'Sách giáo khoa Ngữ văn (Tập 2)',
+    'Sách bài tập Ngữ văn',
+    'Vở ghi Tiếng Anh', 'Vở bài tập Tiếng Anh',
+    'Sách giáo khoa Tiếng Anh', 'Sách bài tập Tiếng Anh',
+    'Vở ghi Vật lí', 'Vở bài tập Vật lí',
+    'Sách giáo khoa Vật lí', 'Sách bài tập Vật lí',
+    'Vở ghi Hóa học', 'Vở bài tập Hóa học',
+    'Sách giáo khoa Hóa học', 'Sách bài tập Hóa học',
+    'Vở ghi Sinh học', 'Vở bài tập Sinh học',
+    'Sách giáo khoa Sinh học', 'Sách bài tập Sinh học',
+    'Vở ghi Lịch sử', 'Sách giáo khoa Lịch sử', 'Sách bài tập Lịch sử',
+    'Vở ghi Địa lí', 'Sách giáo khoa Địa lí', 'Sách bài tập Địa lí',
+    'Vở ghi Giáo dục Kinh tế và Pháp luật', 'Sách giáo khoa Giáo dục Kinh tế và Pháp luật', 'Sách bài tập Giáo dục Kinh tế và Pháp luật',
+    'Vở ghi Tin học', 'Sách giáo khoa Tin học', 'Sách bài tập Tin học',
+    'Vở ghi Công nghệ', 'Sách giáo khoa Công nghệ', 'Sách bài tập Công nghệ'
   ]
 };
 
@@ -230,30 +230,6 @@ const splitSlogan = (slogan: string, maxLen: number = 42): string[] => {
   }
   
   return [slogan];
-};
-
-const getSubjectHeader = (subject: string, defaultHeader: string): string => {
-  const subLower = (subject || '').toLowerCase();
-  const isSGK = subLower.includes('sách giáo khoa') || subLower.includes('sgk');
-  const isSBT = subLower.includes('sách bài tập') || subLower.includes('sbt');
-  
-  if (!isSGK && !isSBT) return defaultHeader;
-  
-  const cleanDefault = defaultHeader.endsWith(':') ? defaultHeader.slice(0, -1) : defaultHeader;
-  
-  if (cleanDefault === 'Vở') {
-    return isSGK ? 'Sách:' : 'Sách BT:';
-  }
-  if (cleanDefault.includes('Vở học môn')) {
-    return isSGK ? 'Sách giáo khoa:' : 'Sách bài tập:';
-  }
-  if (cleanDefault.includes('Vở ghi')) {
-    return isSGK ? 'Sách GK:' : 'Sách BT:';
-  }
-  if (cleanDefault.includes('Môn học / Loại tập')) {
-    return isSGK ? 'Sách giáo khoa:' : 'Sách bài tập:';
-  }
-  return isSGK ? 'Sách GK:' : 'Sách BT:';
 };
 
 export default function NhanVoPage() {
@@ -621,8 +597,8 @@ export default function NhanVoPage() {
           {/* Information Fields */}
           <g transform="translate(100, 240)">
             {/* Subject */}
-            <text x="0" y="30" fontWeight="bold" fill="#fde047" className="svg-label-text" fontSize="34">{getSubjectHeader(label.subject, 'Vở ghi:')}</text>
-            <foreignObject x="140" y="-25" width="630" height="80" className="print:hidden">
+            <text x="0" y="30" fontWeight="bold" fill="#fde047" className="svg-label-text" fontSize="34">Môn:</text>
+            <foreignObject x="90" y="-25" width="680" height="80" className="print:hidden">
               <input
                 type="text"
                 value={label.subject}
@@ -631,8 +607,8 @@ export default function NhanVoPage() {
                 style={{ fontSize: '34px' }}
               />
             </foreignObject>
-            <text x="140" y="30" fill="#ffffff" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
-            <line x1="130" y1="38" x2="770" y2="38" stroke="#ffffff" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
+            <text x="90" y="30" fill="#ffffff" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
+            <line x1="80" y1="38" x2="770" y2="38" stroke="#ffffff" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
 
             {/* Student Name */}
             <text x="0" y="110" fontWeight="bold" fill="#fde047" className="svg-label-text" fontSize="34">Học sinh:</text>
@@ -742,8 +718,8 @@ export default function NhanVoPage() {
 
           <g transform="translate(120, 240)">
             {/* Subject */}
-            <text x="0" y="30" fontWeight="bold" fill="#0f766e" className="svg-label-text" fontSize="34">{getSubjectHeader(label.subject, 'Vở:')}</text>
-            <foreignObject x="75" y="-25" width="655" height="80" className="print:hidden">
+            <text x="0" y="30" fontWeight="bold" fill="#0f766e" className="svg-label-text" fontSize="34">Môn:</text>
+            <foreignObject x="90" y="-25" width="640" height="80" className="print:hidden">
               <input
                 type="text"
                 value={label.subject}
@@ -752,8 +728,8 @@ export default function NhanVoPage() {
                 style={{ fontSize: '34px' }}
               />
             </foreignObject>
-            <text x="75" y="30" fill="#1e293b" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
-            <line x1="65" y1="38" x2="730" y2="38" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3,3" />
+            <text x="90" y="30" fill="#1e293b" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
+            <line x1="80" y1="38" x2="730" y2="38" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3,3" />
 
             {/* Student Name */}
             <text x="0" y="110" fontWeight="bold" fill="#0f766e" className="svg-label-text" fontSize="34">Học và tên:</text>
@@ -859,8 +835,8 @@ export default function NhanVoPage() {
 
           <g transform="translate(120, 250)">
             {/* Subject */}
-            <text x="0" y="30" fontWeight="bold" fill="#be185d" className="svg-label-text" fontSize="32">{getSubjectHeader(label.subject, 'Vở học môn:')}</text>
-            <foreignObject x="200" y="-25" width="490" height="80" className="print:hidden">
+            <text x="0" y="30" fontWeight="bold" fill="#be185d" className="svg-label-text" fontSize="32">Môn:</text>
+            <foreignObject x="90" y="-25" width="600" height="80" className="print:hidden">
               <input
                 type="text"
                 value={label.subject}
@@ -869,8 +845,8 @@ export default function NhanVoPage() {
                 style={{ fontSize: '32px' }}
               />
             </foreignObject>
-            <text x="200" y="30" fill="#1e293b" className="svg-label-text hidden print:block" fontSize="32" fontWeight="bold">{label.subject}</text>
-            <line x1="190" y1="38" x2="690" y2="38" stroke="#f472b6" strokeWidth="1.5" strokeDasharray="5,5" />
+            <text x="90" y="30" fill="#1e293b" className="svg-label-text hidden print:block" fontSize="32" fontWeight="bold">{label.subject}</text>
+            <line x1="80" y1="38" x2="690" y2="38" stroke="#f472b6" strokeWidth="1.5" strokeDasharray="5,5" />
 
             {/* Student Name */}
             <text x="0" y="110" fontWeight="bold" fill="#be185d" className="svg-label-text" fontSize="32">Họ và tên bé:</text>
@@ -978,8 +954,8 @@ export default function NhanVoPage() {
 
           {/* Fields */}
           <g transform="translate(100, 240)">
-            <text x="0" y="30" fontWeight="bold" fill="#38bdf8" className="svg-label-text" fontSize="34">{getSubjectHeader(label.subject, 'Vở ghi:')}</text>
-            <foreignObject x="140" y="-25" width="630" height="80" className="print:hidden">
+            <text x="0" y="30" fontWeight="bold" fill="#38bdf8" className="svg-label-text" fontSize="34">Môn:</text>
+            <foreignObject x="90" y="-25" width="680" height="80" className="print:hidden">
               <input
                 type="text"
                 value={label.subject}
@@ -988,8 +964,8 @@ export default function NhanVoPage() {
                 style={{ fontSize: '34px' }}
               />
             </foreignObject>
-            <text x="140" y="30" fill="#ffffff" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
-            <line x1="130" y1="38" x2="770" y2="38" stroke="#38bdf8" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
+            <text x="90" y="30" fill="#ffffff" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
+            <line x1="80" y1="38" x2="770" y2="38" stroke="#38bdf8" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
 
             <text x="0" y="110" fontWeight="bold" fill="#38bdf8" className="svg-label-text" fontSize="34">Học sinh:</text>
             <foreignObject x="160" y="45" width="610" height="90" className="print:hidden">
@@ -1090,8 +1066,8 @@ export default function NhanVoPage() {
 
           {/* Fields */}
           <g transform="translate(120, 240)">
-            <text x="0" y="30" fontWeight="bold" fill="#2D4A22" className="svg-label-text" fontSize="34">{getSubjectHeader(label.subject, 'Vở học môn:')}</text>
-            <foreignObject x="210" y="-25" width="520" height="80" className="print:hidden">
+            <text x="0" y="30" fontWeight="bold" fill="#2D4A22" className="svg-label-text" fontSize="34">Môn:</text>
+            <foreignObject x="90" y="-25" width="640" height="80" className="print:hidden">
               <input
                 type="text"
                 value={label.subject}
@@ -1100,8 +1076,8 @@ export default function NhanVoPage() {
                 style={{ fontSize: '34px' }}
               />
             </foreignObject>
-            <text x="210" y="30" fill="#4A3728" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
-            <line x1="200" y1="38" x2="730" y2="38" stroke="#2D4A22" strokeWidth="1.5" strokeDasharray="3,3" opacity="0.6" />
+            <text x="90" y="30" fill="#4A3728" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
+            <line x1="80" y1="38" x2="730" y2="38" stroke="#2D4A22" strokeWidth="1.5" strokeDasharray="3,3" opacity="0.6" />
 
             <text x="0" y="110" fontWeight="bold" fill="#2D4A22" className="svg-label-text" fontSize="34">Học sinh:</text>
             <foreignObject x="180" y="45" width="550" height="90" className="print:hidden">
@@ -1192,8 +1168,8 @@ export default function NhanVoPage() {
 
           {/* Fields */}
           <g transform="translate(150, 240)">
-            <text x="0" y="30" fontWeight="bold" fill="#1d4ed8" className="svg-label-text" fontSize="34">{getSubjectHeader(label.subject, 'Môn học:')}</text>
-            <foreignObject x="170" y="-25" width="510" height="80" className="print:hidden">
+            <text x="0" y="30" fontWeight="bold" fill="#1d4ed8" className="svg-label-text" fontSize="34">Môn:</text>
+            <foreignObject x="90" y="-25" width="590" height="80" className="print:hidden">
               <input
                 type="text"
                 value={label.subject}
@@ -1202,8 +1178,8 @@ export default function NhanVoPage() {
                 style={{ fontSize: '34px' }}
               />
             </foreignObject>
-            <text x="170" y="30" fill="#0f172a" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
-            <line x1="160" y1="38" x2="680" y2="38" stroke="#0f172a" strokeWidth="2" />
+            <text x="90" y="30" fill="#0f172a" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
+            <line x1="80" y1="38" x2="680" y2="38" stroke="#0f172a" strokeWidth="2" />
 
             <text x="0" y="110" fontWeight="bold" fill="#1d4ed8" className="svg-label-text" fontSize="34">Học sinh:</text>
             <foreignObject x="170" y="45" width="510" height="90" className="print:hidden">
@@ -1289,8 +1265,8 @@ export default function NhanVoPage() {
 
         <g transform="translate(100, 250)" fill="#000000">
           {/* Subject */}
-          <text x="0" y="30" fontWeight="bold" fontSize="34" className="svg-label-text">{getSubjectHeader(label.subject, 'Môn học / Loại tập:')}</text>
-          <foreignObject x="340" y="-25" width="460" height="80" className="print:hidden">
+          <text x="0" y="30" fontWeight="bold" fontSize="34" className="svg-label-text">Môn:</text>
+          <foreignObject x="90" y="-25" width="710" height="80" className="print:hidden">
             <input
               type="text"
               value={label.subject}
@@ -1299,8 +1275,8 @@ export default function NhanVoPage() {
               style={{ fontSize: '34px' }}
             />
           </foreignObject>
-          <text x="340" y="30" fill="#000000" fontSize="34" className="svg-label-text hidden print:block">{label.subject}</text>
-          <line x1="330" y1="40" x2="800" y2="40" stroke="#000000" strokeWidth="1.5" strokeDasharray="5,5" />
+          <text x="90" y="30" fill="#000000" fontSize="34" className="svg-label-text hidden print:block">{label.subject}</text>
+          <line x1="80" y1="40" x2="800" y2="40" stroke="#000000" strokeWidth="1.5" strokeDasharray="5,5" />
 
           {/* Student Name */}
           <text x="0" y="120" fontWeight="bold" fontSize="34" className="svg-label-text">Họ và tên học sinh:</text>
