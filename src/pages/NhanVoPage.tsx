@@ -554,14 +554,6 @@ export default function NhanVoPage() {
     const customStyleBlock = (
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Comfortaa:wght@400;700&family=Mali:ital,wght@0,400;0,700;1,400&family=Nunito:ital,wght@0,400;0,700;1,400&family=Pacifico&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
-        .svg-input-text {
-          font-family: ${currentFontObj.css} !important;
-          line-height: 1.2 !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          border: none !important;
-          outline: none !important;
-        }
         .svg-label-text {
           font-family: ${currentFontObj.css} !important;
         }
@@ -602,57 +594,21 @@ export default function NhanVoPage() {
           <g transform="translate(100, 240)">
             {/* Subject */}
             <text x="0" y="30" fontWeight="bold" fill="#fde047" className="svg-label-text" fontSize="34">Môn:</text>
-            <foreignObject x="90" y="-25" width="680" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.subject}
-                onChange={(e) => handleUpdateLabelField(label.id, 'subject', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-white font-normal focus:ring-0 focus:outline-none hover:bg-white/10 focus:bg-white/10 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="90" y="30" fill="#ffffff" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
+            <text x="90" y="30" fill="#ffffff" className="svg-label-text" fontSize="34">{label.subject}</text>
             <line x1="80" y1="38" x2="770" y2="38" stroke="#ffffff" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
 
             {/* Student Name */}
             <text x="0" y="110" fontWeight="bold" fill="#fde047" className="svg-label-text" fontSize="34">Học sinh:</text>
-            <foreignObject x="170" y="45" width="600" height="90" className="print:hidden">
-              <input
-                type="text"
-                value={label.studentName}
-                onChange={(e) => handleUpdateLabelField(label.id, 'studentName', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-white font-bold focus:ring-0 focus:outline-none hover:bg-white/10 focus:bg-white/10 rounded px-1 transition-colors"
-                style={{ fontSize: '40px' }}
-              />
-            </foreignObject>
-            <text x="170" y="110" fill="#ffffff" className="svg-label-text hidden print:block" fontSize="40" fontWeight="bold">{label.studentName}</text>
+            <text x="170" y="110" fill="#ffffff" className="svg-label-text" fontSize="40" fontWeight="bold">{label.studentName}</text>
             <line x1="160" y1="118" x2="770" y2="118" stroke="#ffffff" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
 
             {/* Class & School Year */}
             <text x="0" y="190" fontWeight="bold" fill="#fde047" className="svg-label-text" fontSize="34">Lớp:</text>
-            <foreignObject x="90" y="135" width="160" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.className}
-                onChange={(e) => handleUpdateLabelField(label.id, 'className', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-white font-normal focus:ring-0 focus:outline-none hover:bg-white/10 focus:bg-white/10 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="90" y="190" fill="#ffffff" className="svg-label-text hidden print:block" fontSize="34">{label.className}</text>
+            <text x="90" y="190" fill="#ffffff" className="svg-label-text" fontSize="34">{label.className}</text>
             <line x1="80" y1="198" x2="250" y2="198" stroke="#ffffff" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
 
             <text x="280" y="190" fontWeight="bold" fill="#fde047" className="svg-label-text" fontSize="34">Năm học:</text>
-            <foreignObject x="450" y="135" width="320" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.schoolYear}
-                onChange={(e) => handleUpdateLabelField(label.id, 'schoolYear', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-white font-normal focus:ring-0 focus:outline-none hover:bg-white/10 focus:bg-white/10 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="450" y="190" fill="#ffffff" className="svg-label-text hidden print:block" fontSize="34">{label.schoolYear}</text>
+            <text x="450" y="190" fill="#ffffff" className="svg-label-text" fontSize="34">{label.schoolYear}</text>
             <line x1="440" y1="198" x2="770" y2="198" stroke="#ffffff" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
           </g>
 
@@ -723,57 +679,21 @@ export default function NhanVoPage() {
           <g transform="translate(120, 240)">
             {/* Subject */}
             <text x="0" y="30" fontWeight="bold" fill="#0f766e" className="svg-label-text" fontSize="34">Môn:</text>
-            <foreignObject x="90" y="-25" width="640" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.subject}
-                onChange={(e) => handleUpdateLabelField(label.id, 'subject', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-normal focus:ring-0 focus:outline-none hover:bg-slate-100 focus:bg-slate-100 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="90" y="30" fill="#1e293b" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
+            <text x="90" y="30" fill="#1e293b" className="svg-label-text" fontSize="34">{label.subject}</text>
             <line x1="80" y1="38" x2="730" y2="38" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3,3" />
 
             {/* Student Name */}
             <text x="0" y="110" fontWeight="bold" fill="#0f766e" className="svg-label-text" fontSize="34">Học và tên:</text>
-            <foreignObject x="195" y="45" width="535" height="90" className="print:hidden">
-              <input
-                type="text"
-                value={label.studentName}
-                onChange={(e) => handleUpdateLabelField(label.id, 'studentName', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-teal-850 font-bold focus:ring-0 focus:outline-none hover:bg-slate-100 focus:bg-slate-100 rounded px-1 transition-colors"
-                style={{ fontSize: '40px' }}
-              />
-            </foreignObject>
-            <text x="195" y="110" fill="#0f766e" className="svg-label-text hidden print:block" fontSize="40" fontWeight="bold">{label.studentName}</text>
+            <text x="195" y="110" fill="#0f766e" className="svg-label-text" fontSize="40" fontWeight="bold">{label.studentName}</text>
             <line x1="185" y1="118" x2="730" y2="118" stroke="#94a3b8" strokeWidth="2" strokeDasharray="3,3" />
 
             {/* Class & Năm học */}
             <text x="0" y="190" fontWeight="bold" fill="#0f766e" className="svg-label-text" fontSize="34">Lớp:</text>
-            <foreignObject x="90" y="135" width="160" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.className}
-                onChange={(e) => handleUpdateLabelField(label.id, 'className', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-normal focus:ring-0 focus:outline-none hover:bg-slate-100 hover:bg-slate-100 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="90" y="190" fill="#1e293b" className="svg-label-text hidden print:block" fontSize="34">{label.className}</text>
+            <text x="90" y="190" fill="#1e293b" className="svg-label-text" fontSize="34">{label.className}</text>
             <line x1="80" y1="198" x2="250" y2="198" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3,3" />
 
             <text x="280" y="190" fontWeight="bold" fill="#0f766e" className="svg-label-text" fontSize="34">Năm học:</text>
-            <foreignObject x="440" y="135" width="290" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.schoolYear}
-                onChange={(e) => handleUpdateLabelField(label.id, 'schoolYear', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-normal focus:ring-0 focus:outline-none hover:bg-slate-100 focus:bg-slate-100 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="440" y="190" fill="#1e293b" className="svg-label-text hidden print:block" fontSize="34">{label.schoolYear}</text>
+            <text x="440" y="190" fill="#1e293b" className="svg-label-text" fontSize="34">{label.schoolYear}</text>
             <line x1="430" y1="198" x2="730" y2="198" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3,3" />
           </g>
 
@@ -840,57 +760,21 @@ export default function NhanVoPage() {
           <g transform="translate(120, 250)">
             {/* Subject */}
             <text x="0" y="30" fontWeight="bold" fill="#be185d" className="svg-label-text" fontSize="32">Môn:</text>
-            <foreignObject x="90" y="-25" width="600" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.subject}
-                onChange={(e) => handleUpdateLabelField(label.id, 'subject', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-pink-700 font-bold focus:ring-0 focus:outline-none hover:bg-pink-50 focus:bg-pink-50 rounded px-1 transition-colors"
-                style={{ fontSize: '32px' }}
-              />
-            </foreignObject>
-            <text x="90" y="30" fill="#1e293b" className="svg-label-text hidden print:block" fontSize="32" fontWeight="bold">{label.subject}</text>
+            <text x="90" y="30" fill="#1e293b" className="svg-label-text" fontSize="32" fontWeight="bold">{label.subject}</text>
             <line x1="80" y1="38" x2="690" y2="38" stroke="#f472b6" strokeWidth="1.5" strokeDasharray="5,5" />
 
             {/* Student Name */}
             <text x="0" y="110" fontWeight="bold" fill="#be185d" className="svg-label-text" fontSize="32">Họ và tên bé:</text>
-            <foreignObject x="220" y="45" width="470" height="90" className="print:hidden">
-              <input
-                type="text"
-                value={label.studentName}
-                onChange={(e) => handleUpdateLabelField(label.id, 'studentName', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-pink-600 font-bold focus:ring-0 focus:outline-none hover:bg-pink-50 focus:bg-pink-50 rounded px-1 transition-colors"
-                style={{ fontSize: '40px' }}
-              />
-            </foreignObject>
-            <text x="220" y="110" fill="#db2777" className="svg-label-text hidden print:block" fontSize="40" fontWeight="bold">{label.studentName}</text>
+            <text x="220" y="110" fill="#db2777" className="svg-label-text" fontSize="40" fontWeight="bold">{label.studentName}</text>
             <line x1="210" y1="118" x2="690" y2="118" stroke="#f472b6" strokeWidth="2" strokeDasharray="5,5" />
 
             {/* Class & Year */}
             <text x="0" y="190" fontWeight="bold" fill="#be185d" className="svg-label-text" fontSize="32">Lớp lớp:</text>
-            <foreignObject x="140" y="135" width="110" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.className}
-                onChange={(e) => handleUpdateLabelField(label.id, 'className', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-normal focus:ring-0 focus:outline-none hover:bg-pink-50 focus:bg-pink-50 rounded px-1 transition-colors"
-                style={{ fontSize: '32px' }}
-              />
-            </foreignObject>
-            <text x="140" y="190" fill="#1e293b" className="svg-label-text hidden print:block" fontSize="32">{label.className}</text>
+            <text x="140" y="190" fill="#1e293b" className="svg-label-text" fontSize="32">{label.className}</text>
             <line x1="130" y1="198" x2="250" y2="198" stroke="#f472b6" strokeWidth="1.5" strokeDasharray="5,5" />
 
             <text x="280" y="190" fontWeight="bold" fill="#be185d" className="svg-label-text" fontSize="32">Năm học:</text>
-            <foreignObject x="430" y="135" width="260" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.schoolYear}
-                onChange={(e) => handleUpdateLabelField(label.id, 'schoolYear', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-normal focus:ring-0 focus:outline-none hover:bg-pink-50 focus:bg-pink-50 rounded px-1 transition-colors"
-                style={{ fontSize: '32px' }}
-              />
-            </foreignObject>
-            <text x="430" y="190" fill="#1e293b" className="svg-label-text hidden print:block" fontSize="32">{label.schoolYear}</text>
+            <text x="430" y="190" fill="#1e293b" className="svg-label-text" fontSize="32">{label.schoolYear}</text>
             <line x1="420" y1="198" x2="690" y2="198" stroke="#f472b6" strokeWidth="1.5" strokeDasharray="5,5" />
           </g>
 
@@ -959,56 +843,20 @@ export default function NhanVoPage() {
           {/* Fields */}
           <g transform="translate(100, 240)">
             <text x="0" y="30" fontWeight="bold" fill="#38bdf8" className="svg-label-text" fontSize="34">Môn:</text>
-            <foreignObject x="90" y="-25" width="680" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.subject}
-                onChange={(e) => handleUpdateLabelField(label.id, 'subject', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-white font-normal focus:ring-0 focus:outline-none hover:bg-white/10 focus:bg-white/10 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="90" y="30" fill="#ffffff" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
+            <text x="90" y="30" fill="#ffffff" className="svg-label-text" fontSize="34">{label.subject}</text>
             <line x1="80" y1="38" x2="770" y2="38" stroke="#38bdf8" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
 
             <text x="0" y="110" fontWeight="bold" fill="#38bdf8" className="svg-label-text" fontSize="34">Học sinh:</text>
-            <foreignObject x="160" y="45" width="610" height="90" className="print:hidden">
-              <input
-                type="text"
-                value={label.studentName}
-                onChange={(e) => handleUpdateLabelField(label.id, 'studentName', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-white font-bold focus:ring-0 focus:outline-none hover:bg-white/10 focus:bg-white/10 rounded px-1 transition-colors"
-                style={{ fontSize: '40px' }}
-              />
-            </foreignObject>
-            <text x="160" y="110" fill="#ffffff" className="svg-label-text hidden print:block" fontSize="40" fontWeight="bold">{label.studentName}</text>
+            <text x="160" y="110" fill="#ffffff" className="svg-label-text" fontSize="40" fontWeight="bold">{label.studentName}</text>
             <line x1="150" y1="118" x2="770" y2="118" stroke="#38bdf8" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
 
             {/* Class & Year */}
             <text x="0" y="190" fontWeight="bold" fill="#38bdf8" className="svg-label-text" fontSize="34">Lớp:</text>
-            <foreignObject x="90" y="135" width="160" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.className}
-                onChange={(e) => handleUpdateLabelField(label.id, 'className', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-white font-normal focus:ring-0 focus:outline-none hover:bg-white/10 focus:bg-white/10 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="90" y="190" fill="#ffffff" className="svg-label-text hidden print:block" fontSize="34">{label.className}</text>
+            <text x="90" y="190" fill="#ffffff" className="svg-label-text" fontSize="34">{label.className}</text>
             <line x1="80" y1="198" x2="250" y2="198" stroke="#38bdf8" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
 
             <text x="280" y="190" fontWeight="bold" fill="#38bdf8" className="svg-label-text" fontSize="34">Năm học:</text>
-            <foreignObject x="450" y="135" width="320" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.schoolYear}
-                onChange={(e) => handleUpdateLabelField(label.id, 'schoolYear', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-white font-normal focus:ring-0 focus:outline-none hover:bg-white/10 focus:bg-white/10 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="450" y="190" fill="#ffffff" className="svg-label-text hidden print:block" fontSize="34">{label.schoolYear}</text>
+            <text x="450" y="190" fill="#ffffff" className="svg-label-text" fontSize="34">{label.schoolYear}</text>
             <line x1="440" y1="198" x2="770" y2="198" stroke="#38bdf8" strokeWidth="2" strokeDasharray="5,5" opacity="0.6" />
           </g>
 
@@ -1071,56 +919,20 @@ export default function NhanVoPage() {
           {/* Fields */}
           <g transform="translate(120, 240)">
             <text x="0" y="30" fontWeight="bold" fill="#2D4A22" className="svg-label-text" fontSize="34">Môn:</text>
-            <foreignObject x="90" y="-25" width="640" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.subject}
-                onChange={(e) => handleUpdateLabelField(label.id, 'subject', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-normal focus:ring-0 focus:outline-none hover:bg-green-100/30 focus:bg-green-100/30 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="90" y="30" fill="#4A3728" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
+            <text x="90" y="30" fill="#4A3728" className="svg-label-text" fontSize="34">{label.subject}</text>
             <line x1="80" y1="38" x2="730" y2="38" stroke="#2D4A22" strokeWidth="1.5" strokeDasharray="3,3" opacity="0.6" />
 
             <text x="0" y="110" fontWeight="bold" fill="#2D4A22" className="svg-label-text" fontSize="34">Học sinh:</text>
-            <foreignObject x="180" y="45" width="550" height="90" className="print:hidden">
-              <input
-                type="text"
-                value={label.studentName}
-                onChange={(e) => handleUpdateLabelField(label.id, 'studentName', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-bold focus:ring-0 focus:outline-none hover:bg-green-100/30 focus:bg-green-100/30 rounded px-1 transition-colors"
-                style={{ fontSize: '40px' }}
-              />
-            </foreignObject>
-            <text x="180" y="110" fill="#2D4A22" className="svg-label-text hidden print:block" fontSize="40" fontWeight="bold">{label.studentName}</text>
+            <text x="180" y="110" fill="#2D4A22" className="svg-label-text" fontSize="40" fontWeight="bold">{label.studentName}</text>
             <line x1="170" y1="118" x2="730" y2="118" stroke="#2D4A22" strokeWidth="1.5" strokeDasharray="3,3" opacity="0.6" />
 
             {/* Class & Year */}
             <text x="0" y="190" fontWeight="bold" fill="#2D4A22" className="svg-label-text" fontSize="34">Lớp:</text>
-            <foreignObject x="90" y="135" width="160" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.className}
-                onChange={(e) => handleUpdateLabelField(label.id, 'className', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-normal focus:ring-0 focus:outline-none hover:bg-green-100/30 focus:bg-green-100/30 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="90" y="190" fill="#4A3728" className="svg-label-text hidden print:block" fontSize="34">{label.className}</text>
+            <text x="90" y="190" fill="#4A3728" className="svg-label-text" fontSize="34">{label.className}</text>
             <line x1="80" y1="198" x2="250" y2="198" stroke="#2D4A22" strokeWidth="1.5" strokeDasharray="3,3" opacity="0.6" />
 
             <text x="280" y="190" fontWeight="bold" fill="#2D4A22" className="svg-label-text" fontSize="34">Năm học:</text>
-            <foreignObject x="440" y="135" width="290" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.schoolYear}
-                onChange={(e) => handleUpdateLabelField(label.id, 'schoolYear', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-normal focus:ring-0 focus:outline-none hover:bg-green-100/30 focus:bg-green-100/30 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="440" y="190" fill="#4A3728" className="svg-label-text hidden print:block" fontSize="34">{label.schoolYear}</text>
+            <text x="440" y="190" fill="#4A3728" className="svg-label-text" fontSize="34">{label.schoolYear}</text>
             <line x1="430" y1="198" x2="730" y2="198" stroke="#2D4A22" strokeWidth="1.5" strokeDasharray="3,3" opacity="0.6" />
           </g>
 
@@ -1173,56 +985,20 @@ export default function NhanVoPage() {
           {/* Fields */}
           <g transform="translate(150, 240)">
             <text x="0" y="30" fontWeight="bold" fill="#1d4ed8" className="svg-label-text" fontSize="34">Môn:</text>
-            <foreignObject x="90" y="-25" width="590" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.subject}
-                onChange={(e) => handleUpdateLabelField(label.id, 'subject', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-bold focus:ring-0 focus:outline-none hover:bg-slate-100 focus:bg-slate-100 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="90" y="30" fill="#0f172a" className="svg-label-text hidden print:block" fontSize="34">{label.subject}</text>
+            <text x="90" y="30" fill="#0f172a" className="svg-label-text" fontSize="34">{label.subject}</text>
             <line x1="80" y1="38" x2="680" y2="38" stroke="#0f172a" strokeWidth="2" />
 
             <text x="0" y="110" fontWeight="bold" fill="#1d4ed8" className="svg-label-text" fontSize="34">Học sinh:</text>
-            <foreignObject x="170" y="45" width="510" height="90" className="print:hidden">
-              <input
-                type="text"
-                value={label.studentName}
-                onChange={(e) => handleUpdateLabelField(label.id, 'studentName', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-bold focus:ring-0 focus:outline-none hover:bg-slate-100 focus:bg-slate-100 rounded px-1 transition-colors"
-                style={{ fontSize: '40px' }}
-              />
-            </foreignObject>
-            <text x="170" y="110" fill="#0f172a" className="svg-label-text hidden print:block" fontSize="40" fontWeight="bold">{label.studentName}</text>
+            <text x="170" y="110" fill="#0f172a" className="svg-label-text" fontSize="40" fontWeight="bold">{label.studentName}</text>
             <line x1="160" y1="118" x2="680" y2="118" stroke="#0f172a" strokeWidth="2" />
 
             {/* Class & Year */}
             <text x="0" y="190" fontWeight="bold" fill="#1d4ed8" className="svg-label-text" fontSize="34">Lớp:</text>
-            <foreignObject x="90" y="135" width="140" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.className}
-                onChange={(e) => handleUpdateLabelField(label.id, 'className', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-normal focus:ring-0 focus:outline-none hover:bg-slate-100 focus:bg-slate-100 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="90" y="190" fill="#0f172a" className="svg-label-text hidden print:block" fontSize="34">{label.className}</text>
+            <text x="90" y="190" fill="#0f172a" className="svg-label-text" fontSize="34">{label.className}</text>
             <line x1="80" y1="198" x2="230" y2="198" stroke="#0f172a" strokeWidth="2" />
 
             <text x="260" y="190" fontWeight="bold" fill="#1d4ed8" className="svg-label-text" fontSize="34">Năm học:</text>
-            <foreignObject x="420" y="135" width="260" height="80" className="print:hidden">
-              <input
-                type="text"
-                value={label.schoolYear}
-                onChange={(e) => handleUpdateLabelField(label.id, 'schoolYear', e.target.value)}
-                className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-slate-800 font-normal focus:ring-0 focus:outline-none hover:bg-slate-100 focus:bg-slate-100 rounded px-1 transition-colors"
-                style={{ fontSize: '34px' }}
-              />
-            </foreignObject>
-            <text x="420" y="190" fill="#0f172a" className="svg-label-text hidden print:block" fontSize="34">{label.schoolYear}</text>
+            <text x="420" y="190" fill="#0f172a" className="svg-label-text" fontSize="34">{label.schoolYear}</text>
             <line x1="410" y1="198" x2="680" y2="198" stroke="#0f172a" strokeWidth="2" />
           </g>
 
@@ -1270,57 +1046,21 @@ export default function NhanVoPage() {
         <g transform="translate(100, 250)" fill="#000000">
           {/* Subject */}
           <text x="0" y="30" fontWeight="bold" fontSize="34" className="svg-label-text">Môn:</text>
-          <foreignObject x="90" y="-25" width="710" height="80" className="print:hidden">
-            <input
-              type="text"
-              value={label.subject}
-              onChange={(e) => handleUpdateLabelField(label.id, 'subject', e.target.value)}
-              className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-black font-normal focus:ring-0 focus:outline-none hover:bg-slate-100 focus:bg-slate-100 rounded px-1 transition-colors"
-              style={{ fontSize: '34px' }}
-            />
-          </foreignObject>
-          <text x="90" y="30" fill="#000000" fontSize="34" className="svg-label-text hidden print:block">{label.subject}</text>
+          <text x="90" y="30" fill="#000000" fontSize="34" className="svg-label-text">{label.subject}</text>
           <line x1="80" y1="40" x2="800" y2="40" stroke="#000000" strokeWidth="1.5" strokeDasharray="5,5" />
 
           {/* Student Name */}
           <text x="0" y="120" fontWeight="bold" fontSize="34" className="svg-label-text">Họ và tên học sinh:</text>
-          <foreignObject x="340" y="55" width="460" height="90" className="print:hidden">
-            <input
-              type="text"
-              value={label.studentName}
-              onChange={(e) => handleUpdateLabelField(label.id, 'studentName', e.target.value)}
-              className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-black font-bold focus:ring-0 focus:outline-none hover:bg-slate-100/80 focus:bg-slate-100/80 rounded px-1 transition-colors"
-              style={{ fontSize: '40px' }}
-            />
-          </foreignObject>
-          <text x="340" y="120" fill="#000000" fontSize="40" fontWeight="bold" className="svg-label-text hidden print:block">{label.studentName}</text>
+          <text x="340" y="120" fill="#000000" fontSize="40" fontWeight="bold" className="svg-label-text">{label.studentName}</text>
           <line x1="330" y1="130" x2="800" y2="130" stroke="#000000" strokeWidth="2" strokeDasharray="5,5" />
 
           {/* Class & Year */}
           <text x="0" y="210" fontWeight="bold" fontSize="34" className="svg-label-text">Lớp:</text>
-          <foreignObject x="90" y="135" width="160" height="80" className="print:hidden">
-            <input
-              type="text"
-              value={label.className}
-              onChange={(e) => handleUpdateLabelField(label.id, 'className', e.target.value)}
-              className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-black font-normal focus:ring-0 focus:outline-none hover:bg-slate-100 focus:bg-slate-100 rounded px-1 transition-colors"
-              style={{ fontSize: '34px' }}
-            />
-          </foreignObject>
-          <text x="90" y="210" fill="#000000" fontSize="34" className="svg-label-text hidden print:block">{label.className}</text>
+          <text x="90" y="210" fill="#000000" fontSize="34" className="svg-label-text">{label.className}</text>
           <line x1="80" y1="220" x2="250" y2="220" stroke="#000000" strokeWidth="1.5" strokeDasharray="5,5" />
 
           <text x="280" y="210" fontWeight="bold" fontSize="34" className="svg-label-text">Năm học:</text>
-          <foreignObject x="440" y="135" width="360" height="80" className="print:hidden">
-            <input
-              type="text"
-              value={label.schoolYear}
-              onChange={(e) => handleUpdateLabelField(label.id, 'schoolYear', e.target.value)}
-              className="svg-input-text w-full h-full bg-transparent border-0 p-0 text-black font-normal focus:ring-0 focus:outline-none hover:bg-slate-100 focus:bg-slate-100 rounded px-1 transition-colors"
-              style={{ fontSize: '34px' }}
-            />
-          </foreignObject>
-          <text x="440" y="210" fill="#000000" fontSize="34" className="svg-label-text hidden print:block">{label.schoolYear}</text>
+          <text x="440" y="210" fill="#000000" fontSize="34" className="svg-label-text">{label.schoolYear}</text>
           <line x1="430" y1="220" x2="800" y2="220" stroke="#000000" strokeWidth="1.5" strokeDasharray="5,5" />
         </g>
 
@@ -1801,7 +1541,7 @@ export default function NhanVoPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2 mb-6">
               <div>
                 <h3 className="font-bold text-slate-800 text-lg">Khung xem trước trang in (Khổ A4 nằm ngang - 16 Nhãn)</h3>
-                <p className="text-xs text-slate-500">Mỗi trang A4 sẽ in tối đa **16 nhãn** (4 cột x 4 hàng). Nhấp và sửa chữ trực tiếp ngay trên bìa nhãn vở dưới đây.</p>
+                <p className="text-xs text-slate-500">Mỗi trang A4 sẽ in tối đa **16 nhãn** (4 cột x 4 hàng).</p>
               </div>
               {labels.length > 0 && (
                 <span className="text-xs bg-teal-50 text-teal-700 font-bold px-3 py-1.5 rounded-lg border border-teal-100">
