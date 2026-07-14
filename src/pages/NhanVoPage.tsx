@@ -1355,16 +1355,13 @@ export default function NhanVoPage() {
             display: none !important;
           }
           
-          /* Display the body print portal cleanly on A4 landscape page (4 cols x 4 rows = 16 labels) */
+          /* Display the body print portal cleanly on A4 landscape page */
           #print-area-portal {
             display: block !important;
-            position: absolute !important;
-            left: 50% !important;
-            top: 1.0cm !important;
-            transform: translateX(-50%) !important;
+            position: relative !important;
             width: 28.0cm !important;
+            margin: 0 auto !important;
             padding: 0 !important;
-            margin: 0 !important;
             background: white !important;
             box-shadow: none !important;
             visibility: visible !important;
@@ -1374,17 +1371,38 @@ export default function NhanVoPage() {
             visibility: visible !important;
           }
 
+          .print-page {
+            width: 28.0cm !important;
+            height: 18.5cm !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+            background: white !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+          }
+
+          .print-page:last-child {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+          }
+
           .print-grid {
             display: grid !important;
             grid-template-columns: repeat(4, 1fr) !important;
             gap: 0 !important;
             width: 100% !important;
+            height: 18.4cm !important;
             background: white !important;
           }
 
           .print-card {
             width: 7.0cm !important;
             height: 4.6cm !important;
+            box-sizing: border-box !important;
             border: 1px dashed #ccc !important;
             box-shadow: none !important;
             page-break-inside: avoid !important;
@@ -1397,7 +1415,7 @@ export default function NhanVoPage() {
 
           @page {
             size: A4 landscape;
-            margin: 0 !important;
+            margin: 1.0cm 0.85cm !important;
           }
         }
       `}} />
@@ -1844,13 +1862,23 @@ export default function NhanVoPage() {
       {/* Portal for printing only - completely decoupled from root wrappers */}
       {labels.length > 0 && createPortal(
         <div id="print-area-portal">
-          <div className="print-grid">
-            {labels.map((label) => (
-              <div key={label.id} className="print-card">
-                <RenderLabelSVG label={label} />
+          {(() => {
+            const chunks = [];
+            for (let i = 0; i < labels.length; i += 16) {
+              chunks.push(labels.slice(i, i + 16));
+            }
+            return chunks.map((chunk, pageIdx) => (
+              <div key={`page-${pageIdx}`} className="print-page">
+                <div className="print-grid">
+                  {chunk.map((label) => (
+                    <div key={label.id} className="print-card">
+                      <RenderLabelSVG label={label} />
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
+            ));
+          })()}
         </div>,
         document.body
       )}
