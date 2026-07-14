@@ -364,6 +364,24 @@ export default function NhanVoPage() {
     setLabels(prev => prev.map(l => l.id === id ? { ...l, [field]: value } : l));
   };
 
+  // Helper to serialize SVG to XML string after stripping out input fields (foreignObject) and restoring hidden texts
+  const getProcessedSvgString = (svgElement: SVGElement): string => {
+    const svgClone = svgElement.cloneNode(true) as SVGElement;
+    
+    // Remove foreignObject elements which hold HTML input elements (unsupported/buggy in standard SVG-to-canvas rendering)
+    const foreignObjects = svgClone.querySelectorAll('foreignObject');
+    foreignObjects.forEach(fo => fo.remove());
+    
+    // Display print-only elements since canvas rendering isn't in print media mode
+    const hiddenTexts = svgClone.querySelectorAll('.hidden');
+    hiddenTexts.forEach(el => {
+      el.classList.remove('hidden');
+      el.classList.remove('print:block');
+    });
+
+    return new XMLSerializer().serializeToString(svgClone);
+  };
+
   const handlePrint = () => {
     if (labels.length === 0) {
       toast.error("Danh sách nhãn vở đang trống!");
@@ -406,7 +424,7 @@ export default function NhanVoPage() {
               return;
             }
 
-            const svgString = new XMLSerializer().serializeToString(svgElement);
+            const svgString = getProcessedSvgString(svgElement);
             const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
             const DOMURL = window.URL || window.webkitURL || window;
             const blobURL = DOMURL.createObjectURL(svgBlob);
@@ -491,7 +509,7 @@ export default function NhanVoPage() {
         return;
       }
 
-      const svgString = new XMLSerializer().serializeToString(svgElement);
+      const svgString = getProcessedSvgString(svgElement);
       const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
       const DOMURL = window.URL || window.webkitURL || window;
       const blobURL = DOMURL.createObjectURL(svgBlob);
