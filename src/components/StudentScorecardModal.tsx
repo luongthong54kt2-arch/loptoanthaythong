@@ -31,6 +31,8 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
   const [selectedSubId, setSelectedSubId] = useState<string | null>(null)
   const [showQrModal, setShowQrModal] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
+  const [unpaidNotifications, setUnpaidNotifications] = useState<any[]>([])
+  const [collectingMap, setCollectingMap] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     if (open && student?.id) {
@@ -41,7 +43,7 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
   const loadStudentData = async () => {
     setLoading(true)
     try {
-      const [attRes, subRes, infoRes, enrollsRes, roomsRes, allSubsRes] = await Promise.all([
+      const [attRes, subRes, infoRes, enrollsRes, roomsRes, allSubsRes, tuitionRes] = await Promise.all([
         supabase
           .from('attendance')
           .select('date, present, late')
@@ -70,12 +72,18 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
         supabase
           .from('exam_submissions')
           .select('room_id, status, score')
+          .eq('student_id', student.id),
+        supabase
+          .from('tuition_notifications')
+          .select('*')
           .eq('student_id', student.id)
+          .eq('is_paid', false)
       ])
 
       setAttendance(attRes.data || [])
       setSubmissions(subRes.data || [])
       setStudentInfo(infoRes.data || null)
+      setUnpaidNotifications(tuitionRes.data || [])
 
       // Calculate pending exams
       const myClassIds = enrollsRes.data?.map((e: any) => e.class_id) || []
@@ -91,6 +99,41 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
       console.error('Lỗi khi tải bảng điểm thu gọn:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleQuickCollect = async (notif: any) => {
+    const confirm = window.confirm(`Xác nhận đã thu ${Number(notif.amount).toLocaleString('vi-VN')}đ học phí khóa "${notif.course_name}" của học sinh ${displayName}?`)
+    if (!confirm) return
+
+    setCollectingMap(prev => ({ ...prev, [notif.id]: true }))
+    try {
+      // 1. Ghi nhận thanh toán
+      const { error: payErr } = await supabase.from('payments').insert([{
+        student_id: student.id,
+        class_id: notif.class_id,
+        amount: Number(notif.amount),
+        method: 'transfer',
+        note: `Thu học phí khóa ${notif.course_name} (Thu nhanh từ hồ sơ)`
+      }])
+
+      if (payErr) throw payErr
+
+      // 2. Đánh dấu đã đóng
+      const { error: notifErr } = await supabase
+        .from('tuition_notifications')
+        .update({ is_paid: true })
+        .eq('id', notif.id)
+
+      if (notifErr) throw notifErr
+
+      toast.success(`✅ Đã thu học phí khóa ${notif.course_name}!`)
+      void loadStudentData()
+    } catch (error: any) {
+      console.error(error)
+      toast.error('Lỗi khi thu học phí: ' + error.message)
+    } finally {
+      setCollectingMap(prev => ({ ...prev, [notif.id]: false }))
     }
   }
 
@@ -386,6 +429,36 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
                     Xem tiến độ chi tiết <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 </div>
+
+                {/* Thông báo học phí chưa đóng */}
+                {unpaidNotifications.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-dashed border-teal-100 space-y-3.5 text-xs animate-fade-in">
+                    <div className="text-[10px] uppercase font-bold text-teal-650 tracking-wider text-left">Học phí chưa đóng</div>
+                    <div className="space-y-2">
+                      {unpaidNotifications.map((notif) => (
+                        <div key={notif.id} className="flex items-center justify-between bg-rose-50 border border-rose-100 rounded-xl p-2.5">
+                          <div className="min-w-0 text-left">
+                            <p className="font-bold text-rose-800 truncate">{notif.course_name}</p>
+                            <span className="text-[10px] text-rose-600 font-mono font-bold">{Number(notif.amount).toLocaleString('vi-VN')}đ</span>
+                          </div>
+                          
+                          <button
+                            onClick={() => handleQuickCollect(notif)}
+                            disabled={collectingMap[notif.id]}
+                            className="w-7 h-7 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg flex items-center justify-center shadow transition-all hover:scale-105 shrink-0"
+                            title="Tích đã đóng học phí"
+                          >
+                            {collectingMap[notif.id] ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <CheckCircle className="w-4 h-4 text-white" />
+                            )}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Chuyên cần */}
