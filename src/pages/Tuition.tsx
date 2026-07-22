@@ -60,6 +60,25 @@ export default function Tuition() {
     }
   }, [selClass, classes]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Sort classes by year descending (e.g. 2015 -> 2014)
+  const sortedClasses = useMemo(() => {
+    return [...classes]
+      .filter(c => c.status === 'active')
+      .sort((a, b) => {
+        const nameA = ((a as any).class_name || a.name || '')
+        const nameB = ((b as any).class_name || b.name || '')
+        
+        const yearA = parseInt(nameA.match(/\d{4}/)?.[0] || '0', 10)
+        const yearB = parseInt(nameB.match(/\d{4}/)?.[0] || '0', 10)
+        
+        if (yearA !== yearB) {
+          return yearB - yearA // Descending year (2015 -> 2014)
+        }
+        
+        return nameA.localeCompare(nameB)
+      })
+  }, [classes])
+
   // Compute tuition notification row list for table
   const tuitionData = useMemo((): TuitionNotificationRow[] => {
     if (!selClass) return []
@@ -427,7 +446,7 @@ export default function Tuition() {
               className="input border-teal-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 font-bold"
             >
               <option value="">— Chọn lớp —</option>
-              {classes.filter(c => c.status === 'active').map(c => (
+              {sortedClasses.map(c => (
                 <option key={c.id} value={c.id}>
                   {(c as any).class_name || (c as any).name}
                 </option>
