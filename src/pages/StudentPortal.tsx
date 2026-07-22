@@ -35,6 +35,7 @@ export default function StudentPortal() {
   // Danh sách bài thi và bài làm
   const [examsList, setExamsList] = useState<any[]>([])
   const [submissionsList, setSubmissionsList] = useState<any[]>([])
+  const [tuitionNotifications, setTuitionNotifications] = useState<any[]>([])
 
   // Đổi mật khẩu
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
@@ -69,6 +70,19 @@ export default function StudentPortal() {
         .eq('status', 'active')
 
       const myClassIds = enrolls?.map(e => e.class_id) || []
+
+      // 1.1. Lấy thông báo học phí chưa thanh toán
+      const { data: tuitionNotifs, error: tuitionErr } = await supabase
+        .from('tuition_notifications')
+        .select('*')
+        .eq('student_id', studentId)
+        .eq('is_paid', false)
+
+      if (tuitionErr) {
+        console.error('Lỗi tải thông báo học phí:', tuitionErr)
+      } else {
+        setTuitionNotifications(tuitionNotifs || [])
+      }
 
       // 2. Lấy tất cả phòng thi
       const { data: rooms, error: roomsErr } = await supabase
@@ -541,6 +555,43 @@ export default function StudentPortal() {
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 space-y-8 animate-fade-in">
+        {/* Thông báo học phí */}
+        {tuitionNotifications.length > 0 && tuitionNotifications.map((notif) => (
+          <div key={notif.id} className="bg-teal-50 border border-teal-200 rounded-2xl p-5 flex items-center gap-4 shadow-md shadow-teal-100/50 transition-all hover:scale-[1.01]">
+            <div className="w-12 h-12 rounded-xl bg-teal-650 flex items-center justify-center text-white flex-shrink-0 animate-pulse bg-teal-650 bg-teal-600">
+              <span className="text-2xl">💰</span>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-teal-800 font-extrabold text-lg uppercase tracking-wide flex items-center gap-2">
+                <span>📢 THÔNG BÁO ĐÓNG HỌC PHÍ</span>
+              </h3>
+              <p className="text-teal-900 font-medium text-base mt-1 leading-relaxed">
+                Học phí khóa <strong className="text-teal-700 font-black">{notif.course_name}</strong> của học sinh <strong className="text-teal-700 font-black">{student.full_name}</strong> là <strong className="text-rose-600 font-black text-lg">{Number(notif.amount).toLocaleString('vi-VN')}</strong> Đồng, phụ huynh vui lòng chuyển khoản vào stk: <strong className="text-teal-700 font-black tracking-wider">3714235000320</strong> HKD DINH CONG LINH
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText("3714235000320")
+                    toast.success("Đã copy số tài khoản! 📋")
+                  }}
+                  className="px-3.5 py-1.5 bg-teal-650 hover:bg-teal-750 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1 bg-teal-600"
+                >
+                  📋 Copy STK
+                </button>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(Number(notif.amount).toString())
+                    toast.success("Đã copy số tiền! 📋")
+                  }}
+                  className="px-3.5 py-1.5 bg-white border border-teal-200 text-teal-800 hover:bg-teal-50 rounded-lg text-xs font-bold transition-all shadow-sm"
+                >
+                  💵 Copy số tiền
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+
         {/* Cảnh báo bài tập chưa làm */}
         {activePendingCount > 0 && (
           <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5 flex items-center gap-4 shadow-md shadow-rose-100/50 transition-all hover:scale-[1.01]">

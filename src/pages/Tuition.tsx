@@ -1,181 +1,205 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Banknote, Plus, CheckCircle, XCircle, Mail, Send, Loader2, MessageCircle } from 'lucide-react'
+import { Banknote, Plus, CheckCircle, XCircle, Mail, Send, Loader2, MessageCircle, AlertCircle, Trash2, Check, QrCode } from 'lucide-react'
 import { useDataStore } from '@/store/dataStore'
-import { fmtVNDShort, countDaysInMonth, parseSchedule } from '@/lib/helpers'
+import { fmtVNDShort } from '@/lib/helpers'
 import Modal from '@/components/Modal'
 import VietQRModal from '@/components/VietQRModal'
-import { format, endOfMonth } from 'date-fns'
-import type { PaymentMethod } from '@/types'
 import toast from 'react-hot-toast'
+import type { PaymentMethod } from '@/types'
 
-interface TuitionRow {
-  student:       { id: string; full_name: string; student_code: string }
-  planned:       number
-  absentCount:   number
-  attended:      number
-  feePerSession: number
-  totalFee:      number
-  paidAmount:    number
-  debt:          number
-  isPaid:        boolean
+interface TuitionNotificationRow {
+  student: any
+  notification: any | null
+  status: 'unnotified' | 'unpaid' | 'paid'
 }
 
 export default function Tuition() {
   const {
-    classes, students, enrollments, attendance, payments,
-    loadClasses, loadStudents, loadEnrollments,
-    loadAttendance, loadPayments, addPayment,
+    classes, students, enrollments, tuitionNotifications,
+    loadClasses, loadStudents, loadEnrollments, loadPayments, loadTuitionNotifications,
+    addPayment, upsertTuitionNotification, updateTuitionNotification
   } = useDataStore()
 
-  const now = new Date()
   const [selClass, setSelClass] = useState('')
-  const [month, setMonth]       = useState(format(now, 'yyyy-MM'))
-  const [payModal, setPayModal] = useState<TuitionRow | null>(null)
-  const [qrModal, setQrModal]   = useState<TuitionRow | null>(null)
-  const [payForm, setPayForm]   = useState({ amount: '', method: 'cash' as PaymentMethod, note: '' })
+  const [courseName, setCourseName] = useState('Khóa hè')
+  const [courseAmount, setCourseAmount] = useState('600000')
+
+  // Modals state
+  const [payModal, setPayModal] = useState<TuitionNotificationRow | null>(null)
+  const [qrModal, setQrModal]   = useState<TuitionNotificationRow | null>(null)
+  const [payForm, setPayForm]   = useState({ amount: '', method: 'transfer' as PaymentMethod, note: '' })
   const [saving, setSaving]     = useState(false)
   const [sending, setSending]   = useState(false)
   const [sendResult, setSendResult] = useState<{sent:number;skipped:number;errors:number}|null>(null)
-  const [zaloModal, setZaloModal]   = useState<{row:TuitionRow;msg:string;qrUrl:string;phone:string}|null>(null)
+  const [zaloModal, setZaloModal]   = useState<{row:TuitionNotificationRow;msg:string;qrUrl:string;phone:string}|null>(null)
   const [copiedZalo, setCopiedZalo] = useState<'text'|'img'|null>(null)
   const [confirmModal, setConfirmModal] = useState<{studentName:string;amount:number;studentId:string;phone:string;email:string}|null>(null)
   const [sendingConfirm, setSendingConfirm] = useState(false)
 
-  // ── Load nền khi mount (bỏ function refs khỏi deps để tránh infinite loop) ──
+  // ── Load foundational data on mount ──
   useEffect(() => {
-    void Promise.all([loadClasses(), loadStudents(), loadEnrollments(), loadPayments()])
+    void Promise.all([loadClasses(), loadStudents(), loadEnrollments()])
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Load điểm danh + thanh toán khi đổi lớp/tháng ─────────
+  // ── Load notifications + payments when class changes ──
   useEffect(() => {
     if (!selClass) return
-    const [y, m] = month.split('-')
-    const from = `${y}-${m}-01`
-    const to   = format(endOfMonth(new Date(+y, +m - 1)), 'yyyy-MM-dd')
-    void loadAttendance(selClass, from, to)
-    void loadPayments(selClass)        // ✅ Reload thanh toán theo lớp mỗi khi đổi lớp/tháng
-  }, [selClass, month]) // eslint-disable-line react-hooks/exhaustive-deps
+    void loadTuitionNotifications(selClass)
+    void loadPayments(selClass)
 
-  const tuitionData = useMemo((): TuitionRow[] => {
-    if (!selClass) return []
+    // Auto-detect grade 6 classes to prefill 1.000.000đ, otherwise 600.000đ
     const cls = classes.find(c => c.id === selClass)
-    if (!cls) return []
+    if (cls) {
+      const clsName = ((cls as any).class_name || cls.name || '').toLowerCase()
+      const clsGrade = ((cls as any).grade || '').toLowerCase()
+      if (clsName.includes('6') || clsGrade.includes('6')) {
+        setCourseAmount('1000000')
+      } else {
+        setCourseAmount('600000')
+      }
+    }
+  }, [selClass, classes]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const [y, m] = month.split('-')
-    const from = `${y}-${m}-01`
-    const to   = format(endOfMonth(new Date(+y, +m - 1)), 'yyyy-MM-dd')
+  // Compute tuition notification row list for table
+  const tuitionData = useMemo((): TuitionNotificationRow[] => {
+    if (!selClass) return []
+    const classEnrollments = enrollments.filter(e => e.class_id === selClass && e.status === 'active')
+    
+    return classEnrollments.flatMap(e => {
+      const student = students.find(s => s.id === e.student_id)
+      if (!student) return []
+      
+      const notif = tuitionNotifications.find(n => n.class_id === selClass && n.student_id === e.student_id)
+      
+      let status: 'unnotified' | 'unpaid' | 'paid' = 'unnotified'
+      if (notif) {
+        status = notif.is_paid ? 'paid' : 'unpaid'
+      }
 
-    // ✅ FIX 1: Fallback về planned_sessions khi schedule trống/không parse được.
-    //    Nếu schedule rỗng → weekdays=[] → countDaysInMonth=0 → totalFee=0 → isPaid=true (SAI).
-    //    Giờ dùng planned_sessions của lớp làm giá trị dự phòng.
-    const weekdays = parseSchedule((cls as any).schedule ?? '')
-    const planned  = weekdays.length > 0
-      ? countDaysInMonth(+y, +m, weekdays)
-      : ((cls as any).planned_sessions ?? 0)
+      return [{
+        student,
+        notification: notif ?? null,
+        status
+      }]
+    })
+  }, [selClass, enrollments, students, tuitionNotifications])
 
-    return enrollments
-      .filter(e => e.class_id === selClass && e.status === 'active')
-      .flatMap(e => {
-        const student = students.find(s => s.id === e.student_id)
-        if (!student) return []
+  // Statistics
+  const stats = useMemo(() => {
+    const totalStudents = tuitionData.length
+    const notifiedCount = tuitionData.filter(d => d.status !== 'unnotified').length
+    const paidCount = tuitionData.filter(d => d.status === 'paid').length
+    const unpaidCount = tuitionData.filter(d => d.status === 'unpaid').length
+    
+    const totalPaidAmount = tuitionData
+      .filter(d => d.status === 'paid' && d.notification)
+      .reduce((sum, d) => sum + Number(d.notification.amount), 0)
+      
+    const totalUnpaidAmount = tuitionData
+      .filter(d => d.status === 'unpaid' && d.notification)
+      .reduce((sum, d) => sum + Number(d.notification.amount), 0)
 
-        const attRecords = attendance.filter(
-          a =>
-            a.class_id   === selClass &&
-            a.student_id === e.student_id &&
-            a.date >= from &&
-            a.date <= to
-        )
-        // ✅ NGHIỆP VỤ ĐÚNG: chỉ đếm buổi thực sự có điểm danh present=true
-        //    planned - absent (cũ) → tính tiền dù chưa điểm danh → SAI
-        //    Giờ: mỗi lần tick "có mặt" → attended+1 → totalFee tăng theo
-        const attended      = attRecords.filter(a => a.present).length
-        const absentCount   = attRecords.filter(a => !a.present).length
-        const feePerSession = (cls as any).fee_per_session ?? 0
-        const totalFee      = attended * feePerSession
+    return {
+      totalStudents,
+      notifiedCount,
+      paidCount,
+      unpaidCount,
+      totalPaidAmount,
+      totalUnpaidAmount
+    }
+  }, [tuitionData])
 
-        // ✅ FIX 2: Schema dùng field `date`, không phải `paid_at`.
-        //    p.paid_at luôn undefined → payments không bao giờ được tính → paidAmount=0
-        //    → debt=totalFee → nhưng nếu totalFee=0 thì isPaid=true (bẫy từ Fix 1).
-        const paidAmount = payments
-          .filter(
-            p =>
-              p.class_id   === selClass &&
-              p.student_id === e.student_id &&
-              (p as any).date >= from &&   // ✅ dùng p.date thay vì p.paid_at
-              (p as any).date <= to
-          )
-          .reduce((s, p) => s + (p.amount ?? 0), 0)
+  // ── Send notifications for the entire class ──
+  const [sendingNotif, setSendingNotif] = useState(false)
+  const sendClassNotifications = async () => {
+    if (!selClass) return
+    const amt = parseFloat(courseAmount)
+    if (isNaN(amt) || amt <= 0) {
+      toast.error('Vui lòng nhập số tiền học phí hợp lệ!')
+      return
+    }
+    if (!courseName.trim()) {
+      toast.error('Vui lòng nhập tên khóa học!')
+      return
+    }
 
-        const debt = Math.max(0, totalFee - paidAmount)
+    const unnotifiedRows = tuitionData.filter(r => r.status === 'unnotified')
+    if (unnotifiedRows.length === 0) {
+      if (!window.confirm('Tất cả học sinh đã có thông báo học phí. Bạn có muốn cập nhật lại mức học phí mới cho các học sinh chưa thanh toán không?')) {
+        return
+      }
+    }
 
-        return [{
-          student: {
-            id:           student.id,
-            full_name:    student.full_name,
-            student_code: student.student_code,
-          },
-          planned, absentCount, attended, feePerSession,
-          totalFee, paidAmount, debt,
-          isPaid: debt <= 0 && totalFee > 0, // ✅ FIX 3: totalFee=0 không được tính là "đã đóng"
-        }]
-      })
-  }, [selClass, month, classes, enrollments, students, attendance, payments])
-
-  // ── Gửi nhắc học phí qua Gmail (GAS) ───────────────────────────────────────
-  const sendReminders = async (onlyStudentId?: string) => {
-    if (!selClass || !month) return
-    setSending(true)
-    setSendResult(null)
+    setSendingNotif(true)
     try {
-      const res = await fetch('/api/send-tuition-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          classId:    selClass,
-          month,
-          studentIds: onlyStudentId ? [onlyStudentId] : undefined,
-        }),
+      const targetRows = unnotifiedRows.length > 0 ? unnotifiedRows : tuitionData.filter(r => r.status === 'unpaid')
+      if (targetRows.length === 0) {
+        toast.error('Không tìm thấy học sinh nào cần gửi thông báo học phí.')
+        return
+      }
+
+      const promises = targetRows.map(async (row) => {
+        return upsertTuitionNotification({
+          student_id: row.student.id,
+          class_id: selClass,
+          course_name: courseName.trim(),
+          amount: amt,
+          is_paid: false
+        })
       })
-      const data = await res.json()
-      if (!data.ok) throw new Error(data.error)
-      setSendResult(data.summary)
-      toast.success(`✅ Đã gửi ${data.summary.sent} email nhắc học phí`)
+
+      await Promise.all(promises)
+      toast.success(`📢 Đã tạo thông báo học phí khóa "${courseName}" cho ${promises.length} học sinh`)
+      void loadTuitionNotifications(selClass)
     } catch (e: any) {
-      toast.error('Lỗi gửi email: ' + e.message)
+      toast.error('Lỗi khi gửi thông báo: ' + e.message)
     } finally {
-      setSending(false)
+      setSendingNotif(false)
     }
   }
 
-  // ── Nhắn Zalo: hiện modal preview với text + QR ────────────────────────────
-  const sendZalo = (row: TuitionRow) => {
-    const student    = students.find((s: any) => s.id === row.student.id)
-    const phone      = (student as any)?.zalo || (student as any)?.parent_phone || ''
-    const [y, m]     = month.split('-')
-    const monthLabel = 'tháng ' + parseInt(m) + '/' + y
-    const monthCode  = 'T' + m.padStart(2,'0') + y
-    const debt       = row.debt > 0 ? row.debt : row.totalFee
-    const line       = '----------------------------'
+  // Send single student notification
+  const sendSingleNotification = async (studentId: string) => {
+    const amt = parseFloat(courseAmount)
+    if (isNaN(amt) || amt <= 0) {
+      toast.error('Vui lòng nhập số tiền học phí hợp lệ!')
+      return
+    }
+    if (!courseName.trim()) {
+      toast.error('Vui lòng nhập tên khóa học!')
+      return
+    }
+    try {
+      await upsertTuitionNotification({
+        student_id: studentId,
+        class_id: selClass,
+        course_name: courseName.trim(),
+        amount: amt,
+        is_paid: false
+      })
+      toast.success('✅ Đã tạo thông báo học phí thành công!')
+      void loadTuitionNotifications(selClass)
+    } catch (e: any) {
+      toast.error('Lỗi: ' + e.message)
+    }
+  }
 
-    const msg = '📚 Thông báo học phí ' + monthLabel + '\n'
-              + line + '\n'
-              + 'Học sinh: '       + row.student.full_name + '\n'
-              + 'Số buổi học: '    + String(row.attended) + '\n'
-              + 'Học phí/buổi: '   + fmtVNDShort(row.feePerSession) + '\n'
-              + 'Tổng học phí: '   + fmtVNDShort(row.totalFee) + '\n'
-              + 'Đã đóng: '        + fmtVNDShort(row.paidAmount) + '\n'
-              + 'Cần thanh toán: ' + fmtVNDShort(debt) + '\n'
-              + line + '\n'
-              + 'Vui lòng thanh toán trước cuối tháng. Cảm ơn! 🙏'
+  // ── Send Zalo: open custom preview modal ──
+  const sendZalo = (row: TuitionNotificationRow) => {
+    if (!row.notification) return
+    const student = students.find((s: any) => s.id === row.student.id)
+    const phone = (student as any)?.zalo || (student as any)?.parent_phone || ''
+    const amountVal = Number(row.notification.amount)
+
+    const msg = `Học phí khóa ${row.notification.course_name} của học sinh ${row.student.full_name} là ${amountVal.toLocaleString('vi-VN')} Đồng, phụ huynh vui lòng chuyển khoản vào stk: 3714235000320 HKD DINH CONG LINH`
 
     const bankId      = import.meta.env.VITE_BANK_ID      || ''
     const bankAccount = import.meta.env.VITE_BANK_ACCOUNT || ''
     const bankName    = import.meta.env.VITE_BANK_NAME    || import.meta.env.VITE_BANK_ACCOUNT_NAME || ''
-    const addInfo     = 'HP ' + row.student.student_code + ' ' + monthCode
+    const addInfo     = 'HP ' + row.student.student_code + ' KH'
     const qrUrl       = bankId && bankAccount
       ? 'https://img.vietqr.io/image/' + bankId + '-' + bankAccount + '-compact2.png'
-        + '?amount=' + debt
+        + '?amount=' + amountVal
         + '&addInfo=' + encodeURIComponent(addInfo)
         + '&accountName=' + encodeURIComponent(bankName)
       : ''
@@ -201,7 +225,6 @@ export default function Tuition() {
         setCopiedZalo('img')
         setTimeout(() => setCopiedZalo(null), 2500)
       } catch {
-        // Fallback: tải ảnh xuống
         const a = document.createElement('a')
         a.href     = zaloModal.qrUrl
         a.download = 'QR_' + zaloModal.row.student.student_code + '.png'
@@ -211,7 +234,118 @@ export default function Tuition() {
     }
   }
 
-  // ── Gửi xác nhận thanh toán qua Gmail ──────────────────────────────────────
+  // ── Send reminders via Gmail proxy ──
+  const sendGmailReminder = async (row?: TuitionNotificationRow) => {
+    if (!selClass || !courseName) return
+    setSending(true)
+    setSendResult(null)
+    try {
+      const studentIds = row ? [row.student.id] : undefined
+      const res = await fetch('/api/send-tuition-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          classId: selClass,
+          courseName: courseName.trim(),
+          studentIds
+        }),
+      })
+      const data = await res.json()
+      if (!data.ok) throw new Error(data.error)
+      setSendResult(data.summary)
+      toast.success(`✅ Đã gửi ${data.summary.sent} email nhắc học phí`)
+    } catch (e: any) {
+      toast.error('Lỗi gửi email: ' + e.message)
+    } finally {
+      setSending(false)
+    }
+  }
+
+  // ── One-Click Quick Mark Paid (Tick button next to student icon) ──
+  const quickCollectTuition = async (row: TuitionNotificationRow) => {
+    if (!row.notification) return
+    const confirmCollect = window.confirm(`Xác nhận đã thu học phí khóa "${row.notification.course_name}" của học sinh ${row.student.full_name}?`)
+    if (!confirmCollect) return
+    
+    try {
+      // 1. Record payment in the database
+      await addPayment({
+        student_id: row.student.id,
+        class_id:   selClass,
+        amount:     Number(row.notification.amount),
+        method:     'transfer',
+        note:       `Thu học phí khóa ${row.notification.course_name} (Thu nhanh)`,
+      })
+
+      // 2. Mark notification as PAID
+      await updateTuitionNotification(row.notification.id, { is_paid: true })
+
+      // 3. Reload data
+      await loadTuitionNotifications(selClass)
+      await loadPayments(selClass)
+
+      toast.success(`✅ Đã thu học phí khóa ${row.notification.course_name} từ ${row.student.full_name}`)
+    } catch (error: any) {
+      toast.error('Lỗi khi thu học phí: ' + error.message)
+    }
+  }
+
+  // ── Optioned Payment (Manual popup) ──
+  const openManualPay = (row: TuitionNotificationRow) => {
+    setQrModal(null)
+    setPayModal(row)
+    setPayForm({
+      amount: String(row.notification?.amount || courseAmount),
+      method: 'transfer',
+      note: `Thu học phí khóa ${row.notification?.course_name || courseName}`
+    })
+  }
+
+  const savePay = async () => {
+    const amt = parseFloat(payForm.amount)
+    if (!payForm.amount || isNaN(amt) || amt <= 0) {
+      toast.error('Nhập số tiền hợp lệ')
+      return
+    }
+    if (!payModal || !payModal.notification) return
+    setSaving(true)
+    try {
+      // 1. Add payment transaction record
+      await addPayment({
+        student_id: payModal.student.id,
+        class_id:   selClass,
+        amount:     amt,
+        method:     payForm.method,
+        note:       payForm.note || `Thu học phí khóa ${payModal.notification.course_name}`,
+      })
+
+      // 2. Mark notification as PAID
+      await updateTuitionNotification(payModal.notification.id, { is_paid: true })
+
+      // 3. Reload everything
+      await loadTuitionNotifications(selClass)
+      await loadPayments(selClass)
+
+      toast.success(`✅ Đã ghi nhận ${fmtVNDShort(amt)} từ ${payModal.student.full_name}`)
+
+      // 4. Offer to send confirmation message
+      const studentObj = students.find(s => s.id === payModal.student.id)
+      setConfirmModal({
+        studentName: payModal.student.full_name,
+        amount:      amt,
+        studentId:   payModal.student.id,
+        phone:       ((studentObj as any)?.zalo || (studentObj as any)?.parent_phone || '').replace(/\D/g,'').replace(/^0/,'84'),
+        email:       (studentObj as any)?.email || '',
+      })
+      setPayModal(null)
+    } catch (e: any) {
+      toast.error(e.message || 'Lỗi khi lưu')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // ── Send Receipt Confirm via Gmail proxy ──
   const sendConfirmEmail = async () => {
     if (!confirmModal) return
     setSendingConfirm(true)
@@ -240,18 +374,17 @@ export default function Tuition() {
     }
   }
 
-  // ── Gửi xác nhận thanh toán qua Zalo ────────────────────────────────────────
+  // ── Send Receipt Confirm via Zalo copy ──
   const sendConfirmZalo = async () => {
     if (!confirmModal) return
-    const [y, m] = month.split('-')
-    const msg = '✅ Xác nhận thanh toán học phí\n'
-              + '----------------------------\n'
-              + 'Học sinh: '   + confirmModal.studentName + '\n'
-              + 'Số tiền: '    + fmtVNDShort(confirmModal.amount) + '\n'
-              + 'Thời gian: '  + new Date().toLocaleDateString('vi-VN') + '\n'
-              + 'Tháng: '      + parseInt(m) + '/' + y + '\n'
-              + '----------------------------\n'
-              + 'Trung tâm đã nhận được học phí. Cảm ơn quý phụ huynh! 🙏'
+    const msg = `✅ Xác nhận thanh toán học phí\n`
+              + `----------------------------\n`
+              + `Học sinh: ${confirmModal.studentName}\n`
+              + `Số tiền: ${fmtVNDShort(confirmModal.amount)}\n`
+              + `Thời gian: ${new Date().toLocaleDateString('vi-VN')}\n`
+              + `Nội dung: Đóng học phí khóa ${courseName}\n`
+              + `----------------------------\n`
+              + `Trung tâm đã nhận được học phí. Cảm ơn quý phụ huynh! 🙏`
     try {
       await navigator.clipboard.writeText(msg)
       toast.success('✅ Đã copy! Dán vào Zalo và gửi.')
@@ -261,75 +394,37 @@ export default function Tuition() {
     setConfirmModal(null)
   }
 
-  const openPay = (row: TuitionRow) => {
-    setQrModal(row)    // ✅ Mở modal QR trước, GV chọn thu tiền mặt hay QR
-  }
-
-  const openManualPay = (row: TuitionRow) => {
-    setQrModal(null)
-    setPayModal(row)
-    setPayForm({ amount: String(row.debt || row.totalFee), method: 'cash', note: '' })
-  }
-
-  const savePay = async () => {
-    const amt = parseFloat(payForm.amount)
-    if (!payForm.amount || isNaN(amt) || amt <= 0) {
-      toast.error('Nhập số tiền hợp lệ')
-      return
-    }
-    if (!payModal) return
-    setSaving(true)
+  // ── Delete notice (undo send) ──
+  const deleteNotice = async (notifId: string) => {
+    if (!window.confirm('Bạn có muốn xóa thông báo học phí này?')) return
     try {
-      await addPayment({
-        student_id: payModal.student.id,
-        class_id:   selClass,
-        amount:     amt,
-        method:     payForm.method,
-        note:       payForm.note || null,
-      })
-      // ✅ Reload thanh toán theo lớp ngay sau khi ghi nhận
-      await loadPayments(selClass)
-      toast.success(`✅ Đã ghi nhận ${fmtVNDShort(amt)} từ ${payModal.student.full_name}`)
-
-      // ✅ Hỏi gửi xác nhận cho phụ huynh
-      const student = students.find(s => s.id === payModal.student.id)
-      setConfirmModal({
-        studentName: payModal.student.full_name,
-        amount:      amt,
-        studentId:   payModal.student.id,
-        phone:       ((student as any)?.zalo || (student as any)?.parent_phone || '').replace(/\D/g,'').replace(/^0/,'84'),
-        email:       (student as any)?.email || '',
-      })
-      setPayModal(null)
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Lỗi khi lưu')
-    } finally {
-      setSaving(false)
+      const { supabase } = await import('@/lib/supabase')
+      const { error } = await supabase.from('tuition_notifications').delete().eq('id', notifId)
+      if (error) throw error
+      toast.success('Xóa thông báo học phí thành công!')
+      void loadTuitionNotifications(selClass)
+    } catch (e: any) {
+      toast.error('Lỗi khi xóa: ' + e.message)
     }
   }
-
-  const [yDisp, mDisp] = month.split('-')
-  const totalFee  = tuitionData.reduce((s, d) => s + d.totalFee,  0)
-  const totalPaid = tuitionData.reduce((s, d) => s + d.paidAmount, 0)
-  const totalDebt = tuitionData.reduce((s, d) => s + d.debt,       0)
-  const debtors   = tuitionData.filter(d => !d.isPaid && d.totalFee > 0).length
 
   return (
     <div className="space-y-6">
       <div className="page-header">
         <h1 className="section-title flex items-center gap-2">
-          <Banknote className="w-7 h-7 text-teal-600" /> Học phí
+          <Banknote className="w-7 h-7 text-teal-600" /> Học phí khóa học
         </h1>
       </div>
 
-      <div className="card p-4">
+      {/* Class selection dropdown */}
+      <div className="card p-5">
         <div className="flex flex-wrap gap-4 items-end">
-          <div className="flex-1 min-w-48">
-            <label className="label">Lớp học</label>
+          <div className="flex-1 min-w-[250px]">
+            <label className="label text-teal-700 font-bold">Lớp học</label>
             <select
               value={selClass}
               onChange={e => setSelClass(e.target.value)}
-              className="input"
+              className="input border-teal-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 font-bold"
             >
               <option value="">— Chọn lớp —</option>
               {classes.filter(c => c.status === 'active').map(c => (
@@ -339,78 +434,118 @@ export default function Tuition() {
               ))}
             </select>
           </div>
-          <div>
-            <label className="label">Tháng</label>
-            <input
-              type="month"
-              value={month}
-              onChange={e => setMonth(e.target.value)}
-              className="input"
-            />
-          </div>
         </div>
       </div>
 
       {selClass && (
         <>
+          {/* Quick Statistics Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Tổng học phí', value: fmtVNDShort(totalFee),  color: 'bg-teal-50 text-teal-700' },
-              { label: 'Đã thu',       value: fmtVNDShort(totalPaid), color: 'bg-green-50 text-green-700' },
-              { label: 'Cần thanh toán',       value: fmtVNDShort(totalDebt), color: 'bg-red-50 text-red-700' },
-              { label: 'Chưa đóng',   value: `${debtors} học sinh`,  color: 'bg-amber-50 text-amber-700' },
+              { label: 'Tổng số học sinh', value: `${stats.totalStudents} HS`, color: 'bg-teal-50 text-teal-700 border border-teal-100' },
+              { label: 'Đã báo học phí', value: `${stats.notifiedCount} HS`, color: 'bg-blue-50 text-blue-700 border border-blue-100' },
+              { label: 'Tổng đã thu', value: fmtVNDShort(stats.totalPaidAmount), color: 'bg-green-50 text-green-700 border border-green-100' },
+              { label: 'Tổng chưa thu', value: fmtVNDShort(stats.totalUnpaidAmount), color: 'bg-red-50 text-red-700 border border-red-100' },
             ].map(s => (
-              <div key={s.label} className={`card p-4 ${s.color}`}>
-                <p className="text-xs font-bold opacity-70 mb-1">{s.label}</p>
-                <p className="text-xl font-extrabold">{s.value}</p>
+              <div key={s.label} className={`card p-5 rounded-2xl ${s.color} shadow-sm transition-all hover:shadow-md`}>
+                <p className="text-xs font-bold opacity-75 uppercase tracking-wider mb-1">{s.label}</p>
+                <p className="text-2xl font-black">{s.value}</p>
               </div>
             ))}
           </div>
 
-          {/* ── Nút gửi nhắc học phí ─────────────────────────────────── */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-teal-100 rounded-2xl px-5 py-3 shadow-sm">
-            <div>
-              <p className="font-bold text-gray-700 text-sm flex items-center gap-2">
-                <Mail className="w-4 h-4 text-teal-600" /> Gửi nhắc học phí qua Gmail
-              </p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Gửi email + QR chuyển khoản cho {debtors} phụ huynh còn nợ
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {sendResult && (
-                <span className="text-xs text-gray-500">
-                  ✅ {sendResult.sent} gửi · ⏭ {sendResult.skipped} bỏ qua · ❌ {sendResult.errors} lỗi
+          {/* Form Setup Tuition Notification */}
+          <div className="card p-6 bg-gradient-to-br from-teal-50/50 to-white border border-teal-100 shadow-sm rounded-3xl">
+            <h3 className="font-extrabold text-teal-800 mb-4 flex items-center gap-2 text-base">
+              📢 Thiết lập & Phát hành Báo học phí theo Khóa
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+              <div>
+                <label className="label text-teal-700 font-semibold text-xs uppercase tracking-wide">Tên khóa học *</label>
+                <input
+                  type="text"
+                  value={courseName}
+                  onChange={e => setCourseName(e.target.value)}
+                  placeholder="VD: Khóa hè 2026, Khóa hè"
+                  className="input border-teal-200 focus:border-teal-500 bg-white font-bold"
+                />
+              </div>
+              
+              <div>
+                <label className="label text-teal-700 font-semibold text-xs uppercase tracking-wide">Mức học phí tùy chọn (đ) *</label>
+                <input
+                  type="number"
+                  value={courseAmount}
+                  onChange={e => setCourseAmount(e.target.value)}
+                  placeholder="Mức phí..."
+                  className="input border-teal-200 focus:border-teal-550 focus:border-teal-500 bg-white font-mono font-bold"
+                />
+                <span className="text-[10px] text-gray-400 font-medium block mt-1">
+                  * Khối 6 mặc định: 1.000.000đ | Các khối khác: 600.000đ (có thể chỉnh sửa tùy ý).
                 </span>
-              )}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-teal-100/70 pt-4">
+              <div className="text-xs text-gray-400 font-medium max-w-md">
+                Hệ thống sẽ hiển thị thông báo đóng học phí cho học sinh trên trang cổng thi (`/thi`). Dòng thông báo sẽ tự biến mất sau khi bạn tích "Đã thu".
+              </div>
+              
               <button
-                onClick={() => sendReminders()}
-                disabled={sending || debtors === 0}
-                className="btn-teal flex items-center gap-2 text-sm py-2 disabled:opacity-50"
+                onClick={sendClassNotifications}
+                disabled={sendingNotif}
+                className="btn-teal py-3 px-6 shadow-md shadow-teal-500/15 flex items-center gap-2 font-extrabold text-sm rounded-xl"
               >
-                {sending
-                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang gửi...</>
-                  : <><Send className="w-4 h-4" /> Gửi nhắc ({debtors} HS)</>}
+                {sendingNotif ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Đang phát hành...</>
+                ) : (
+                  <><Send className="w-4 h-4" /> Báo học phí cả lớp ({tuitionData.filter(r => r.status === 'unnotified').length} HS)</>
+                )}
               </button>
             </div>
           </div>
 
-          <div className="card overflow-hidden">
-            <div className="px-6 py-4 border-b border-teal-100 flex items-center justify-between">
-              <h3 className="font-bold text-gray-800">Học phí tháng {mDisp}/{yDisp}</h3>
-              <span className="text-sm text-gray-400">{tuitionData.length} học sinh</span>
+          {/* Student Tuition Notice List */}
+          <div className="card overflow-hidden border border-slate-100 shadow-sm rounded-3xl">
+            <div className="px-6 py-4 border-b border-teal-50 flex flex-wrap items-center justify-between gap-3 bg-white">
+              <div>
+                <h3 className="font-extrabold text-gray-800 text-lg">Danh sách Báo học phí của Lớp</h3>
+                <p className="text-xs text-gray-400 font-semibold mt-0.5">Quản lý đóng học phí theo khóa hè</p>
+              </div>
+              
+              {stats.unpaidCount > 0 && (
+                <div className="flex items-center gap-3">
+                  {sendResult && (
+                    <span className="text-xs text-gray-550">
+                      ✅ {sendResult.sent} gửi · ⏭ {sendResult.skipped} bỏ qua · ❌ {sendResult.errors} lỗi
+                    </span>
+                  )}
+                  <button
+                    onClick={() => sendGmailReminder()}
+                    disabled={sending}
+                    className="btn-outline border-teal-200 text-teal-700 hover:bg-teal-50 text-xs py-2 px-4 flex items-center gap-1.5 font-bold"
+                  >
+                    {sending ? (
+                      <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang gửi...</>
+                    ) : (
+                      <><Mail className="w-3.5 h-3.5" /> Gửi nhắc Gmail ({stats.unpaidCount} HS chưa đóng)</>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-teal-50">
+                  <tr className="bg-teal-50/50">
                     {[
-                      'Học sinh', 'Buổi dự kiến', 'Vắng', 'Đã học',
-                      'Phí/buổi', 'Tổng phí', 'Đã đóng', 'Cần thanh toán', 'Trạng thái', '',
+                      'Học sinh', 'Khóa học', 'Mức học phí', 'Trạng thái', 'Thu học phí', 'Nhắc học phí', ''
                     ].map(h => (
                       <th
                         key={h}
-                        className="px-4 py-3 text-left text-teal-700 font-bold text-xs whitespace-nowrap"
+                        className="px-5 py-3.5 text-left text-teal-800 font-extrabold text-xs uppercase tracking-wider whitespace-nowrap"
                       >
                         {h}
                       </th>
@@ -420,70 +555,124 @@ export default function Tuition() {
                 <tbody>
                   {tuitionData.length === 0 && (
                     <tr>
-                      <td colSpan={10} className="text-center py-12 text-gray-400">
-                        Không có dữ liệu
+                      <td colSpan={7} className="text-center py-12 text-gray-400 text-sm font-semibold italic">
+                        Không có học sinh nào hoạt động trong lớp này.
                       </td>
                     </tr>
                   )}
-                  {tuitionData.map(d => (
+                  {tuitionData.map(row => (
                     <tr
-                      key={d.student.id}
-                      className="border-b border-teal-50 hover:bg-teal-50/40 transition-colors"
+                      key={row.student.id}
+                      className="border-b border-teal-50/40 hover:bg-slate-50 transition-colors"
                     >
-                      <td className="px-4 py-3">
-                        <p className="font-bold text-gray-800">{d.student.full_name}</p>
-                        <p className="text-xs text-gray-400">{d.student.student_code}</p>
+                      {/* Học sinh */}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-teal-100/50 text-teal-700 rounded-2xl flex items-center justify-center font-extrabold shadow-inner shrink-0">
+                            {row.student.full_name?.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-extrabold text-gray-800">{row.student.full_name}</p>
+                            <span className="text-xs bg-slate-100 text-slate-500 font-mono font-bold px-1.5 py-0.5 rounded border border-slate-200">
+                              {row.student.student_code}
+                            </span>
+                          </div>
+                        </div>
                       </td>
-                      <td className="px-4 py-3 text-center text-gray-600">{d.planned}</td>
-                      <td className="px-4 py-3 text-center text-red-500 font-bold">{d.absentCount}</td>
-                      <td className="px-4 py-3 text-center text-teal-600 font-bold">{d.attended}</td>
-                      <td className="px-4 py-3 text-gray-600">{fmtVNDShort(d.feePerSession)}</td>
-                      <td className="px-4 py-3 font-bold text-teal-700">{fmtVNDShort(d.totalFee)}</td>
-                      <td className="px-4 py-3 text-green-600 font-bold">{fmtVNDShort(d.paidAmount)}</td>
-                      <td className="px-4 py-3 font-extrabold text-red-600">
-                        {d.debt > 0 ? fmtVNDShort(d.debt) : '—'}
+
+                      {/* Khóa học */}
+                      <td className="px-5 py-4 font-semibold text-gray-700">
+                        {row.notification ? row.notification.course_name : '—'}
                       </td>
-                      <td className="px-4 py-3">
-                        {d.totalFee === 0 ? (
-                          <span className="text-gray-400 text-xs italic">Chưa có dữ liệu</span>
-                        ) : d.isPaid ? (
-                          <span className="badge-paid flex items-center gap-1">
+
+                      {/* Mức học phí */}
+                      <td className="px-5 py-4 font-mono font-bold text-gray-800">
+                        {row.notification ? fmtVNDShort(row.notification.amount) : '—'}
+                      </td>
+
+                      {/* Trạng thái */}
+                      <td className="px-5 py-4">
+                        {row.status === 'paid' ? (
+                          <span className="badge-paid inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold px-2.5 py-1 rounded-full">
                             <CheckCircle className="w-3 h-3" /> Đã đóng
                           </span>
+                        ) : row.status === 'unpaid' ? (
+                          <span className="badge-debt inline-flex items-center gap-1 bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold px-2.5 py-1 rounded-full">
+                            <XCircle className="w-3 h-3 animate-pulse" /> Chưa đóng
+                          </span>
                         ) : (
-                          <span className="badge-debt flex items-center gap-1">
-                            <XCircle className="w-3 h-3" /> Cần thanh toán
+                          <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-400 border border-slate-250 border-slate-200 text-xs font-medium px-2.5 py-1 rounded-full">
+                            <AlertCircle className="w-3 h-3" /> Chưa báo học phí
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                        {!d.isPaid && d.totalFee > 0 && (
+
+                      {/* Thu học phí: Tick button next to student icon */}
+                      <td className="px-5 py-4">
+                        {row.status === 'unpaid' ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => quickCollectTuition(row)}
+                              className="w-10 h-10 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-md shadow-emerald-500/20 transition-all hover:scale-105"
+                              title="Tích đã thu tiền"
+                            >
+                              <Check className="w-5 h-5 font-black stroke-[3px]" />
+                            </button>
+                            
+                            <button
+                              onClick={() => setQrModal(row)}
+                              className="p-2 text-teal-650 text-teal-600 hover:bg-teal-50 rounded-xl border border-teal-100 transition-colors"
+                              title="Hiển thị mã QR / Thu tùy chọn"
+                            >
+                              <QrCode className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : row.status === 'paid' ? (
+                          <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg">✓ Hoàn tất</span>
+                        ) : (
                           <button
-                            onClick={() => openPay(d)}
+                            onClick={() => sendSingleNotification(row.student.id)}
                             className="btn-teal text-xs py-1.5 px-3 flex items-center gap-1"
                           >
-                            <Plus className="w-3 h-3" /> Thu tiền
+                            <Plus className="w-3.5 h-3.5" /> Báo học phí
                           </button>
                         )}
-                        {/* Nút gửi nhắc qua email */}
-                        <button
-                          onClick={() => sendReminders(d.student.id)}
-                          disabled={sending}
-                          className="p-1.5 text-teal-500 hover:bg-teal-50 rounded-lg border border-teal-100 transition disabled:opacity-40"
-                          title="Gửi nhắc học phí qua Gmail"
-                        >
-                          <Mail className="w-3.5 h-3.5" />
-                        </button>
-                        {/* Nút nhắn Zalo: copy nội dung + mở zalo.me */}
-                        <button
-                          onClick={() => sendZalo(d)}
-                          className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg border border-blue-100 transition"
-                          title="Nhắn Zalo (copy nội dung + mở Zalo)"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                        </button>
+                      </td>
+
+                      {/* Nhắc học phí */}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => sendZalo(row)}
+                            disabled={row.status !== 'unpaid'}
+                            className="p-2 text-blue-600 hover:bg-blue-50 disabled:opacity-40 rounded-xl border border-blue-100 transition-all flex items-center justify-center"
+                            title="Nhắc qua Zalo"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </button>
+                          
+                          <button
+                            onClick={() => sendGmailReminder(row)}
+                            disabled={row.status !== 'unpaid' || sending}
+                            className="p-2 text-rose-600 hover:bg-rose-50 disabled:opacity-40 rounded-xl border border-rose-100 transition-all flex items-center justify-center"
+                            title="Nhắc qua Gmail"
+                          >
+                            <Mail className="w-4 h-4" />
+                          </button>
                         </div>
+                      </td>
+
+                      {/* Xóa báo học phí */}
+                      <td className="px-5 py-4 text-right">
+                        {row.notification && (
+                          <button
+                            onClick={() => deleteNotice(row.notification.id)}
+                            className="text-slate-405 text-slate-400 hover:text-red-500 p-2 rounded-xl transition-all"
+                            title="Xóa thông báo học phí"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -494,35 +683,36 @@ export default function Tuition() {
         </>
       )}
 
-      {/* ✅ VietQR Modal */}
-      {qrModal && (
+      {/* QR VietQR Modal */}
+      {qrModal && qrModal.notification && (
         <VietQRModal
           open={!!qrModal}
           onClose={() => setQrModal(null)}
           studentName={qrModal.student.full_name}
           studentCode={qrModal.student.student_code}
-          amount={qrModal.debt > 0 ? qrModal.debt : qrModal.totalFee}
-          month={month}
+          amount={Number(qrModal.notification.amount)}
+          month={qrModal.notification.course_name}
           onConfirmManual={() => openManualPay(qrModal)}
         />
       )}
 
+      {/* Ghi nhận thanh toán Modal */}
       <Modal
         open={!!payModal}
         onClose={() => setPayModal(null)}
-        title="Ghi nhận thanh toán"
+        title="Ghi nhận thanh toán học phí"
         size="sm"
       >
-        {payModal && (
+        {payModal && payModal.notification && (
           <div className="space-y-4">
-            <div className="bg-teal-50 rounded-xl p-4">
+            <div className="bg-teal-50 rounded-xl p-4 border border-teal-100">
               <p className="font-bold text-teal-800">{payModal.student.full_name}</p>
-              <p className="text-sm text-teal-600">
-                Cần thanh toán: <strong>{fmtVNDShort(payModal.debt)}</strong>
+              <p className="text-sm text-teal-600 mt-0.5">
+                Mức học phí khóa: <strong>{fmtVNDShort(Number(payModal.notification.amount))}</strong>
               </p>
             </div>
             <div>
-              <label className="label">Số tiền (đ) *</label>
+              <label className="label text-teal-700 font-bold">Số tiền (đ) *</label>
               <input
                 type="number"
                 value={payForm.amount}
@@ -531,32 +721,31 @@ export default function Tuition() {
               />
             </div>
             <div>
-              <label className="label">Hình thức</label>
+              <label className="label text-teal-700 font-bold">Hình thức</label>
               <select
                 value={payForm.method}
                 onChange={e => setPayForm(f => ({ ...f, method: e.target.value as PaymentMethod }))}
                 className="input"
               >
+                <option value="transfer">🏦 Chuyển khoản ngân hàng</option>
                 <option value="cash">💵 Tiền mặt</option>
-                <option value="transfer">🏦 Chuyển khoản</option>
                 <option value="seapay">📱 SeaPay</option>
               </select>
             </div>
             <div>
-              <label className="label">Ghi chú</label>
+              <label className="label text-teal-700 font-bold">Ghi chú</label>
               <input
                 value={payForm.note}
                 onChange={e => setPayForm(f => ({ ...f, note: e.target.value }))}
-                placeholder="Đóng học phí tháng..."
                 className="input"
               />
             </div>
-            <div className="flex gap-3 justify-end">
-              <button onClick={() => setPayModal(null)} className="btn-outline">Hủy</button>
+            <div className="flex gap-3 justify-end pt-3">
+              <button onClick={() => setPayModal(null)} className="btn-outline border-slate-200">Hủy</button>
               <button
                 onClick={() => { void savePay() }}
                 disabled={saving}
-                className="btn-teal"
+                className="btn-teal px-5"
               >
                 {saving ? 'Đang lưu...' : '✅ Xác nhận'}
               </button>
@@ -565,21 +754,21 @@ export default function Tuition() {
         )}
       </Modal>
 
-      {/* ── Confirm Payment Modal ───────────────────────────────────────── */}
+      {/* Xác nhận thanh toán & gửi thông báo nhận tiền */}
       {confirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
-            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-4 text-center">
-              <div className="text-4xl mb-1">✅</div>
-              <p className="text-white font-bold text-base">Đã thu học phí thành công!</p>
-              <p className="text-emerald-100 text-sm mt-0.5">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border border-teal-105 border-teal-100 animate-scale-up">
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-5 text-center text-white">
+              <div className="text-4xl mb-1">🎉</div>
+              <p className="font-extrabold text-lg">Đã thu học phí thành công!</p>
+              <p className="text-emerald-100 text-sm mt-1">
                 {confirmModal.studentName} · {fmtVNDShort(confirmModal.amount)}
               </p>
             </div>
 
             <div className="p-5 space-y-3">
-              <p className="text-sm text-gray-600 text-center">
-                Gửi thông báo xác nhận đến phụ huynh qua:
+              <p className="text-sm text-gray-500 text-center font-medium">
+                Gửi biên lai xác nhận đến phụ huynh qua:
               </p>
 
               {/* Gmail */}
@@ -593,13 +782,13 @@ export default function Tuition() {
                   <div className="text-left">
                     <p className="font-bold text-gray-800 text-sm">Gửi Gmail</p>
                     <p className="text-xs text-gray-400">
-                      {confirmModal.email || 'Chưa có email trong hồ sơ'}
+                      {confirmModal.email || 'Chưa cấu hình email'}
                     </p>
                   </div>
                 </div>
                 {sendingConfirm
-                  ? <Loader2 className="w-4 h-4 animate-spin text-red-400" />
-                  : <Mail className="w-4 h-4 text-red-400" />}
+                  ? <Loader2 className="w-4 h-4 animate-spin text-red-500" />
+                  : <Mail className="w-4 h-4 text-red-500" />}
               </button>
 
               {/* Zalo */}
@@ -613,11 +802,11 @@ export default function Tuition() {
                   <div className="text-left">
                     <p className="font-bold text-gray-800 text-sm">Nhắn Zalo</p>
                     <p className="text-xs text-gray-400">
-                      {confirmModal.phone ? 'Copy nội dung + mở Zalo' : 'Mở Zalo Web (tìm thủ công)'}
+                      {confirmModal.phone ? 'Copy nội dung + mở Zalo chat' : 'Mở Zalo Web'}
                     </p>
                   </div>
                 </div>
-                <MessageCircle className="w-4 h-4 text-blue-400" />
+                <MessageCircle className="w-4 h-4 text-blue-500" />
               </button>
 
               <button
@@ -631,59 +820,59 @@ export default function Tuition() {
         </div>
       )}
 
-      {/* ── Zalo Share Modal ─────────────────────────────────────────── */}
+      {/* Zalo Share Modal */}
       {zaloModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border border-teal-150">
             <div className="bg-gradient-to-r from-blue-500 to-blue-400 px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-white" />
-                <span className="text-white font-bold">Gửi qua Zalo</span>
+                <span className="text-white font-extrabold">Nhắc phí qua Zalo</span>
               </div>
-              <button onClick={() => setZaloModal(null)} className="text-white/70 hover:text-white text-xl leading-none">✕</button>
+              <button onClick={() => setZaloModal(null)} className="text-white/70 hover:text-white text-xl leading-none font-bold">✕</button>
             </div>
 
             <div className="p-4 space-y-3">
-              {/* Bước 1: Copy text */}
+              {/* Step 1: Copy Text message */}
               <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-gray-500">① Nội dung tin nhắn</span>
+                  <span className="text-xs font-bold text-gray-400">① Tin nhắn học phí</span>
                   <button onClick={() => copyZaloContent('text')}
-                    className={`text-xs px-3 py-1.5 rounded-lg font-bold transition
-                      ${copiedZalo === 'text' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white hover:bg-blue-600'}`}>
-                    {copiedZalo === 'text' ? '✓ Đã copy' : 'Copy text'}
+                    className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all
+                      ${copiedZalo === 'text' ? 'bg-green-600 text-white' : 'bg-blue-500 text-white hover:bg-blue-600'}`}>
+                    {copiedZalo === 'text' ? '✓ Đã copy' : 'Copy tin nhắn'}
                   </button>
                 </div>
-                <pre className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed font-sans">{zaloModal.msg}</pre>
+                <pre className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed font-sans font-medium">{zaloModal.msg}</pre>
               </div>
 
-              {/* Bước 2: Copy QR */}
+              {/* Step 2: Copy QR */}
               {zaloModal.qrUrl && (
                 <div className="bg-blue-50 rounded-xl p-3 border border-blue-100">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-gray-500">② Ảnh QR chuyển khoản</span>
+                    <span className="text-xs font-bold text-blue-700">② Ảnh QR chuyển khoản</span>
                     <button onClick={() => copyZaloContent('img')}
-                      className={`text-xs px-3 py-1.5 rounded-lg font-bold transition
+                      className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all
                         ${copiedZalo === 'img' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white hover:bg-blue-600'}`}>
                       {copiedZalo === 'img' ? '✓ Đã copy' : 'Copy QR'}
                     </button>
                   </div>
                   <div className="flex items-center gap-3">
                     <img src={zaloModal.qrUrl} alt="QR" className="w-20 h-20 rounded-xl border border-blue-200 shrink-0" />
-                    <p className="text-xs text-gray-500 leading-relaxed">
-                      Bấm <strong>Copy QR</strong> → vào Zalo → <strong>Ctrl+V</strong> để gửi ảnh.<br/><br/>
-                      Nếu không paste được → ảnh tự tải xuống → đính kèm vào Zalo.
+                    <p className="text-xs text-blue-900/70 leading-relaxed font-medium">
+                      Bấm <strong>Copy QR</strong> → vào Zalo → <strong>Ctrl+V</strong> để gửi ảnh.<br/>
+                      Hoặc đính kèm ảnh QR đã tải xuống.
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Bước 3: Mở Zalo */}
+              {/* Step 3: Open Zalo chat */}
               <button
                 onClick={() => window.open(zaloModal.phone ? 'https://zalo.me/' + zaloModal.phone : 'https://chat.zalo.me', '_blank')}
-                className="w-full py-2.5 bg-blue-500 text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition flex items-center justify-center gap-2">
+                className="w-full py-2.5 bg-blue-500 text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-all flex items-center justify-center gap-2 shadow-md shadow-blue-500/10">
                 <MessageCircle className="w-4 h-4" />
-                {zaloModal.phone ? '③ Mở chat Zalo với phụ huynh' : '③ Mở Zalo Web'}
+                {zaloModal.phone ? '③ Mở Zalo phụ huynh' : '③ Mở Zalo Web'}
               </button>
             </div>
           </div>

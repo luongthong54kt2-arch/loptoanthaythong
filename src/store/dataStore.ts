@@ -4,7 +4,7 @@ import { toTitleCase } from '@/lib/helpers'
 import type {
   Class, Student, Enrollment, AttendanceRecord,
   Payment, EmailLog, Profile, AttendanceStatus,
-  PaymentMethod, EmailType,
+  PaymentMethod, EmailType, TuitionNotification,
 } from '@/types'
 
 interface DataState {
@@ -15,6 +15,7 @@ interface DataState {
   payments:    Payment[]
   emailLogs:   EmailLog[]
   profiles:    Profile[]
+  tuitionNotifications: TuitionNotification[]
 
   // Classes
   loadClasses:  () => Promise<void>
@@ -59,6 +60,13 @@ interface DataState {
   // Teacher assignments
   assignTeacher:        (teacherId: string, classId: string) => Promise<void>
   getClassesForTeacher:(teacherId: string) => Promise<string[]>
+
+  // Tuition Notifications
+  loadTuitionNotifications: (classId?: string) => Promise<void>
+  upsertTuitionNotification: (notif: {
+    student_id: string; class_id: string; course_name: string; amount: number; is_paid?: boolean
+  }) => Promise<TuitionNotification>
+  updateTuitionNotification: (id: string, updates: Partial<TuitionNotification>) => Promise<TuitionNotification>
 }
 
 export const useDataStore = create<DataState>((set, _get) => ({
@@ -69,6 +77,7 @@ export const useDataStore = create<DataState>((set, _get) => ({
   payments:    [],
   emailLogs:   [],
   profiles:    [],
+  tuitionNotifications: [],
 
   // ── Classes ───────────────────────────────────────────────────────────────
   loadClasses: async () => {
@@ -267,5 +276,41 @@ export const useDataStore = create<DataState>((set, _get) => ({
       .eq('teacher_id', teacherId)
       .eq('status', 'active')
     return ((data ?? []) as Array<{ class_id: string }>).map(r => r.class_id)
+  },
+
+  // ── Tuition Notifications ──────────────────────────────────────────────────
+  loadTuitionNotifications: async (classId) => {
+    let q = supabase.from('tuition_notifications').select('*')
+    if (classId) q = q.eq('class_id', classId)
+    const { data } = await q.order('created_at', { ascending: false })
+    set({ tuitionNotifications: (data ?? []) as TuitionNotification[] })
+  },
+
+  upsertTuitionNotification: async (notif) => {
+    const { data, error } = await supabase.from('tuition_notifications')
+      .upsert([notif], { onConflict: 'student_id,class_id,course_name' })
+      .select().single()
+    if (error) throw error
+    const row = data as TuitionNotification
+    set(s => {
+      const exists = s.tuitionNotifications.find(n => n.id === row.id)
+      return {
+        tuitionNotifications: exists
+          ? s.tuitionNotifications.map(n => n.id === row.id ? row : n)
+          : [row, ...s.tuitionNotifications]
+      }
+    })
+    return row
+  },
+
+  updateTuitionNotification: async (id, updates) => {
+    const { data, error } = await supabase.from('tuition_notifications')
+      .update(updates).eq('id', id).select().single()
+    if (error) throw error
+    const row = data as TuitionNotification
+    set(s => ({
+      tuitionNotifications: s.tuitionNotifications.map(n => n.id === id ? row : n)
+    }))
+    return row
   },
 }))

@@ -160,3 +160,23 @@ create policy "auth write profiles"  on profiles   for update using (auth.uid() 
 -- ── Sample data ─────────────────────────────────────────────
 -- Thêm admin thủ công sau khi tạo tài khoản:
 -- UPDATE profiles SET role = 'ADMIN' WHERE email = 'admin@example.com';
+
+-- ── Tuition Notifications ────────────────────────────────────────────────────
+create table if not exists tuition_notifications (
+  id          uuid default uuid_generate_v4() primary key,
+  student_id  uuid references students(id) on delete cascade,
+  class_id    uuid references classes(id) on delete cascade,
+  course_name text not null,
+  amount      numeric not null,
+  is_paid     boolean default false,
+  created_at  timestamptz default now(),
+  unique(student_id, class_id, course_name)
+);
+
+alter table tuition_notifications enable row level security;
+
+create policy "Allow read tuition_notifications" on tuition_notifications
+  for select using (true);
+
+create policy "Allow write tuition_notifications" on tuition_notifications
+  for all using (auth.role() = 'authenticated');

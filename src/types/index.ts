@@ -113,6 +113,16 @@ export interface TeacherClass {
   status: 'active' | 'inactive'
 }
 
+export interface TuitionNotification {
+  id: string
+  student_id: string
+  class_id: string
+  course_name: string
+  amount: number
+  is_paid: boolean
+  created_at: string
+}
+
 export interface TuitionRow {
   student: Student
   plannedSessions: number
