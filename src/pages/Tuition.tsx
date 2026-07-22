@@ -60,9 +60,11 @@ export default function Tuition() {
     }
   }, [selClass, classes]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sort classes by year descending (e.g. 2015 -> 2014)
-  const sortedClasses = useMemo(() => {
-    return [...classes]
+  // Group classes by grade
+  const classesByGrade = useMemo(() => {
+    const groups: Record<string, typeof classes> = {}
+    
+    const sorted = [...classes]
       .filter(c => c.status === 'active')
       .sort((a, b) => {
         const nameA = ((a as any).class_name || a.name || '')
@@ -77,6 +79,21 @@ export default function Tuition() {
         
         return nameA.localeCompare(nameB)
       })
+
+    sorted.forEach(c => {
+      const gradeStr = (c as any).grade || 'Khác'
+      const key = gradeStr.toLowerCase().startsWith('khối') ? gradeStr : `Khối ${gradeStr}`
+      if (!groups[key]) {
+        groups[key] = []
+      }
+      groups[key].push(c)
+    })
+    
+    return Object.entries(groups).sort((a, b) => {
+      const numA = parseInt(a[0].replace(/\D/g, ''), 10) || 0
+      const numB = parseInt(b[0].replace(/\D/g, ''), 10) || 0
+      return numB - numA // Sort grades descending (e.g. Khối 2015 -> Khối 2014; or Khối 9 -> Khối 8)
+    })
   }, [classes])
 
   // Compute tuition notification row list for table
@@ -435,24 +452,46 @@ export default function Tuition() {
         </h1>
       </div>
 
-      {/* Class selection dropdown */}
-      <div className="card p-5">
-        <div className="flex flex-wrap gap-4 items-end">
-          <div className="flex-1 min-w-[250px]">
-            <label className="label text-teal-700 font-bold">Lớp học</label>
-            <select
-              value={selClass}
-              onChange={e => setSelClass(e.target.value)}
-              className="input border-teal-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 font-bold"
-            >
-              <option value="">— Chọn lớp —</option>
-              {sortedClasses.map(c => (
-                <option key={c.id} value={c.id}>
-                  {(c as any).class_name || (c as any).name}
-                </option>
-              ))}
-            </select>
+      {/* Class selection cards grouped by grade */}
+      <div className="card p-6 border border-slate-100 shadow-sm rounded-3xl space-y-4">
+        <div className="flex items-center justify-between border-b border-teal-50 pb-3">
+          <div>
+            <h2 className="font-extrabold text-teal-800 text-lg">Chọn Lớp học theo Khối</h2>
+            <p className="text-xs text-gray-450 text-gray-400 font-semibold mt-0.5">Vui lòng nhấp chọn lớp để xem và báo học phí</p>
           </div>
+        </div>
+        
+        <div className="space-y-4 pt-1">
+          {classesByGrade.length === 0 && (
+            <div className="text-center py-6 text-gray-400 text-sm font-semibold italic">
+              Không tìm thấy lớp học hoạt động nào.
+            </div>
+          )}
+          {classesByGrade.map(([grade, list]) => (
+            <div key={grade} className="space-y-2">
+              <div className="text-xs font-extrabold text-slate-400 uppercase tracking-wider text-left">
+                {grade}
+              </div>
+              <div className="flex flex-wrap gap-2.5">
+                {list.map(c => {
+                  const isSelected = selClass === c.id
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => setSelClass(isSelected ? '' : c.id)}
+                      className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 border cursor-pointer hover:scale-[1.02] active:scale-[0.98]
+                        ${isSelected 
+                          ? 'bg-teal-650 bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-600/15' 
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-teal-300 hover:bg-teal-50/10'
+                        }`}
+                    >
+                      {(c as any).class_name || c.name}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
