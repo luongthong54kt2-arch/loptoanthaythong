@@ -33,6 +33,7 @@ const BANK_NAMES: Record<string, string> = {
   TPB: 'TPBank', STB: 'Sacombank', VPB: 'VPBank',
   MSB: 'MSB', HDB: 'HDBank', OCB: 'OCB',
   SHB: 'SHB', EXIM: 'Eximbank', NAB: 'Nam A Bank',
+  VBA: 'Agribank', Agribank: 'Agribank',
 }
 
 // ─── Build nội dung chuyển khoản theo format chuẩn để webhook match ──────────
