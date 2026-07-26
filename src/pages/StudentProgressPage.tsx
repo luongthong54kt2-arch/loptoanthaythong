@@ -4,12 +4,18 @@ import { supabase } from '@/lib/supabase'
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns'
 import { CalendarCheck, Trophy, BookOpen, GraduationCap, AlertCircle, Clock, ChevronDown, ChevronUp, CheckCircle, XCircle } from 'lucide-react'
 import MathText from '@/components/MathText'
+import toast from 'react-hot-toast'
+
+const BANK_ID      = import.meta.env.VITE_BANK_ID      || 'VBA'
+const BANK_ACCOUNT = import.meta.env.VITE_BANK_ACCOUNT || '3714235000320'
+const BANK_NAME    = import.meta.env.VITE_BANK_NAME    || import.meta.env.VITE_BANK_ACCOUNT_NAME || 'HKD DINH CONG LINH'
 
 export default function StudentProgressPage() {
   const code = new URLSearchParams(window.location.search).get('code') || ''
   const [student, setStudent]         = useState<any>(null)
   const [submissions, setSubmissions] = useState<any[]>([])
   const [courseProgress, setCourseProgress] = useState<any[]>([])
+  const [tuitionNotifications, setTuitionNotifications] = useState<any[]>([])
   const [centerName]   = useState(import.meta.env.VITE_CENTER_NAME || 'LỚP TOÁN THẦY LĨNH')
   const [loading, setLoading]   = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -31,7 +37,7 @@ export default function StudentProgressPage() {
       if (!s) { setNotFound(true); setLoading(false); return }
       setStudent(s)
 
-      const [subRes, progRes, enrollsRes, roomsRes, allSubsRes] = await Promise.all([
+      const [subRes, progRes, enrollsRes, roomsRes, allSubsRes, tuitionRes] = await Promise.all([
         // Lấy các bài thi đã nộp để hiện kết quả bài thi
         supabase.from('exam_submissions')
           .select('score, score_breakdown, answers, submitted_at, status, exam_rooms(exams(title, data))')
@@ -59,11 +65,18 @@ export default function StudentProgressPage() {
         // Lấy tất cả bài nộp của học sinh (để so sánh)
         supabase.from('exam_submissions')
           .select('room_id, status, score')
+          .eq('student_id', s.id),
+
+        // Lấy thông báo học phí chưa thanh toán
+        supabase.from('tuition_notifications')
+          .select('*')
           .eq('student_id', s.id)
+          .eq('is_paid', false)
       ])
 
       setSubmissions(subRes.data || [])
       setCourseProgress(progRes.data || [])
+      setTuitionNotifications(tuitionRes.data || [])
 
       // Tính các lớp tham gia
       const myClasses = enrollsRes.data
@@ -167,6 +180,89 @@ export default function StudentProgressPage() {
       </div>
 
       <div className="-mt-12 relative z-10 px-4 pb-12 space-y-4 max-w-md mx-auto">
+
+        {/* Thông báo học phí */}
+        {tuitionNotifications.length > 0 && tuitionNotifications.map((notif) => {
+          let addInfo = `HP ${student.student_code}`
+          if (/^\d{4}-\d{2}$/.test(notif.course_name)) {
+            const [y, m] = notif.course_name.split('-')
+            addInfo = `HP ${student.student_code} T${parseInt(m)}${y}`
+          } else {
+            const cleanCourse = notif.course_name
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .replace(/[đĐ]/g, 'd')
+              .toUpperCase()
+              .replace(/[^A-Z0-9\s]/g, '')
+              .trim()
+            addInfo = `HP ${student.student_code} ${cleanCourse}`
+          }
+          addInfo = addInfo.substring(0, 25).trim()
+
+          const qrUrl = BANK_ID && BANK_ACCOUNT
+            ? `https://img.vietqr.io/image/${BANK_ID}-${BANK_ACCOUNT}-compact2.png?amount=${notif.amount}&addInfo=${encodeURIComponent(addInfo)}&accountName=${encodeURIComponent(BANK_NAME)}`
+            : ''
+
+          return (
+            <div key={notif.id} className="bg-teal-50 border border-teal-200 rounded-2xl p-5 flex flex-col gap-4 shadow-md shadow-teal-100/50 transition-all hover:scale-[1.01] text-left">
+              <div className="flex gap-3 items-start w-full">
+                <div className="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center text-white flex-shrink-0 animate-pulse mt-0.5 text-xl">
+                  💰
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-teal-800 font-extrabold text-xs uppercase tracking-wide">
+                    📢 THÔNG BÁO ĐÓNG HỌC PHÍ
+                  </h3>
+                  <p className="text-teal-900 font-semibold text-[13px] mt-1.5 leading-relaxed">
+                    Học phí khóa <strong className="text-teal-700 font-black">{notif.course_name}</strong> của học sinh <strong className="text-teal-700 font-black">{student.full_name}</strong> là <strong className="text-rose-600 font-black text-base">{Number(notif.amount).toLocaleString('vi-VN')}</strong>đ, phụ huynh vui lòng chuyển khoản vào stk: <strong className="text-teal-700 font-black tracking-wider">{BANK_ACCOUNT}</strong> ({BANK_NAME})
+                  </p>
+                </div>
+              </div>
+
+              {qrUrl && (
+                <div className="flex flex-col items-center bg-white p-2.5 rounded-xl border border-teal-200 shadow-sm mx-auto w-full max-w-[180px]">
+                  <img
+                    src={qrUrl}
+                    alt="VietQR"
+                    className="w-full aspect-square object-contain rounded-lg border border-gray-100"
+                  />
+                  <span className="text-[9px] text-teal-700 font-extrabold mt-1.5 uppercase tracking-wider text-center">Quét mã VietQR để đóng</span>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2 justify-center border-t border-teal-100 pt-3">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(BANK_ACCOUNT)
+                    toast.success("Đã copy số tài khoản! 📋")
+                  }}
+                  className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-[11px] font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+                >
+                  📋 Copy STK
+                </button>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(Number(notif.amount).toString())
+                    toast.success("Đã copy số tiền! 📋")
+                  }}
+                  className="px-3 py-1.5 bg-white border border-teal-200 text-teal-800 hover:bg-teal-50 rounded-lg text-[11px] font-bold transition-all shadow-sm cursor-pointer"
+                >
+                  💵 Copy số tiền
+                </button>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(addInfo)
+                    toast.success("Đã copy nội dung chuyển khoản! 📋")
+                  }}
+                  className="px-3 py-1.5 bg-white border border-teal-200 text-teal-750 hover:bg-teal-50 rounded-lg text-[11px] font-bold transition-all shadow-sm truncate max-w-[180px] cursor-pointer"
+                  title={addInfo}
+                >
+                  ✍️ CK: {addInfo}
+                </button>
+              </div>
+            </div>
+          )
+        })}
 
         {/* Cảnh báo đề chưa làm */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
