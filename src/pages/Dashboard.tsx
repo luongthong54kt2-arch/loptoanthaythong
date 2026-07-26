@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Users, BookOpen, CalendarCheck, Banknote, ChevronLeft, ChevronRight, Clock, MapPin, Search, Eye, EyeOff } from 'lucide-react'
+import { Users, BookOpen, CalendarCheck, ChevronLeft, ChevronRight, Clock, MapPin, Search, Eye, EyeOff } from 'lucide-react'
 import { useDataStore } from '@/store/dataStore'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
-import { fmtVNDShort, fmt, parseScheduleToDays } from '@/lib/helpers'
+import { fmt, parseScheduleToDays } from '@/lib/helpers'
 import type { LucideIcon } from 'lucide-react'
 import Modal from '@/components/Modal'
 import StudentScorecardModal from '@/components/StudentScorecardModal'
@@ -74,11 +74,10 @@ function parseTimeToMinutes(timeStr: string | null | undefined): number {
 }
 
 export default function Dashboard() {
-  const { profile, isAdmin } = useAuthStore()
-  const { classes, students, enrollments, payments, loadClasses, loadStudents, loadEnrollments, loadPayments } = useDataStore()
+  const { profile } = useAuthStore()
+  const { classes, students, enrollments, loadClasses, loadStudents, loadEnrollments } = useDataStore()
 
   const [loaded, setLoaded]       = useState(false)
-  const [todayAtt, setTodayAtt]   = useState(0)
 
   const [detailClass, setDetailClass] = useState<any>(null)
   const [modalSearch, setModalSearch] = useState('')
@@ -162,19 +161,10 @@ export default function Dashboard() {
   // ✅ FIX 3: loadAttendance() cần params → fetch trực tiếp Supabase cho Dashboard
   const loadDashboard = useCallback(async () => {
     try {
-      const todayStr = new Date().toISOString().slice(0, 10)
-
       await Promise.all([
         loadClasses(),
         loadStudents(),
-        loadPayments(),
         loadEnrollments(),
-        // ✅ FIX 3: Fetch điểm danh hôm nay trực tiếp, không qua store
-        supabase
-          .from('attendance')
-          .select('id', { count: 'exact', head: true })
-          .eq('date', todayStr)
-          .then(({ count }) => setTodayAtt(count ?? 0)),
       ])
     } finally {
       setLoaded(true)
@@ -257,7 +247,6 @@ export default function Dashboard() {
 
   const activeClasses  = classes.filter(c => c.status === 'active').length
   const activeStudents = students.filter(s => s.status === 'active').length
-  const totalRevenue   = payments.reduce((s, p) => s + (p.amount ?? 0), 0)
 
   if (!loaded) return (
     <div className="flex items-center justify-center h-64">
@@ -269,7 +258,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="page-header">
         <div>
-          <h1 className="section-title">Dashboard</h1>
+          <h1 className="section-title">LỚP TOÁN THẦY LĨNH</h1>
           <p className="text-gray-500 text-sm mt-0.5">
             Xin chào, <strong>{profile?.name ?? profile?.email}</strong> 👋
           </p>
@@ -277,7 +266,7 @@ export default function Dashboard() {
         <span className="text-sm text-gray-400">{fmt(new Date(), 'EEEE, dd/MM/yyyy')}</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <StatCard icon={BookOpen}      label="Lớp đang mở"      value={activeClasses}             sub="lớp học đang hoạt động" color="teal"  />
         <StatCard 
           icon={Users}         
@@ -289,10 +278,6 @@ export default function Dashboard() {
           isHidden={!showStudentCount}
           onToggleHide={() => setShowStudentCount(!showStudentCount)}
         />
-        <StatCard icon={CalendarCheck} label="Điểm danh hôm nay" value={todayAtt}                 sub="bản ghi hôm nay"        color="amber" />
-        {isAdmin() && (
-          <StatCard icon={Banknote}    label="Tổng thu"          value={fmtVNDShort(totalRevenue)} sub="tổng doanh thu"         color="teal"  />
-        )}
       </div>
 
       <div className="card p-6 flex flex-col justify-between">

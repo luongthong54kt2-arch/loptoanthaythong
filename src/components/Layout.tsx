@@ -25,7 +25,7 @@ export default function Layout() {
     {
       title: 'Quản lý Đào tạo',
       items: [
-        { path: '/',           icon: LayoutDashboard, label: 'Dashboard' },
+        { path: '/',           icon: LayoutDashboard, label: 'LỚP TOÁN THẦY LĨNH' },
         { path: '/classes',    icon: BookOpen,        label: 'Lớp học' },
         { path: '/students',   icon: Users,           label: 'Học sinh' },
         { path: '/attendance', icon: CalendarCheck,   label: 'Điểm danh' },
