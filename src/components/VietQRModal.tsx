@@ -16,15 +16,15 @@ import { fmtVNDShort } from '@/lib/helpers'
 //    đồng thời hỗ trợ cả BANK_NAME và BANK_ACCOUNT_NAME
 const BANK_ID      = import.meta.env.VITE_BANK_ID
                   || (import.meta.env as any).BANK_ID
-                  || 'MB'
+                  || 'VBA'
 const BANK_ACCOUNT = import.meta.env.VITE_BANK_ACCOUNT
                   || (import.meta.env as any).BANK_ACCOUNT
-                  || ''
+                  || '3714235000320'
 const BANK_NAME    = import.meta.env.VITE_BANK_NAME
                   || import.meta.env.VITE_BANK_ACCOUNT_NAME
                   || (import.meta.env as any).BANK_ACCOUNT_NAME
                   || (import.meta.env as any).BANK_NAME
-                  || 'TRUNG TAM'
+                  || 'HKD DINH CONG LINH'
 
 // ─── Danh sách ngân hàng phổ biến (để hiện tên đẹp) ─────────────────────────
 const BANK_NAMES: Record<string, string> = {
@@ -39,9 +39,22 @@ const BANK_NAMES: Record<string, string> = {
 // ─── Build nội dung chuyển khoản theo format chuẩn để webhook match ──────────
 //    Format: "HP {studentCode} T{month}/{year}"
 //    VD: "HP HS001 T5/2026"
-function buildTransferContent(studentCode: string, month: string): string {
-  const [y, m] = month.split('-')
-  return `HP ${studentCode} T${parseInt(m)}/${y}`
+//    Nếu không phải dạng yyyy-MM, dùng tên khóa học dạng không dấu
+function buildTransferContent(studentCode: string, courseName: string): string {
+  if (/^\d{4}-\d{2}$/.test(courseName)) {
+    const [y, m] = courseName.split('-')
+    return `HP ${studentCode} T${parseInt(m)}/${y}`
+  }
+  
+  const cleanCourse = courseName
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .toUpperCase()
+    .replace(/[^A-Z0-9\s]/g, '')
+    .trim()
+  
+  return `HP ${studentCode} ${cleanCourse}`.substring(0, 25).trim()
 }
 
 // ─── Build URL ảnh QR từ VietQR (miễn phí, không cần auth) ──────────────────
@@ -81,8 +94,12 @@ export default function VietQRModal({
 
   const transferContent = buildTransferContent(studentCode, month)
   const qrUrl           = buildVietQRUrl(amount, transferContent)
-  const [y, m]          = month.split('-')
-  const monthLabel      = `tháng ${parseInt(m)}/${y}`
+  
+  let monthLabel = month
+  if (/^\d{4}-\d{2}$/.test(month)) {
+    const [y, m] = month.split('-')
+    monthLabel = `tháng ${parseInt(m)}/${y}`
+  }
 
   // Reset trạng thái khi mở modal
   useEffect(() => {
