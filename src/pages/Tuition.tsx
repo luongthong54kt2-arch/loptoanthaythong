@@ -101,7 +101,7 @@ export default function Tuition() {
     if (!selClass) return []
     const classEnrollments = enrollments.filter(e => e.class_id === selClass && e.status === 'active')
     
-    return classEnrollments.flatMap(e => {
+    const rows = classEnrollments.flatMap(e => {
       const student = students.find(s => s.id === e.student_id)
       if (!student) return []
       
@@ -117,6 +117,20 @@ export default function Tuition() {
         notification: notif ?? null,
         status
       }]
+    })
+
+    // Sắp xếp: Đã đóng (paid) lên đầu -> Chưa đóng (unpaid) -> Chưa báo học phí (unnotified)
+    // Cùng trạng thái thì sắp xếp theo tên học sinh (alphabetical)
+    return rows.sort((a, b) => {
+      if (a.status === 'paid' && b.status !== 'paid') return -1
+      if (a.status !== 'paid' && b.status === 'paid') return 1
+      
+      if (a.status === 'unpaid' && b.status === 'unnotified') return -1
+      if (a.status === 'unnotified' && b.status === 'unpaid') return 1
+      
+      const nameA = a.student.full_name || ''
+      const nameB = b.student.full_name || ''
+      return nameA.localeCompare(nameB, 'vi')
     })
   }, [selClass, enrollments, students, tuitionNotifications])
 
