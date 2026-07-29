@@ -23,3 +23,7 @@ npm-debug.log*
 
 # Vercel
 .vercel
+
+# Local sessions
+.zalo_session/
+

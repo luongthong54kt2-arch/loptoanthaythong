@@ -32,7 +32,9 @@ export default function Tuition() {
   const [sending, setSending]   = useState(false)
   const [sendResult, setSendResult] = useState<{sent:number;skipped:number;errors:number}|null>(null)
   const [zaloModal, setZaloModal]   = useState<{row:TuitionNotificationRow;msg:string;qrUrl:string;phone:string}|null>(null)
+  const [batchZaloModal, setBatchZaloModal] = useState<{ list: TuitionNotificationRow[]; currentIndex: number } | null>(null)
   const [copiedZalo, setCopiedZalo] = useState<'text'|'img'|null>(null)
+
   const [confirmModal, setConfirmModal] = useState<{studentName:string;amount:number;studentId:string;phone:string;email:string}|null>(null)
   const [sendingConfirm, setSendingConfirm] = useState(false)
 
@@ -258,6 +260,16 @@ export default function Tuition() {
     setZaloModal({ row, msg, qrUrl, phone: cleanPhone })
     setCopiedZalo(null)
   }
+
+  const startBatchZalo = () => {
+    const unpaidList = tuitionData.filter(r => r.status === 'unpaid')
+    if (unpaidList.length === 0) {
+      toast.error('Không có học sinh nào chưa đóng học phí.')
+      return
+    }
+    setBatchZaloModal({ list: unpaidList, currentIndex: 0 })
+  }
+
 
   const copyZaloContent = async (type: 'text' | 'img') => {
     if (!zaloModal) return
@@ -594,6 +606,13 @@ export default function Tuition() {
                     </span>
                   )}
                   <button
+                    onClick={startBatchZalo}
+                    className="btn-teal text-xs py-2 px-4 flex items-center gap-1.5 font-extrabold shadow-md shadow-blue-500/10 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <MessageCircle className="w-4 h-4" /> 🚀 Gửi Zalo Hàng Loạt ({stats.unpaidCount} HS)
+                  </button>
+
+                  <button
                     onClick={() => sendGmailReminder()}
                     disabled={sending}
                     className="btn-outline border-teal-200 text-teal-700 hover:bg-teal-50 text-xs py-2 px-4 flex items-center gap-1.5 font-bold"
@@ -601,9 +620,10 @@ export default function Tuition() {
                     {sending ? (
                       <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang gửi...</>
                     ) : (
-                      <><Mail className="w-3.5 h-3.5" /> Gửi nhắc Gmail ({stats.unpaidCount} HS chưa đóng)</>
+                      <><Mail className="w-3.5 h-3.5" /> Gửi nhắc Gmail ({stats.unpaidCount} HS)</>
                     )}
                   </button>
+
                 </div>
               )}
             </div>
@@ -950,6 +970,123 @@ export default function Tuition() {
           </div>
         </div>
       )}
+
+      {/* Batch Zalo Runner Modal */}
+      {batchZaloModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-blue-100">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between text-white">
+              <div>
+                <h3 className="font-black text-lg flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5" /> 🚀 Trợ lý Gửi Zalo Hàng Loạt
+                </h3>
+                <p className="text-xs text-blue-100 font-medium">
+                  Đang tiến hành: Học sinh {batchZaloModal.currentIndex + 1} / {batchZaloModal.list.length}
+                </p>
+              </div>
+              <button
+                onClick={() => setBatchZaloModal(null)}
+                className="text-white/80 hover:text-white text-xl font-extrabold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content for Current Student */}
+            {(() => {
+              const currentRow = batchZaloModal.list[batchZaloModal.currentIndex]
+              if (!currentRow || !currentRow.notification) return null
+              const studentObj = students.find((s: any) => s.id === currentRow.student.id)
+              const rawPhone = (studentObj as any)?.zalo || (studentObj as any)?.parent_phone || ''
+              const digits = rawPhone.replace(/\D/g, '')
+              const cleanPhone = digits.startsWith('84') ? '0' + digits.substring(2) : (digits.startsWith('0') ? digits : '0' + digits)
+              const amt = Number(currentRow.notification.amount)
+
+
+              const msg = `Học phí khóa ${currentRow.notification.course_name} của học sinh ${currentRow.student.full_name} là ${amt.toLocaleString('vi-VN')} Đồng, phụ huynh vui lòng chuyển khoản vào stk: 3714235000320 HKD DINH CONG LINH`
+
+              const bankId = import.meta.env.VITE_BANK_ID || ''
+              const bankAccount = import.meta.env.VITE_BANK_ACCOUNT || ''
+              const bankName = import.meta.env.VITE_BANK_NAME || import.meta.env.VITE_BANK_ACCOUNT_NAME || ''
+              const addInfo = 'HP ' + currentRow.student.student_code + ' KH'
+              const qrUrl = bankId && bankAccount
+                ? `https://img.vietqr.io/image/${bankId}-${bankAccount}-compact2.png?amount=${amt}&addInfo=${encodeURIComponent(addInfo)}&accountName=${encodeURIComponent(bankName)}`
+                : ''
+
+              const openAndCopy = async () => {
+                try {
+                  await navigator.clipboard.writeText(msg)
+                  toast.success(`Đã copy tin nhắn học phí cho ${currentRow.student.full_name}`)
+                } catch {
+                  toast.error('Lỗi copy')
+                }
+                const targetUrl = cleanPhone
+                  ? `https://zalo.me/${cleanPhone}`
+                  : 'https://chat.zalo.me'
+                window.open(targetUrl, '_blank')
+              }
+
+
+              return (
+                <div className="p-6 space-y-4">
+                  {/* Progress bar */}
+                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-blue-600 h-full transition-all duration-300 rounded-full"
+                      style={{ width: `${((batchZaloModal.currentIndex + 1) / batchZaloModal.list.length) * 100}%` }}
+                    />
+                  </div>
+
+                  {/* Student Info Card */}
+                  <div className="bg-blue-50/60 p-4 rounded-2xl border border-blue-100">
+                    <p className="text-xs text-blue-700 font-extrabold uppercase tracking-wider">Học sinh hiện tại</p>
+                    <p className="text-lg font-black text-gray-900 mt-0.5">{currentRow.student.full_name}</p>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-600">
+                      <span>Mã: <strong>{currentRow.student.student_code}</strong></span>
+                      <span>SĐT: <strong>{rawPhone || 'Chưa cập nhật'}</strong></span>
+                      <span>Học phí: <strong>{amt.toLocaleString('vi-VN')} đ</strong></span>
+                    </div>
+                  </div>
+
+                  {/* Script Helper note */}
+                  <div className="bg-amber-50 p-3.5 rounded-2xl border border-amber-200 text-xs text-amber-900 leading-relaxed">
+                    💡 <strong>Mẹo Tự Động 100%:</strong> Đã tạo file <a href="/zalo-auto-sender.user.js" target="_blank" className="underline font-bold text-amber-950">zalo-auto-sender.user.js</a>. Khi cài kịch bản này vào Tampermonkey/Violentmonkey, Zalo Web sẽ tự động dán tin nhắn & tự động bấm gửi!
+                  </div>
+
+                  {/* Action buttons for Current Step */}
+                  <div className="space-y-2 pt-2">
+                    <button
+                      onClick={openAndCopy}
+                      className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-2xl shadow-lg shadow-blue-500/20 text-sm flex items-center justify-center gap-2"
+                    >
+                      <MessageCircle className="w-5 h-5" /> Copy & Mở Zalo Cho {currentRow.student.full_name}
+                    </button>
+
+                    <div className="flex items-center gap-3 pt-2">
+                      <button
+                        disabled={batchZaloModal.currentIndex === 0}
+                        onClick={() => setBatchZaloModal(b => b ? { ...b, currentIndex: b.currentIndex - 1 } : null)}
+                        className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs disabled:opacity-40"
+                      >
+                        ← Học sinh trước
+                      </button>
+                      <button
+                        disabled={batchZaloModal.currentIndex >= batchZaloModal.list.length - 1}
+                        onClick={() => setBatchZaloModal(b => b ? { ...b, currentIndex: b.currentIndex + 1 } : null)}
+                        className="w-1/2 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs disabled:opacity-40"
+                      >
+                        Học sinh tiếp theo →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
