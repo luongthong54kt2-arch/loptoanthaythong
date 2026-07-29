@@ -1006,14 +1006,6 @@ export default function Tuition() {
 
               const msg = `Học phí khóa ${currentRow.notification.course_name} của học sinh ${currentRow.student.full_name} là ${amt.toLocaleString('vi-VN')} Đồng, phụ huynh vui lòng chuyển khoản vào stk: 3714235000320 HKD DINH CONG LINH`
 
-              const bankId = import.meta.env.VITE_BANK_ID || ''
-              const bankAccount = import.meta.env.VITE_BANK_ACCOUNT || ''
-              const bankName = import.meta.env.VITE_BANK_NAME || import.meta.env.VITE_BANK_ACCOUNT_NAME || ''
-              const addInfo = 'HP ' + currentRow.student.student_code + ' KH'
-              const qrUrl = bankId && bankAccount
-                ? `https://img.vietqr.io/image/${bankId}-${bankAccount}-compact2.png?amount=${amt}&addInfo=${encodeURIComponent(addInfo)}&accountName=${encodeURIComponent(bankName)}`
-                : ''
-
               const openAndCopy = async () => {
                 try {
                   await navigator.clipboard.writeText(msg)
