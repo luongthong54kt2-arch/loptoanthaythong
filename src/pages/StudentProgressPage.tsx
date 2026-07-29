@@ -43,8 +43,7 @@ export default function StudentProgressPage() {
           .select('score, score_breakdown, answers, submitted_at, status, exam_rooms(exams(title, data))')
           .eq('student_id', s.id)
           .eq('status', 'submitted')
-          .order('submitted_at', { ascending: false })
-          .limit(10),
+          .order('submitted_at', { ascending: false }),
 
         // Lấy tiến trình khóa học
         supabase.from('student_progress')
