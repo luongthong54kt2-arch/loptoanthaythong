@@ -69,8 +69,8 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <aside className="w-64 bg-teal-700 text-white flex flex-col shadow-xl z-20 hidden md:flex shrink-0">
-        <div className="h-16 flex items-center gap-3 px-6 border-b border-teal-600/50 bg-teal-800/30">
+      <aside className="w-64 bg-teal-700 text-white flex flex-col shadow-xl z-20 hidden md:flex shrink-0 h-screen sticky top-0">
+        <div className="h-16 flex items-center gap-3 px-6 border-b border-teal-600/50 bg-teal-800/30 shrink-0">
           <GraduationCap className="w-8 h-8 text-teal-100" />
           <div>
             <h1 className="font-bold text-sm leading-tight uppercase tracking-wider">LỚP TOÁN THẦY LĨNH</h1>
@@ -113,7 +113,7 @@ export default function Layout() {
           })}
         </div>
 
-        <div className="p-4 border-t border-teal-600/50 bg-teal-800/30">
+        <div className="p-4 border-t border-teal-600/50 bg-teal-800/30 shrink-0">
           <div className="flex items-center gap-3 px-2 mb-4">
             <div className="w-10 h-10 rounded-full bg-teal-600 border-2 border-teal-400 flex items-center justify-center font-bold">
               {displayChar}
@@ -133,8 +133,8 @@ export default function Layout() {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-gray-50/50">
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+      <main className="flex-1 min-w-0 bg-gray-50/50 min-h-screen">
+        <div className="p-4 md:p-6 lg:p-8">
           <Outlet />
         </div>
       </main>
