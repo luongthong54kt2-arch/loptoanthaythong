@@ -78,7 +78,7 @@ async function main() {
 
   // Wait until user is logged in (search input exists)
   try {
-    await page.waitForSelector('#contact-search-input, input[placeholder*="Tìm kiếm"]', { timeout: 120000 });
+    await page.waitForSelector('#contact-search-input, input[placeholder*="Tìm kiếm"]', { timeout: 600000 });
     console.log('✅ Đã đăng nhập Zalo Web thành công!');
   } catch {
     console.error('❌ Hết thời gian chờ đăng nhập Zalo. Vui lòng thử lại.');

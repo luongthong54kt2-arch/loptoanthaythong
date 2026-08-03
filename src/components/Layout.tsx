@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, BookOpen, CalendarCheck, Banknote,
   Mail, Settings, LogOut, FileText, MonitorPlay, ScanText,
   GraduationCap, Sigma, FilePlus, PlaySquare, Zap, FileType, CreditCard,
-  ClipboardList, Tag,                                             // ← MỚI
+  ClipboardList, Tag, MessageCircle,                                  // ← MỚI ZALO
 } from 'lucide-react'
 
 export default function Layout() {
@@ -56,6 +56,7 @@ export default function Layout() {
       title: 'Hệ thống',
       adminOnly: true,
       items: [
+        { path: '/zalo',          icon: MessageCircle,  label: 'Zalo & Học phí',   adminOnly: true },
         { path: '/student-cards', icon: CreditCard,     label: 'In thẻ học viên', adminOnly: true },
         { path: '/tuition',       icon: Banknote,       label: 'Học phí',         adminOnly: true },
         { path: '/email',         icon: Mail,           label: 'Email / Zalo',    adminOnly: true },

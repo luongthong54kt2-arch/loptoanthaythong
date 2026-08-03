@@ -14,7 +14,12 @@ import {
   FileText, 
   CheckCircle, 
   Clock,
-  RefreshCw
+  RefreshCw,
+  Camera,
+  Upload,
+  Trash2,
+  X,
+  Loader2
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
@@ -51,6 +56,12 @@ export default function StudentPortal() {
   const [showConfirmPass, setShowConfirmPass] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
 
+  // Đổi ảnh đại diện
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+
   useEffect(() => {
     const sessionStr = localStorage.getItem('current_student')
     if (sessionStr) {
@@ -66,6 +77,18 @@ export default function StudentPortal() {
   const fetchStudentData = async (studentId: string) => {
     setLoading(true)
     try {
+      // 0. Cập nhật lại dữ liệu học sinh mới nhất từ DB
+      const { data: latestStudent } = await supabase
+        .from('students')
+        .select('*')
+        .eq('id', studentId)
+        .maybeSingle()
+
+      if (latestStudent) {
+        setStudent(latestStudent)
+        localStorage.setItem('current_student', JSON.stringify(latestStudent))
+      }
+
       // 1. Lấy danh sách lớp học sinh tham gia
       const { data: enrolls } = await supabase
         .from('enrollments')
@@ -255,6 +278,96 @@ export default function StudentPortal() {
       toast.error(err.message || 'Lỗi khi đổi mật khẩu.')
     } finally {
       setIsChangingPassword(false)
+    }
+  }
+
+  // ── Xử lý chọn & lưu ảnh đại diện ─────────────────────────
+  const handleSelectAvatarFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file hình ảnh (PNG, JPG, JPEG, WEBP,...)!')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Dung lượng ảnh tối đa là 5MB!')
+      return
+    }
+    setSelectedAvatarFile(file)
+    const reader = new FileReader()
+    reader.onload = () => {
+      setAvatarPreviewUrl(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleSaveAvatar = async () => {
+    if (!selectedAvatarFile || !student?.id) return
+    setIsUploadingAvatar(true)
+    try {
+      const fileExt = selectedAvatarFile.name.split('.').pop() || 'png'
+      const fileName = `student_${student.id}_${Date.now()}.${fileExt}`
+      const filePath = `avatars/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('exams_pdf')
+        .upload(filePath, selectedAvatarFile, {
+          cacheControl: '3600',
+          upsert: true
+        })
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('exams_pdf')
+        .getPublicUrl(filePath)
+
+      const { error: updateError } = await supabase
+        .from('students')
+        .update({ avatar_url: publicUrl })
+        .eq('id', student.id)
+
+      if (updateError) throw updateError
+
+      const updatedStudent = { ...student, avatar_url: publicUrl }
+      setStudent(updatedStudent)
+      localStorage.setItem('current_student', JSON.stringify(updatedStudent))
+      toast.success('Cập nhật ảnh đại diện thành công! ✨')
+      setIsAvatarModalOpen(false)
+      setSelectedAvatarFile(null)
+      setAvatarPreviewUrl(null)
+    } catch (err: any) {
+      console.error('Lỗi upload avatar:', err)
+      toast.error('Lỗi tải ảnh lên: ' + (err.message || 'Thử lại sau'))
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
+
+  const handleRemoveAvatar = async () => {
+    if (!student?.id) return
+    if (!confirm('Bạn có chắc chắn muốn xóa ảnh đại diện hiện tại?')) return
+    setIsUploadingAvatar(true)
+    try {
+      const { error: updateError } = await supabase
+        .from('students')
+        .update({ avatar_url: null })
+        .eq('id', student.id)
+
+      if (updateError) throw updateError
+
+      const updatedStudent = { ...student, avatar_url: null }
+      setStudent(updatedStudent)
+      localStorage.setItem('current_student', JSON.stringify(updatedStudent))
+      toast.success('Đã xóa ảnh đại diện thành công!')
+      setIsAvatarModalOpen(false)
+      setSelectedAvatarFile(null)
+      setAvatarPreviewUrl(null)
+    } catch (err: any) {
+      console.error('Lỗi xóa avatar:', err)
+      toast.error('Lỗi xóa ảnh: ' + (err.message || 'Thử lại sau'))
+    } finally {
+      setIsUploadingAvatar(false)
     }
   }
 
@@ -532,12 +645,47 @@ export default function StudentPortal() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-2 bg-teal-50 px-3.5 py-1.5 rounded-full border border-teal-100">
-              <UserCircle className="w-5 h-5 text-teal-600" />
+              <div 
+                onClick={() => {
+                  setSelectedAvatarFile(null)
+                  setAvatarPreviewUrl(null)
+                  setIsAvatarModalOpen(true)
+                }}
+                className="relative group cursor-pointer flex-shrink-0"
+                title="Bấm để đổi ảnh đại diện"
+              >
+                {student.avatar_url ? (
+                  <img
+                    src={student.avatar_url}
+                    alt={student.full_name}
+                    className="w-8 h-8 rounded-full object-cover border-2 border-teal-500 shadow-sm transition-transform group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs shadow-sm transition-transform group-hover:scale-105">
+                    {student.full_name?.charAt(0)?.toUpperCase() || <UserCircle className="w-5 h-5 text-white" />}
+                  </div>
+                )}
+                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow border border-teal-200 group-hover:bg-teal-100 transition-colors">
+                  <Camera className="w-3 h-3 text-teal-700" />
+                </div>
+              </div>
               <span className="text-sm font-bold text-teal-800">{student.full_name}</span>
               <span className="bg-teal-200 text-teal-800 text-[10px] font-bold px-1.5 py-0.5 rounded-md ml-1 font-mono">{student.student_code}</span>
             </div>
+            <button
+              onClick={() => {
+                setSelectedAvatarFile(null)
+                setAvatarPreviewUrl(null)
+                setIsAvatarModalOpen(true)
+              }}
+              className="w-10 sm:w-auto h-10 px-0 sm:px-3.5 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-xl border border-teal-200 flex items-center justify-center gap-1.5 transition-all flex-shrink-0 shadow-sm"
+              title="Đổi ảnh đại diện"
+            >
+              <Camera className="w-5 h-5 text-teal-600" />
+              <span className="hidden sm:inline text-sm font-bold">Đổi ảnh</span>
+            </button>
             <button
               onClick={() => setIsChangePasswordOpen(true)}
               className="w-10 sm:w-auto h-10 px-0 sm:px-4 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-xl border border-teal-200 flex items-center justify-center gap-1.5 transition-all flex-shrink-0 shadow-sm"
@@ -1059,6 +1207,127 @@ export default function StudentPortal() {
                   <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                 ) : (
                   'Cập nhật'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ĐỔI ẢNH ĐẠI DIỆN HỌC SINH */}
+      {isAvatarModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/55 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-teal-150 shadow-2xl space-y-5 animate-scale-up">
+            <div className="flex justify-between items-center border-b border-teal-100 pb-3">
+              <h3 className="text-lg font-black text-teal-800 flex items-center gap-2">
+                <Camera className="w-5 h-5 text-teal-600" /> Đổi ảnh đại diện học sinh
+              </h3>
+              <button
+                onClick={() => {
+                  setIsAvatarModalOpen(false)
+                  setSelectedAvatarFile(null)
+                  setAvatarPreviewUrl(null)
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="flex flex-col items-center space-y-4">
+              {/* Preview Avatar */}
+              <div className="relative group w-32 h-32">
+                {avatarPreviewUrl ? (
+                  <img
+                    src={avatarPreviewUrl}
+                    alt="Preview"
+                    className="w-32 h-32 rounded-full object-cover border-4 border-teal-500 shadow-md"
+                  />
+                ) : student?.avatar_url ? (
+                  <img
+                    src={student.avatar_url}
+                    alt={student.full_name}
+                    className="w-32 h-32 rounded-full object-cover border-4 border-teal-500 shadow-md"
+                  />
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-600 border-4 border-teal-100 flex items-center justify-center text-white text-4xl font-black shadow-md">
+                    {student?.full_name?.charAt(0)?.toUpperCase() || 'H'}
+                  </div>
+                )}
+                
+                <label 
+                  htmlFor="student-avatar-input"
+                  className="absolute inset-0 bg-black/40 hover:bg-black/50 text-white rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity duration-200"
+                >
+                  <Camera className="w-6 h-6 mb-1" />
+                  <span className="text-[10px] font-bold uppercase">Chọn ảnh</span>
+                </label>
+              </div>
+
+              <input
+                id="student-avatar-input"
+                type="file"
+                accept="image/*"
+                onChange={handleSelectAvatarFile}
+                className="hidden"
+                disabled={isUploadingAvatar}
+              />
+
+              <div className="flex flex-wrap justify-center gap-2 w-full">
+                <label
+                  htmlFor="student-avatar-input"
+                  className="px-4 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl font-bold text-sm cursor-pointer transition-colors flex items-center gap-1.5"
+                >
+                  <Upload className="w-4 h-4 text-teal-600" />
+                  {selectedAvatarFile ? 'Đổi ảnh khác' : 'Tải ảnh từ máy tính'}
+                </label>
+
+                {student?.avatar_url && !selectedAvatarFile && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    disabled={isUploadingAvatar}
+                    className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-sm transition-colors flex items-center gap-1.5"
+                  >
+                    <Trash2 className="w-4 h-4 text-rose-600" />
+                    Xóa ảnh
+                  </button>
+                )}
+              </div>
+
+              {selectedAvatarFile && (
+                <p className="text-xs text-teal-600 font-medium truncate max-w-xs">
+                  Đã chọn: {selectedAvatarFile.name}
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAvatarModalOpen(false)
+                  setSelectedAvatarFile(null)
+                  setAvatarPreviewUrl(null)
+                }}
+                className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 hover:bg-slate-50 rounded-xl transition-all"
+              >
+                Hủy
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSaveAvatar}
+                disabled={!selectedAvatarFile || isUploadingAvatar}
+                className="px-5 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-black rounded-xl transition-all shadow-md shadow-teal-500/10 flex items-center gap-1.5"
+              >
+                {isUploadingAvatar ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Đang tải lên...</span>
+                  </>
+                ) : (
+                  <span>Lưu ảnh</span>
                 )}
               </button>
             </div>
