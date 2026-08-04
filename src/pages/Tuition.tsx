@@ -40,12 +40,15 @@ export default function Tuition() {
 
   // ── Load foundational data on mount ──
   useEffect(() => {
-    void Promise.all([loadClasses(), loadStudents(), loadEnrollments()])
+    void Promise.all([loadClasses(), loadStudents(), loadEnrollments(), loadTuitionNotifications()])
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Load notifications + payments when class changes ──
   useEffect(() => {
-    if (!selClass) return
+    if (!selClass) {
+      void loadTuitionNotifications()
+      return
+    }
     void loadTuitionNotifications(selClass)
     void loadPayments(selClass)
 
@@ -136,20 +139,64 @@ export default function Tuition() {
     })
   }, [selClass, enrollments, students, tuitionNotifications])
 
-  // Statistics
+  // Statistics (School-wide or Class-wide)
   const stats = useMemo(() => {
-    const totalStudents = tuitionData.length
-    const notifiedCount = tuitionData.filter(d => d.status !== 'unnotified').length
-    const paidCount = tuitionData.filter(d => d.status === 'paid').length
-    const unpaidCount = tuitionData.filter(d => d.status === 'unpaid').length
-    
-    const totalPaidAmount = tuitionData
-      .filter(d => d.status === 'paid' && d.notification)
-      .reduce((sum, d) => sum + Number(d.notification.amount), 0)
+    if (selClass) {
+      const totalStudents = tuitionData.length
+      const notifiedCount = tuitionData.filter(d => d.status !== 'unnotified').length
+      const paidCount = tuitionData.filter(d => d.status === 'paid').length
+      const unpaidCount = tuitionData.filter(d => d.status === 'unpaid').length
       
-    const totalUnpaidAmount = tuitionData
-      .filter(d => d.status === 'unpaid' && d.notification)
-      .reduce((sum, d) => sum + Number(d.notification.amount), 0)
+      const totalPaidAmount = tuitionData
+        .filter(d => d.status === 'paid' && d.notification)
+        .reduce((sum, d) => sum + Number(d.notification.amount), 0)
+        
+      const totalUnpaidAmount = tuitionData
+        .filter(d => d.status === 'unpaid' && d.notification)
+        .reduce((sum, d) => sum + Number(d.notification.amount), 0)
+
+      return {
+        totalStudents,
+        notifiedCount,
+        paidCount,
+        unpaidCount,
+        totalPaidAmount,
+        totalUnpaidAmount
+      }
+    }
+
+    // School-wide stats (when no class is selected)
+    // Unique active students enrolled in active classes or overall active students
+    const activeStudentIds = new Set(
+      enrollments
+        .filter(e => {
+          const cls = classes.find(c => c.id === e.class_id)
+          return e.status === 'active' && cls?.status === 'active'
+        })
+        .map(e => e.student_id)
+    )
+    const totalStudents = activeStudentIds.size > 0 
+      ? activeStudentIds.size 
+      : students.filter(s => s.status === 'active').length
+
+    // Tuition notifications across the entire school
+    const uniqueNotifiedStudentIds = new Set(tuitionNotifications.map(n => n.student_id))
+    const notifiedCount = uniqueNotifiedStudentIds.size
+
+    let totalPaidAmount = 0
+    let totalUnpaidAmount = 0
+    let paidCount = 0
+    let unpaidCount = 0
+
+    tuitionNotifications.forEach(n => {
+      if (n.is_paid) {
+        paidCount += 1
+        totalPaidAmount += Number(n.amount || 0)
+      } else {
+        unpaidCount += 1
+        totalUnpaidAmount += Number(n.amount || 0)
+      }
+    })
 
     return {
       totalStudents,
@@ -159,7 +206,7 @@ export default function Tuition() {
       totalPaidAmount,
       totalUnpaidAmount
     }
-  }, [tuitionData])
+  }, [selClass, tuitionData, enrollments, classes, students, tuitionNotifications])
 
   // ── Send notifications for the entire class ──
   const [sendingNotif, setSendingNotif] = useState(false)
@@ -478,12 +525,27 @@ export default function Tuition() {
         </h1>
       </div>
 
+      {/* Summary Statistics Cards (School-wide or Selected Class) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: selClass ? 'Tổng học sinh lớp' : 'Tổng số học sinh', value: `${stats.totalStudents} HS`, color: 'bg-teal-50 text-teal-700 border border-teal-100' },
+          { label: 'Đã báo học phí', value: `${stats.notifiedCount} HS`, color: 'bg-blue-50 text-blue-700 border border-blue-100' },
+          { label: 'Tổng đã thu', value: fmtVNDShort(stats.totalPaidAmount), color: 'bg-green-50 text-green-700 border border-green-100' },
+          { label: 'Tổng chưa thu', value: fmtVNDShort(stats.totalUnpaidAmount), color: 'bg-red-50 text-red-700 border border-red-100' },
+        ].map(s => (
+          <div key={s.label} className={`card p-5 rounded-2xl ${s.color} shadow-sm transition-all hover:shadow-md`}>
+            <p className="text-xs font-bold opacity-75 uppercase tracking-wider mb-1">{s.label}</p>
+            <p className="text-2xl font-black">{s.value}</p>
+          </div>
+        ))}
+      </div>
+
       {/* Class selection cards grouped by grade */}
       <div className="card p-6 border border-slate-100 shadow-sm rounded-3xl space-y-4">
         <div className="flex items-center justify-between border-b border-teal-50 pb-3">
           <div>
             <h2 className="font-extrabold text-teal-800 text-lg">Chọn Lớp học theo Khối</h2>
-            <p className="text-xs text-gray-450 text-gray-400 font-semibold mt-0.5">Vui lòng nhấp chọn lớp để xem và báo học phí</p>
+            <p className="text-xs text-gray-400 font-semibold mt-0.5">Vui lòng nhấp chọn lớp để xem và báo học phí</p>
           </div>
         </div>
         
@@ -523,21 +585,6 @@ export default function Tuition() {
 
       {selClass && (
         <>
-          {/* Quick Statistics Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { label: 'Tổng số học sinh', value: `${stats.totalStudents} HS`, color: 'bg-teal-50 text-teal-700 border border-teal-100' },
-              { label: 'Đã báo học phí', value: `${stats.notifiedCount} HS`, color: 'bg-blue-50 text-blue-700 border border-blue-100' },
-              { label: 'Tổng đã thu', value: fmtVNDShort(stats.totalPaidAmount), color: 'bg-green-50 text-green-700 border border-green-100' },
-              { label: 'Tổng chưa thu', value: fmtVNDShort(stats.totalUnpaidAmount), color: 'bg-red-50 text-red-700 border border-red-100' },
-            ].map(s => (
-              <div key={s.label} className={`card p-5 rounded-2xl ${s.color} shadow-sm transition-all hover:shadow-md`}>
-                <p className="text-xs font-bold opacity-75 uppercase tracking-wider mb-1">{s.label}</p>
-                <p className="text-2xl font-black">{s.value}</p>
-              </div>
-            ))}
-          </div>
-
           {/* Form Setup Tuition Notification */}
           <div className="card p-6 bg-gradient-to-br from-teal-50/50 to-white border border-teal-100 shadow-sm rounded-3xl">
             <h3 className="font-extrabold text-teal-800 mb-4 flex items-center gap-2 text-base">
