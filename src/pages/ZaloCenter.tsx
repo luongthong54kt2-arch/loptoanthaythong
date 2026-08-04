@@ -2,10 +2,24 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import {
   QrCode, MessageCircle, Send, RefreshCw,
-  Search, CheckCheck, Clock, DollarSign, Zap
+  Search, CheckCheck, Clock, DollarSign, Zap,
+  Settings, Key, ExternalLink, ShieldCheck, AlertCircle, Copy
 } from 'lucide-react'
 import { useDataStore } from '@/store/dataStore'
-import { sendZaloOAMessage, sendZNSNotification } from '@/services/zaloService'
+import {
+  sendZaloOAMessage,
+  sendZNSNotification,
+  getZaloConfig,
+  saveZaloConfig,
+  testZaloOAConnection,
+  isZaloOAConfigured,
+  checkZaloServiceHealth,
+  sendZaloPersonalMessage,
+  startZaloPersonalLogin,
+  checkZaloPersonalLoginState,
+  ZaloConfig,
+  ZaloServiceHealth
+} from '@/services/zaloService'
 
 export default function ZaloCenter() {
   const {
@@ -16,6 +30,24 @@ export default function ZaloCenter() {
   const [activeTab, setActiveTab] = useState<'chat' | 'tuition' | 'connection'>('chat')
   const [isBotConnected] = useState(true)
   const [qrCodeUrl, setQrCodeUrl] = useState('https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=ZALO_CONNECT_EDU_CENTER_SESSION')
+
+  // State Cấu hình Zalo OA Modal & Zalo Service
+  const [isConfigOpen, setIsConfigOpen] = useState(false)
+  const [sendChannel, setSendChannel] = useState<'personal' | 'oa'>('personal')
+  const [zaloConfig, setZaloConfig] = useState<ZaloConfig>({
+    appId: '',
+    appSecret: '',
+    oaId: '',
+    refreshToken: '',
+    accessToken: '',
+    serviceUrl: '',
+    serviceApiKey: ''
+  })
+  const [serviceHealth, setServiceHealth] = useState<ZaloServiceHealth | null>(null)
+  const [isCheckingHealth, setIsCheckingHealth] = useState(false)
+  const [personalQrImage, setPersonalQrImage] = useState<string | null>(null)
+  const [personalLoginStatus, setPersonalLoginStatus] = useState<string>('idle')
+  const [testResult, setTestResult] = useState<{ loading: boolean; success?: boolean; message?: string } | null>(null)
 
   // State bộ lọc học phí
   const [selectedClassId, setSelectedClassId] = useState('all')
@@ -30,6 +62,11 @@ export default function ZaloCenter() {
   const [inputText, setInputText]   = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [activeConvId, setActiveConvId] = useState<string | null>(null)
+
+  // Load cấu hình Zalo khi render
+  useEffect(() => {
+    setZaloConfig(getZaloConfig())
+  }, [])
 
   // Load dữ liệu thực từ Supabase khi mở trang
   useEffect(() => {
@@ -47,7 +84,6 @@ export default function ZaloCenter() {
     if (!students || students.length === 0) return []
 
     return students.map(st => {
-      // Tìm lớp của học sinh qua enrollments
       const studentEnrollments = enrollments.filter(e => e.student_id === st.id)
       const studentClasses = studentEnrollments
         .map(e => classes.find(c => c.id === e.class_id))
@@ -57,9 +93,7 @@ export default function ZaloCenter() {
       const className = primaryClass ? (primaryClass.class_name || primaryClass.name || 'Chưa xếp lớp') : 'Chưa xếp lớp'
       const classId   = primaryClass ? primaryClass.id : 'no_class'
 
-      // Tính học phí mặc định (hoặc từ dữ liệu thông báo)
       const amount = primaryClass?.tuition_fee || 1200000
-
       const isSent = sentItemIds.includes(st.id)
 
       return {
@@ -109,7 +143,30 @@ export default function ZaloCenter() {
   // State quản lý tin nhắn tự tạo
   const [customMessages, setCustomMessages] = useState<Record<string, any[]>>({})
 
-  // Xử lý gửi tin nhắn trực tiếp qua Zalo OA Service / Zalo Bot
+  // Lưu cấu hình Zalo OA
+  const handleSaveConfig = () => {
+    saveZaloConfig(zaloConfig)
+    alert('✅ Đã lưu Cấu hình Zalo OA thành công vào trình duyệt!')
+  }
+
+  // Kiểm tra kết nối Zalo OA
+  const handleTestConnection = async () => {
+    saveZaloConfig(zaloConfig)
+    setTestResult({ loading: true })
+    const res = await testZaloOAConnection()
+    setTestResult({ loading: false, success: res.success, message: res.message })
+  }
+
+  // Mở Zalo Web (zalo.me) để gửi tin nhắn miễn phí nếu OA gặp lỗi
+  const handleOpenZaloWeb = (phone: string, msgText: string) => {
+    navigator.clipboard.writeText(msgText)
+    let cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.startsWith('84')) cleanPhone = '0' + cleanPhone.slice(2)
+    window.open(`https://zalo.me/${cleanPhone}`, '_blank')
+    alert(`📋 Đã sao chép nội dung tin nhắn vào Bộ nhớ tạm!\n👉 Đã mở trang Zalo SĐT ${cleanPhone}. Bạn chỉ cần dán (Ctrl+V) để gửi!`)
+  }
+
+  // Xử lý gửi tin nhắn trực tiếp qua Zalo OA Service / Zalo Personal Gateway
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     if (!inputText.trim() || !activeConv) return
@@ -126,29 +183,32 @@ export default function ZaloCenter() {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 
-    // Cập nhật giao diện chat ngay lập tức
     setCustomMessages(prev => ({
       ...prev,
       [targetId]: [...(prev[targetId] || []), newMsg]
     }))
 
     try {
-      console.log('Đang gửi tin nhắn qua Zalo OA:', targetPhone, msgText)
-      const res = await sendZaloOAMessage(targetPhone, msgText)
-      if (res.success) {
-        console.log('✅ Gửi tin Zalo OA thành công')
+      if (sendChannel === 'personal') {
+        const res = await sendZaloPersonalMessage(targetPhone, msgText)
+        if (!res.success) {
+          alert(`⚠️ ${res.message}`)
+        }
+      } else {
+        const res = await sendZaloOAMessage(targetPhone, msgText)
+        if (!res.success) {
+          alert(`⚠️ ${res.message}`)
+        }
       }
-    } catch (err) {
-      console.log('Đã thêm tin nhắn vào hàng chờ gửi Zalo')
+    } catch (err: any) {
+      console.log('Đã thêm tin nhắn vào hàng chờ gửi Zalo', err)
     }
   }
 
-  // Gửi tin nhắn học phí cá nhân tới Zalo OA
+  // Gửi tin nhắn học phí cá nhân
   const handleSendTuitionIndividual = async (id: string) => {
     const item = filteredTuitionItems.find(i => i.id === id)
     if (!item) return
-
-    setSentItemIds(prev => [...prev, id])
 
     const msg = tuitionTemplate
       .replace('{ten_hoc_sinh}', item.studentName)
@@ -157,22 +217,43 @@ export default function ZaloCenter() {
       .replace('{so_tien}', item.amount.toLocaleString())
 
     try {
-      const res = await sendZaloOAMessage(item.phone, msg)
-      if (res.success) {
-        alert(`✅ ${res.message || 'Đã gửi Zalo OA thành công!'}`)
+      if (sendChannel === 'personal') {
+        const res = await sendZaloPersonalMessage(item.phone, msg)
+        if (res.success) {
+          setSentItemIds(prev => [...prev, id])
+          alert(`✅ ${res.message || 'Đã đưa vào hàng chờ gửi Zalo cá nhân!'}`)
+        } else {
+          if (confirm(`⚠️ Không gửi được Zalo Service: ${res.message}\n\n👉 BẠN CÓ MUỐN MỞ CHAT ZALO.ME CỦA PHỤ HUYNH ĐỂ GỬI THỦ CÔNG KHÔNG?`)) {
+            handleOpenZaloWeb(item.phone, msg)
+            setSentItemIds(prev => [...prev, id])
+          }
+        }
       } else {
-        alert(`⚠️ Không gửi được Zalo OA: ${res.message}`)
+        const res = await sendZaloOAMessage(item.phone, msg)
+        if (res.success) {
+          setSentItemIds(prev => [...prev, id])
+          alert(`✅ ${res.message || 'Đã gửi Zalo OA thành công!'}`)
+        } else {
+          if (confirm(`⚠️ Không gửi được Zalo OA: ${res.message}\n\n👉 BẠN CÓ MUỐN MỞ CHAT ZALO.ME CỦA PHỤ HUYNH ĐỂ GỬI BẰNG ZALO CÁ NHÂN KHÔNG?`)) {
+            handleOpenZaloWeb(item.phone, msg)
+            setSentItemIds(prev => [...prev, id])
+          }
+        }
       }
     } catch (err: any) {
-      console.error('Lỗi gửi học phí Zalo OA', err)
+      console.error('Lỗi gửi học phí Zalo', err)
       alert(`❌ Lỗi gửi Zalo: ${err?.message || 'Có lỗi xảy ra'}`)
     }
   }
 
-  // Gửi học phí hàng loạt tới Zalo OA
+  // Gửi học phí hàng loạt
   const handleSendBulkTuition = async () => {
     setIsSendingBulk(true)
     const pendingItems = filteredTuitionItems.filter(i => i.status === 'pending')
+
+    let successCount = 0
+    let failCount = 0
+    let lastErrorMsg = ''
 
     for (const item of pendingItems) {
       const msg = tuitionTemplate
@@ -182,13 +263,30 @@ export default function ZaloCenter() {
         .replace('{so_tien}', item.amount.toLocaleString())
 
       try {
-        await sendZaloOAMessage(item.phone, msg)
-        setSentItemIds(prev => [...prev, item.id])
+        const res = sendChannel === 'personal'
+          ? await sendZaloPersonalMessage(item.phone, msg)
+          : await sendZaloOAMessage(item.phone, msg)
+
+        if (res.success) {
+          setSentItemIds(prev => [...prev, item.id])
+          successCount++
+        } else {
+          failCount++
+          lastErrorMsg = res.message || ''
+        }
       } catch (err) {
+        failCount++
         console.error('Lỗi gửi học phí Zalo cho ' + item.studentName, err)
       }
     }
     setIsSendingBulk(false)
+
+    if (successCount > 0) {
+      alert(`🎉 Đã gửi thành công ${successCount} tin nhắn học phí qua Zalo OA!`)
+    }
+    if (failCount > 0) {
+      alert(`⚠️ ${failCount} tin nhắn chưa gửi được qua Zalo OA (${lastErrorMsg || 'Cần kiểm tra Cấu hình Zalo OA'}). Hãy nhấp nút "⚙️ Cấu hình Zalo OA" để kiểm tra!`)
+    }
   }
 
   return (
@@ -202,18 +300,26 @@ export default function ZaloCenter() {
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Zalo Connect & Broadcaster</h1>
-              <p className="text-blue-100 text-sm mt-0.5">Kết nối Zalo cá nhân, chat 2 chiều và tự động gửi thông báo học phí</p>
+              <p className="text-blue-100 text-sm mt-0.5">Kết nối Zalo cá nhân, Zalo OA và tự động gửi thông báo học phí</p>
             </div>
           </div>
         </div>
 
-        {/* Status Badge & Tab Switcher */}
+        {/* Action Buttons & Tabs */}
         <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => setIsConfigOpen(true)}
+            className="px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white backdrop-blur-md border border-white/20 transition-all shadow-sm"
+          >
+            <Settings className="w-4 h-4 text-amber-300" />
+            <span>⚙️ Cấu hình Zalo OA</span>
+          </button>
+
           <div className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 backdrop-blur-md ${
-            isBotConnected ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/30' : 'bg-amber-500/20 text-amber-200 border border-amber-400/30'
+            isZaloOAConfigured() ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/30' : 'bg-amber-500/20 text-amber-200 border border-amber-400/30'
           }`}>
-            <span className={`w-2.5 h-2.5 rounded-full ${isBotConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
-            {isBotConnected ? 'Zalo Bot Online' : 'Chưa kết nối Zalo'}
+            <span className={`w-2.5 h-2.5 rounded-full ${isZaloOAConfigured() ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
+            {isZaloOAConfigured() ? 'Zalo OA Đã Cấu Hình' : 'Chưa Cấu Hình Token'}
           </div>
 
           <div className="bg-white/10 p-1 rounded-xl backdrop-blur-md border border-white/15 flex gap-1 text-sm font-medium">
@@ -298,7 +404,7 @@ export default function ZaloCenter() {
                       </div>
 
                       {c.unread > 0 && (
-                        <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        <span className="bg-blue-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
                           {c.unread}
                         </span>
                       )}
@@ -308,45 +414,32 @@ export default function ZaloCenter() {
             </div>
           </div>
 
-          {/* CỘT PHẢI: NỘI DUNG CHAT */}
+          {/* CỘT PHẢI: KHUNG CHAT CHI TIẾT */}
           <div className="lg:col-span-8 flex flex-col bg-white">
-            {!activeConv ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
-                <MessageCircle className="w-12 h-12 mb-3 text-slate-300 animate-bounce" />
-                <p className="font-bold text-slate-600">Chưa có hội thoại nào</p>
-                <p className="text-xs text-slate-400 mt-1">Dữ liệu học sinh sẽ tự động cập nhật khi có học sinh được phân lớp</p>
-              </div>
-            ) : (
+            {activeConv && (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-white">
+                <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
                   <div className="flex items-center gap-3">
                     <img src={activeConv.avatar} alt={activeConv.name} className="w-10 h-10 rounded-full object-cover border border-slate-200" />
                     <div>
                       <h3 className="font-bold text-slate-800 text-base">{activeConv.name}</h3>
-                      <p className="text-xs text-slate-500 flex items-center gap-2">
-                        <span>SĐT: {activeConv.phone}</span>
-                        <span>•</span>
-                        <span className="text-blue-600 font-medium">{activeConv.studentName} ({activeConv.className})</span>
-                      </p>
+                      <p className="text-xs text-slate-500 font-mono">SĐT: {activeConv.phone} • Lớp: {activeConv.className}</p>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => setActiveTab('tuition')}
-                      className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-emerald-200"
-                    >
-                      <DollarSign className="w-3.5 h-3.5" /> Gửi Học Phí Zalo
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleOpenZaloWeb(activeConv.phone, '')}
+                    className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold rounded-lg text-xs flex items-center gap-1.5 transition-all"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" /> Mở Zalo.me
+                  </button>
                 </div>
 
-                {/* Chat Messages Body */}
-                <div className="flex-1 p-6 overflow-y-auto bg-slate-50/40 space-y-4">
+                {/* Message Log */}
+                <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/30">
                   <div className="text-center my-2">
-                    <span className="bg-slate-200/60 text-slate-600 text-[11px] font-semibold px-3 py-1 rounded-full">
-                      Kênh chat đồng bộ trực tiếp với Zalo Phụ huynh
+                    <span className="text-[11px] font-medium text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+                      Hội thoại mã hóa qua Zalo OpenAPI / Bot
                     </span>
                   </div>
 
@@ -440,7 +533,29 @@ export default function ZaloCenter() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-lg font-bold text-slate-800">Danh sách thu học phí</h3>
-                <p className="text-xs text-slate-500">Chọn lớp và tháng để lọc danh sách thông báo Zalo</p>
+                <p className="text-xs text-slate-500">Chọn lớp và kênh Zalo để gửi thông báo</p>
+              </div>
+
+              {/* Chọn Kênh gửi: Personal Zalo Service vs Zalo OA */}
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setSendChannel('personal')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    sendChannel === 'personal' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  ⚡ Zalo Service (Cá nhân)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSendChannel('oa')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    sendChannel === 'oa' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  📢 Zalo OA API
+                </button>
               </div>
 
               {/* Bộ lọc Lớp học & Tháng */}
@@ -482,36 +597,54 @@ export default function ZaloCenter() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredTuitionItems.map(item => (
-                    <tr key={item.id} className="hover:bg-slate-50">
-                      <td className="p-3">
-                        <p className="font-bold text-slate-800">{item.studentName}</p>
-                        <p className="text-xs text-blue-600">{item.class}</p>
-                      </td>
-                      <td className="p-3 font-mono text-slate-600">{item.phone}</td>
-                      <td className="p-3 font-bold text-slate-800">{item.amount.toLocaleString()}đ</td>
-                      <td className="p-3">
-                        {item.status === 'sent' ? (
-                          <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full flex items-center gap-1 w-max">
-                            <CheckCheck className="w-3.5 h-3.5" /> Đã gửi Zalo
-                          </span>
-                        ) : (
-                          <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded-full flex items-center gap-1 w-max">
-                            <Clock className="w-3.5 h-3.5" /> Chờ gửi
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-3 text-right">
-                        <button
-                          onClick={() => handleSendTuitionIndividual(item.id)}
-                          disabled={item.status === 'sent'}
-                          className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-40 font-bold rounded-lg text-xs"
-                        >
-                          Gửi ngay
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredTuitionItems.map(item => {
+                    const msgText = tuitionTemplate
+                      .replace('{ten_hoc_sinh}', item.studentName)
+                      .replace('{lop}', item.class)
+                      .replace('{thang}', item.month)
+                      .replace('{so_tien}', item.amount.toLocaleString())
+
+                    return (
+                      <tr key={item.id} className="hover:bg-slate-50">
+                        <td className="p-3">
+                          <p className="font-bold text-slate-800">{item.studentName}</p>
+                          <p className="text-xs text-blue-600">{item.class}</p>
+                        </td>
+                        <td className="p-3 font-mono text-slate-600">{item.phone}</td>
+                        <td className="p-3 font-bold text-slate-800">{item.amount.toLocaleString()}đ</td>
+                        <td className="p-3">
+                          {item.status === 'sent' ? (
+                            <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full flex items-center gap-1 w-max">
+                              <CheckCheck className="w-3.5 h-3.5" /> Đã gửi Zalo
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded-full flex items-center gap-1 w-max">
+                              <Clock className="w-3.5 h-3.5" /> Chờ gửi
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-3 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => handleSendTuitionIndividual(item.id)}
+                              disabled={item.status === 'sent'}
+                              className="px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 font-bold rounded-lg text-xs flex items-center gap-1 transition-all shadow-xs"
+                              title="Gửi tự động qua Zalo OA API"
+                            >
+                              <Send className="w-3 h-3" /> Gửi OA
+                            </button>
+                            <button
+                              onClick={() => handleOpenZaloWeb(item.phone, msgText)}
+                              className="px-2.5 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold rounded-lg text-xs flex items-center gap-1 transition-all"
+                              title="Mở Zalo.me và copy nội dung gửi thủ công"
+                            >
+                              <ExternalLink className="w-3 h-3 text-blue-600" /> Zalo Web
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -521,36 +654,252 @@ export default function ZaloCenter() {
 
       {/* TAB 3: KẾT NỐI MÃ QR ZALO (QR LOGIN) */}
       {activeTab === 'connection' && (
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-xl border border-slate-200 text-center space-y-6">
-          <div>
-            <h2 className="text-2xl font-black text-slate-800">Kết nối tài khoản Zalo cá nhân</h2>
-            <p className="text-slate-500 text-sm mt-1">Dùng ứng dụng Zalo trên điện thoại quét mã QR bên dưới để kết nối tự động với Web App</p>
-          </div>
-
-          <div className="inline-block p-4 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner relative">
-            <img src={qrCodeUrl} alt="Zalo QR Code" className="w-56 h-56 mx-auto rounded-lg shadow-sm" />
-            <div className="absolute inset-0 flex items-center justify-center bg-white/90 rounded-2xl backdrop-blur-xs opacity-0 hover:opacity-100 transition-opacity">
-              <button 
-                onClick={() => setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=ZALO_CONNECT_SESSION_${Date.now()}`)}
-                className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg"
+        <div className="max-w-3xl mx-auto space-y-6">
+          {/* Cấu hình Zalo Personal Service (zalo-service) */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-800 text-base">Máy chủ Zalo Service Gateway (Personal Zalo)</h3>
+                  <p className="text-xs text-slate-500">Địa chỉ Backend Node.js (`zalo-service`) triển khai trên Render / VPS</p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  setIsCheckingHealth(true)
+                  const res = await checkZaloServiceHealth()
+                  setServiceHealth(res)
+                  setIsCheckingHealth(false)
+                }}
+                disabled={isCheckingHealth}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all"
               >
-                <RefreshCw className="w-3.5 h-3.5" /> Làm mới Mã QR
+                <RefreshCw className={`w-3.5 h-3.5 ${isCheckingHealth ? 'animate-spin' : ''}`} /> Check Health
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">ZALO SERVICE URL</label>
+                <input
+                  type="text"
+                  value={zaloConfig.serviceUrl || ''}
+                  onChange={(e) => setZaloConfig({ ...zaloConfig, serviceUrl: e.target.value })}
+                  placeholder="https://zalo-service-xyz.onrender.com"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">API KEY (X-API-KEY)</label>
+                <input
+                  type="password"
+                  value={zaloConfig.serviceApiKey || ''}
+                  onChange={(e) => setZaloConfig({ ...zaloConfig, serviceApiKey: e.target.value })}
+                  placeholder="Khóa API_KEY bảo mật"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-2">
+              {serviceHealth && (
+                <div className="flex items-center gap-2 text-xs font-semibold">
+                  <span className={`w-2.5 h-2.5 rounded-full ${
+                    serviceHealth.zalo === 'ready' ? 'bg-emerald-500' :
+                    serviceHealth.zalo === 'connecting' ? 'bg-amber-500 animate-pulse' :
+                    'bg-rose-500'
+                  }`} />
+                  <span className="text-slate-700">
+                    Trạng thái Zalo Server: <b className="uppercase">{serviceHealth.zalo}</b>
+                  </span>
+                  {serviceHealth.lastError && (
+                    <span className="text-rose-500 text-[11px]">({serviceHealth.lastError})</span>
+                  )}
+                </div>
+              )}
+
+              <button
+                onClick={() => {
+                  saveZaloConfig(zaloConfig)
+                  alert('✅ Đã lưu Cấu hình Zalo Service URL & API Key!')
+                }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-sm transition-all ml-auto"
+              >
+                Lưu cấu hình Server
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-            <div className="p-3.5 bg-blue-50/60 rounded-xl border border-blue-100">
-              <p className="font-bold text-blue-900 text-xs mb-1">Bước 1</p>
-              <p className="text-xs text-slate-600">Mở ứng dụng Zalo trên điện thoại cá nhân / trung tâm.</p>
+          {/* QR Code login card */}
+          <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 text-center space-y-6">
+            <div>
+              <h2 className="text-2xl font-black text-slate-800">Kết nối tài khoản Zalo cá nhân</h2>
+              <p className="text-slate-500 text-sm mt-1">Dùng ứng dụng Zalo trên điện thoại quét mã QR bên dưới để kết nối tự động với Web App</p>
             </div>
-            <div className="p-3.5 bg-blue-50/60 rounded-xl border border-blue-100">
-              <p className="font-bold text-blue-900 text-xs mb-1">Bước 2</p>
-              <p className="text-xs text-slate-600">Chọn biểu tượng Quét mã QR ở góc trên cùng Zalo.</p>
+
+            <div className="inline-block p-4 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner relative">
+              <img src={personalQrImage || qrCodeUrl} alt="Zalo QR Code" className="w-56 h-56 mx-auto rounded-lg shadow-sm" />
+              <div className="absolute inset-0 flex items-center justify-center bg-white/90 rounded-2xl backdrop-blur-xs opacity-0 hover:opacity-100 transition-opacity">
+                <button 
+                  onClick={async () => {
+                    if (zaloConfig.serviceUrl) {
+                      const res = await startZaloPersonalLogin()
+                      if (res.ok && res.qrImage) {
+                        setPersonalQrImage(res.qrImage)
+                      }
+                    } else {
+                      setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=ZALO_CONNECT_SESSION_${Date.now()}`)
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" /> Làm mới Mã QR
+                </button>
+              </div>
             </div>
-            <div className="p-3.5 bg-blue-50/60 rounded-xl border border-blue-100">
-              <p className="font-bold text-blue-900 text-xs mb-1">Bước 3</p>
-              <p className="text-xs text-slate-600">Xác nhận đăng nhập trên Zalo để hoàn tất kết nối Bot.</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+              <div className="p-3.5 bg-blue-50/60 rounded-xl border border-blue-100">
+                <p className="font-bold text-blue-900 text-xs mb-1">Bước 1</p>
+                <p className="text-xs text-slate-600">Mở ứng dụng Zalo trên điện thoại cá nhân / trung tâm.</p>
+              </div>
+              <div className="p-3.5 bg-blue-50/60 rounded-xl border border-blue-100">
+                <p className="font-bold text-blue-900 text-xs mb-1">Bước 2</p>
+                <p className="text-xs text-slate-600">Chọn biểu tượng Quét mã QR ở góc trên cùng Zalo.</p>
+              </div>
+              <div className="p-3.5 bg-blue-50/60 rounded-xl border border-blue-100">
+                <p className="font-bold text-blue-900 text-xs mb-1">Bước 3</p>
+                <p className="text-xs text-slate-600">Xác nhận đăng nhập trên Zalo để hoàn tất kết nối Bot.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CẤU HÌNH ZALO OA */}
+      {isConfigOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 md:p-8 shadow-2xl space-y-6 relative border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 text-blue-700 rounded-xl">
+                  <Key className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-extrabold text-slate-800">Cấu hình Zalo Official Account (OA)</h2>
+                  <p className="text-xs text-slate-500">Cập nhật Token & Khóa API trực tiếp để gửi tin nhắn trên Web Vercel</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsConfigOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* FORM INPUTS */}
+            <div className="space-y-4 text-sm">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 uppercase">Zalo App ID</label>
+                <input
+                  type="text"
+                  value={zaloConfig.appId}
+                  onChange={(e) => setZaloConfig({ ...zaloConfig, appId: e.target.value })}
+                  placeholder="Ví dụ: 1290064728515467235"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 uppercase">Zalo App Secret Key</label>
+                <input
+                  type="password"
+                  value={zaloConfig.appSecret}
+                  onChange={(e) => setZaloConfig({ ...zaloConfig, appSecret: e.target.value })}
+                  placeholder="Secret key từ developers.zalo.me"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 uppercase">Zalo OA ID</label>
+                <input
+                  type="text"
+                  value={zaloConfig.oaId}
+                  onChange={(e) => setZaloConfig({ ...zaloConfig, oaId: e.target.value })}
+                  placeholder="Ví dụ: 2097717237177591403"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Zalo Refresh Token mới nhất</label>
+                  <a
+                    href="https://developers.zalo.me/tools/explorer"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-bold"
+                  >
+                    Lấy Token tại Zalo Explorer <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <textarea
+                  rows={3}
+                  value={zaloConfig.refreshToken}
+                  onChange={(e) => setZaloConfig({ ...zaloConfig, refreshToken: e.target.value })}
+                  placeholder="Dán mã Refresh Token mới lấy từ Zalo Developer Console..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  💡 Hướng dẫn: Truy cập <a href="https://developers.zalo.me/tools/explorer" target="_blank" rel="noreferrer" className="text-blue-600 font-bold underline">developers.zalo.me/tools/explorer</a> ➔ Chọn ứng dụng & OA ➔ Cấp quyền ➔ Copy <b>Refresh Token</b> dán vào đây.
+                </p>
+              </div>
+
+              {/* Ket qua test */}
+              {testResult && (
+                <div className={`p-4 rounded-2xl border text-xs font-semibold ${
+                  testResult.loading ? 'bg-blue-50 border-blue-200 text-blue-800' :
+                  testResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
+                  'bg-rose-50 border-rose-200 text-rose-800'
+                }`}>
+                  {testResult.loading ? (
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className="w-4 h-4 animate-spin" /> Đang kiểm tra kết nối với Zalo OAuth...
+                    </div>
+                  ) : (
+                    <div>{testResult.message}</div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* BUTTONS */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={handleTestConnection}
+                disabled={testResult?.loading}
+                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all"
+              >
+                <ShieldCheck className="w-4 h-4 text-blue-600" /> Kiểm Tra Kết Nối Token
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleSaveConfig()
+                  setIsConfigOpen(false)
+                }}
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md transition-all text-center"
+              >
+                Lưu Cấu Hình
+              </button>
             </div>
           </div>
         </div>
