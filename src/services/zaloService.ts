@@ -29,6 +29,10 @@ export function getZaloConfig(): ZaloConfig {
 
 // 2. Lưu cấu hình Zalo vào LocalStorage để không bị mất khi dùng trên Vercel
 export function saveZaloConfig(config: Partial<ZaloConfig>): void {
+  const currentAppId = localStorage.getItem('ZALO_APP_ID');
+  const currentAppSecret = localStorage.getItem('ZALO_APP_SECRET');
+  const currentRefreshToken = localStorage.getItem('ZALO_LATEST_REFRESH_TOKEN');
+
   if (config.appId !== undefined) localStorage.setItem('ZALO_APP_ID', config.appId.trim());
   if (config.appSecret !== undefined) localStorage.setItem('ZALO_APP_SECRET', config.appSecret.trim());
   if (config.oaId !== undefined) localStorage.setItem('ZALO_OA_ID', config.oaId.trim());
@@ -36,6 +40,18 @@ export function saveZaloConfig(config: Partial<ZaloConfig>): void {
   if (config.accessToken !== undefined) localStorage.setItem('ZALO_CACHED_ACCESS_TOKEN', config.accessToken.trim());
   if (config.serviceUrl !== undefined) localStorage.setItem('ZALO_SERVICE_URL', config.serviceUrl.trim());
   if (config.serviceApiKey !== undefined) localStorage.setItem('ZALO_SERVICE_API_KEY', config.serviceApiKey.trim());
+
+  // Xóa cached Access Token cũ nếu thay đổi thông tin xác thực
+  if (
+    (config.appId !== undefined && config.appId.trim() !== currentAppId) ||
+    (config.appSecret !== undefined && config.appSecret.trim() !== currentAppSecret) ||
+    (config.refreshToken !== undefined && config.refreshToken.trim() !== currentRefreshToken)
+  ) {
+    cachedAccessToken = null;
+    tokenExpiresAt = 0;
+    localStorage.removeItem('ZALO_CACHED_ACCESS_TOKEN');
+    localStorage.removeItem('ZALO_TOKEN_EXPIRES_AT');
+  }
 }
 
 // 3. Kiểm tra xem Zalo OA đã được cấu hình chưa
@@ -47,15 +63,16 @@ export function isZaloOAConfigured(): boolean {
 // 4. Cache Access Token
 let cachedAccessToken: string | null = localStorage.getItem('ZALO_CACHED_ACCESS_TOKEN');
 let tokenExpiresAt: number = parseInt(localStorage.getItem('ZALO_TOKEN_EXPIRES_AT') || '0', 10);
+let lastZaloErrorMessage: string = '';
 
 /**
  * Lấy hoặc làm mới Access Token từ Refresh Token
  */
-export async function getZaloAccessToken(): Promise<string | null> {
+export async function getZaloAccessToken(forceRefresh = false): Promise<string | null> {
   const cfg = getZaloConfig();
 
-  // 1. Dùng token trong cache nếu còn hạn
-  if (cachedAccessToken && Date.now() < tokenExpiresAt) {
+  // 1. Dùng token trong cache nếu còn hạn và không ép buộc refresh
+  if (!forceRefresh && cachedAccessToken && Date.now() < tokenExpiresAt) {
     console.log('⚡ Dùng lại Zalo Access Token hợp lệ từ Cache');
     return cachedAccessToken;
   }
@@ -68,7 +85,8 @@ export async function getZaloAccessToken(): Promise<string | null> {
   }
 
   if (!cfg.appId || !cfg.appSecret || !cfg.refreshToken) {
-    console.warn('⚠️ Chưa cấu hình đầy đủ Zalo OA Credentials (App ID, Secret Key, Refresh Token)');
+    lastZaloErrorMessage = 'Chưa điền đủ thông tin Cấu hình Zalo OA (App ID, Secret Key, Refresh Token)';
+    console.warn('⚠️ ' + lastZaloErrorMessage);
     return null;
   }
 
@@ -85,21 +103,24 @@ export async function getZaloAccessToken(): Promise<string | null> {
       })
     });
 
-    if (apiRes.ok) {
-      const data = await apiRes.json();
-      if (data.accessToken) {
-        const tokenStr = String(data.accessToken);
-        cachedAccessToken = tokenStr;
-        tokenExpiresAt = Date.now() + 24 * 3600 * 1000;
-        localStorage.setItem('ZALO_CACHED_ACCESS_TOKEN', tokenStr);
-        localStorage.setItem('ZALO_TOKEN_EXPIRES_AT', tokenExpiresAt.toString());
-        if (data.newRefreshToken) {
-          localStorage.setItem('ZALO_LATEST_REFRESH_TOKEN', String(data.newRefreshToken));
-        }
-        return cachedAccessToken;
+    const data = await apiRes.json().catch(() => ({}));
+    if (apiRes.ok && data.accessToken) {
+      const tokenStr = String(data.accessToken);
+      cachedAccessToken = tokenStr;
+      tokenExpiresAt = Date.now() + 24 * 3600 * 1000;
+      localStorage.setItem('ZALO_CACHED_ACCESS_TOKEN', tokenStr);
+      localStorage.setItem('ZALO_TOKEN_EXPIRES_AT', tokenExpiresAt.toString());
+      if (data.newRefreshToken) {
+        localStorage.setItem('ZALO_LATEST_REFRESH_TOKEN', String(data.newRefreshToken));
       }
+      lastZaloErrorMessage = '';
+      return cachedAccessToken;
+    } else if (data && data.message) {
+      lastZaloErrorMessage = data.message;
+      console.error('❌ Serverless Zalo Error:', data);
+      return null;
     }
-  } catch (err) {
+  } catch (err: any) {
     console.warn('Gặp lỗi khi gọi /api/zalo-send endpoint, chuyển sang thử gọi trực tiếp OAuth:', err);
   }
 
@@ -133,14 +154,17 @@ export async function getZaloAccessToken(): Promise<string | null> {
       }
 
       console.log('✅ Đã làm mới Zalo OA Access Token thành công!');
+      lastZaloErrorMessage = '';
       return cachedAccessToken;
     } else {
+      lastZaloErrorMessage = data.message || data.error_name || `Lỗi Zalo OAuth (Mã ${data.error || -1})`;
       console.error('❌ Lỗi từ Zalo OAuth Server:', JSON.stringify(data));
       localStorage.removeItem('ZALO_CACHED_ACCESS_TOKEN');
       localStorage.removeItem('ZALO_TOKEN_EXPIRES_AT');
       return null;
     }
-  } catch (error) {
+  } catch (error: any) {
+    lastZaloErrorMessage = error?.message || 'Lỗi kết nối tới Zalo OAuth API';
     console.error('❌ Lỗi kết nối Zalo OAuth API:', error);
     return null;
   }
@@ -158,7 +182,7 @@ export async function testZaloOAConnection(): Promise<{ success: boolean; messag
     };
   }
 
-  const token = await getZaloAccessToken();
+  const token = await getZaloAccessToken(true);
   if (token) {
     return {
       success: true,
@@ -167,7 +191,7 @@ export async function testZaloOAConnection(): Promise<{ success: boolean; messag
   } else {
     return {
       success: false,
-      message: '❌ Không lấy được Access Token! Refresh Token có thể đã hết hạn. Hãy lấy lại Refresh Token từ Zalo Developer Console.'
+      message: `❌ ${lastZaloErrorMessage || 'Không lấy được Access Token! Refresh Token có thể đã hết hạn hoặc thông tin App ID / Secret Key không đúng.'}`
     };
   }
 }
@@ -206,10 +230,14 @@ export async function sendZaloOAMessage(phoneOrUserId: string, message: string):
         localStorage.setItem('ZALO_LATEST_REFRESH_TOKEN', data.newRefreshToken);
       }
       return { success: true, message: data.message || 'Đã gửi thành công qua Zalo OA!' };
-    } else if (data && data.errorCode === 'TOKEN_EXPIRED') {
+    } else if (data && (data.errorCode === 'TOKEN_EXPIRED' || data.errorCode === -14014)) {
+      cachedAccessToken = null;
+      tokenExpiresAt = 0;
+      localStorage.removeItem('ZALO_CACHED_ACCESS_TOKEN');
+      localStorage.removeItem('ZALO_TOKEN_EXPIRES_AT');
       return {
         success: false,
-        message: 'Mã Zalo Refresh Token hết hạn hoặc vừa bị đổi. Vui lòng cập nhật Refresh Token trong nút "⚙️ Cấu hình Zalo OA".'
+        message: 'Mã Zalo Refresh Token không hợp lệ hoặc đã bị vô hiệu hóa (-14014). Vui lòng lấy lại Refresh Token mới từ Zalo Explorer và dán lại.'
       };
     } else if (data && data.message) {
       // Nếu có thông tin lỗi cụ thể từ Zalo API
