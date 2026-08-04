@@ -550,6 +550,20 @@ export default function Tuition() {
         </div>
         
         <div className="space-y-4 pt-1">
+          {/* Quick "Toàn trường" option button */}
+          <div className="pb-2 border-b border-slate-100">
+            <button
+              onClick={() => setSelClass('')}
+              className={`px-5 py-2.5 rounded-xl font-extrabold text-sm transition-all duration-200 border cursor-pointer hover:scale-[1.02] active:scale-[0.98]
+                ${!selClass 
+                  ? 'bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-600/15 ring-2 ring-teal-600/20' 
+                  : 'bg-teal-50/70 text-teal-800 border-teal-200 hover:border-teal-400 hover:bg-teal-100/50'
+                }`}
+            >
+              🏫 TOÀN TRƯỜNG (TỔNG HỢP)
+            </button>
+          </div>
+
           {classesByGrade.length === 0 && (
             <div className="text-center py-6 text-gray-400 text-sm font-semibold italic">
               Không tìm thấy lớp học hoạt động nào.
