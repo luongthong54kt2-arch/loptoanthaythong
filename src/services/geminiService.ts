@@ -47,11 +47,59 @@ async function fileToBase64(file: File): Promise<string> {
 
 type InlineData = { mime_type: string; data: string };
 
+/**
+ * Helper tự động thử lại khi gặp lỗi tạm thời (503 High Demand, 429 Rate Limit, UNAVAILABLE...)
+ * Tự động chuyển đổi mô hình dự phòng (Fallback) nếu mô hình chính bị tắc nghẽn.
+ */
+async function callWithRetry<T>(
+  fn: (modelCandidate?: string) => Promise<T>,
+  retries = 3,
+  delayMs = 1500,
+  fallbackModels?: string[]
+): Promise<T> {
+  let lastError: any;
+  const models = fallbackModels && fallbackModels.length > 0 ? fallbackModels : [undefined];
+
+  for (const modelCandidate of models) {
+    let currentDelay = delayMs;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        return await fn(modelCandidate);
+      } catch (error: any) {
+        lastError = error;
+        const errMsg = (error?.message || String(error)).toLowerCase();
+        const isTransientError =
+          errMsg.includes("503") ||
+          errMsg.includes("429") ||
+          errMsg.includes("unavailable") ||
+          errMsg.includes("high demand") ||
+          errMsg.includes("overloaded") ||
+          errMsg.includes("resource_exhausted") ||
+          errMsg.includes("fetch failed");
+
+        if (!isTransientError) {
+          throw error;
+        }
+
+        console.warn(
+          `[Gemini API] Quá tải/Nghẽn mạng (Model: ${modelCandidate || "Default"}, Thử lần ${attempt}/${retries}). Thử lại sau ${currentDelay}ms...`
+        );
+
+        if (attempt < retries) {
+          await new Promise((res) => setTimeout(res, currentDelay));
+          currentDelay *= 1.5;
+        }
+      }
+    }
+  }
+  throw lastError;
+}
+
 // ============ 3. HÀM GỌI GEMINI CỐT LÕI (Dùng cho LaTeX & Soạn đề) ============
 
 /**
  * Hàm gọi Gemini sử dụng SDK MỚI @google/genai
- * Xử lý được cả văn bản thuần túy và hình ảnh (Multimodal)
+ * Có tích hợp Auto-Retry và Fallback Model khi gặp lỗi 503/429
  */
 async function callGemini(
   prompt: string,
@@ -60,11 +108,8 @@ async function callGemini(
   inlineDataList?: InlineData[]
 ): Promise<string> {
   const apiKey = getSafeApiKey();
-  
-  // Khởi tạo SDK chuẩn @google/genai
   const ai = new GoogleGenAI({ apiKey });
 
-  // Gom các thành phần (text + hình ảnh) vào một mảng parts theo chuẩn mới
   const parts: any[] = [{ text: prompt }];
 
   if (Array.isArray(inlineDataList) && inlineDataList.length > 0) {
@@ -77,18 +122,23 @@ async function callGemini(
     parts.push({ inlineData: { mimeType: inlineData.mime_type, data: inlineData.data } });
   }
 
-  try {
-    // Cú pháp gọi MỚI của @google/genai (KHÔNG DÙNG getGenerativeModel nữa)
-    const response = await ai.models.generateContent({
-      model: modelName || "gemini-3-flash-preview",
-      contents: parts, 
-    });
-    
-    return response.text || "";
-  } catch (error: any) {
-    console.error("Gemini API Error:", error);
+  const primaryModel = modelName || "gemini-2.5-flash";
+  const fallbackList = [primaryModel, "gemini-2.0-flash", "gemini-1.5-flash"];
+
+  return callWithRetry(async (selectedModel) => {
+    try {
+      const response = await ai.models.generateContent({
+        model: selectedModel || primaryModel,
+        contents: parts, 
+      });
+      return response.text || "";
+    } catch (error: any) {
+      console.error(`Gemini API Error (${selectedModel}):`, error);
+      throw error;
+    }
+  }, 3, 1500, fallbackList).catch((error: any) => {
     throw new Error(error.message || "Lỗi khi gọi AI. Thầy hãy kiểm tra lại Key hoặc kết nối mạng.");
-  }
+  });
 }
 
 // ============ 4. PHẦN 1: CLASS GEMINI SERVICE (Dành cho Sửa lỗi OCR Stream) ============
@@ -141,29 +191,29 @@ export class GeminiService {
     const { cleanText, imageMap } = this.extractImages(text);
     const prompt = `Bạn là chuyên gia biên tập tiếng Việt. Hãy sửa lỗi chính tả văn bản OCR sau, giữ nguyên cấu trúc Markdown, placeholder {{__IMG_x__}} và công thức LaTeX.\n\nVăn bản gốc:\n${cleanText}`;
 
-    try {
-      // Cú pháp Stream MỚI của @google/genai
-      const responseStream = await this.ai.models.generateContentStream({
-        model: 'gemini-3.1-flash-lite-preview',
-        contents: prompt,
-        config: {
-          temperature: 0.1,
-        }
-      });
+    return callWithRetry(async (selectedModel) => {
+      try {
+        const responseStream = await this.ai!.models.generateContentStream({
+          model: selectedModel || 'gemini-2.5-flash',
+          contents: prompt,
+          config: {
+            temperature: 0.1,
+          }
+        });
 
-      let fullResponseText = '';
-      
-      for await (const chunk of responseStream) {
-        if (chunk.text) {
-          fullResponseText += chunk.text;
-          onChunk(chunk.text);
+        let fullResponseText = '';
+        for await (const chunk of responseStream) {
+          if (chunk.text) {
+            fullResponseText += chunk.text;
+            onChunk(chunk.text);
+          }
         }
+        return this.restoreImages(fullResponseText, imageMap);
+      } catch (error: any) {
+        console.error("Gemini stream error:", error);
+        throw error;
       }
-      return this.restoreImages(fullResponseText, imageMap);
-    } catch (error: any) {
-      console.error("Gemini stream error:", error);
-      throw error;
-    }
+    }, 3, 1500, ['gemini-2.5-flash', 'gemini-2.0-flash']);
   }
 }
 
@@ -193,7 +243,7 @@ export async function convertImageToText(file: File): Promise<string> {
 export async function imageToExTest(file: File): Promise<string> {
   const base64 = await fileToBase64(file);
   const prompt = `Bạn là hệ thống OCR Toán học chuyên nghiệp. Chuyển ảnh thành LaTeX chuẩn ex_test.\n\nKHO MẪU TIKZ:\n${getAllTikzSnippets()}\n\nCHỈ trả về khối \\begin{ex}...\\end{ex}.`;
-  const result = await callGemini(prompt, "gemini-3-flash-preview", { mime_type: file.type || "image/png", data: base64 });
+  const result = await callGemini(prompt, "gemini-2.5-flash", { mime_type: file.type || "image/png", data: base64 });
   return normalizeExBlocks(keepOnlyExBlocks(result));
 }
 
@@ -227,26 +277,32 @@ Yêu cầu bắt buộc:
 ĐỀ THI GỐC (JSON):
 ${JSON.stringify(questions, null, 2)}`;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [{ text: prompt }],
-      config: {
-        responseMimeType: "application/json"
-      }
-    });
+  const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
 
-    const text = response.text || "";
-    const parsed = JSON.parse(text);
-    if (Array.isArray(parsed)) {
-      return parsed;
+  return callWithRetry(async (selectedModel) => {
+    try {
+      const response = await ai.models.generateContent({
+        model: selectedModel || "gemini-2.5-flash",
+        contents: [{ text: prompt }],
+        config: {
+          responseMimeType: "application/json"
+        }
+      });
+
+      const text = response.text || "";
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+      if (parsed.questions && Array.isArray(parsed.questions)) {
+        return parsed.questions;
+      }
+      throw new Error("Định dạng dữ liệu trả về từ AI không hợp lệ.");
+    } catch (error: any) {
+      console.error(`Lỗi khi tạo đề tương tự (${selectedModel}):`, error);
+      throw error;
     }
-    if (parsed.questions && Array.isArray(parsed.questions)) {
-      return parsed.questions;
-    }
-    throw new Error("Định dạng dữ liệu trả về từ AI không hợp lệ.");
-  } catch (error: any) {
-    console.error("Lỗi khi tạo đề tương tự:", error);
+  }, 3, 1500, modelsToTry).catch((error: any) => {
     throw new Error("Không thể tạo câu hỏi tương tự từ AI: " + (error.message || "Lỗi không xác định"));
-  }
+  });
 }
