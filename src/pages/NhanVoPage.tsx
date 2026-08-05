@@ -630,7 +630,7 @@ export default function NhanVoPage() {
           </text>
 
           {/* Vignette Divider */}
-          <g transform={`translate(${width / 2}, 150) scale(1.7)`} fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round">
+          <g transform={`translate(${width / 2}, 150) scale(1.5)`} fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round">
             <path d="M -15,-5 C -25,-25 25,-25 15,-5 C 5,15 -5,15 -15,-5 Z" />
             <path d="M -15,-5 C -45,-5 -60,10 -90,5 C -110,0 -115,-15 -95,-15 C -80,-15 -75,5 -90,5" />
             <path d="M 15,-5 C 45,-5 60,10 90,5 C 110,0 115,-15 95,-15 C 80,-15 75,5 90,5" />
@@ -642,22 +642,22 @@ export default function NhanVoPage() {
           {/* Centered Fields */}
           <g fill="#000000">
             {/* Subject (Vở/Sách) */}
-            <text x={width / 2} y="250" fontWeight="bold" fontSize="57" textAnchor="middle" className="svg-label-text">
+            <text x={width / 2} y="250" fontWeight="bold" fontSize="48" textAnchor="middle" className="svg-label-text">
               {label.subject ? (/^(Vở|Sách)/i.test(label.subject) ? label.subject : 'Vở: ' + label.subject) : 'Vở: ................................................'}
             </text>
 
             {/* Class (Lớp) */}
-            <text x={width / 2} y="330" fontWeight="bold" fontSize="57" textAnchor="middle" className="svg-label-text">
+            <text x={width / 2} y="330" fontWeight="bold" fontSize="48" textAnchor="middle" className="svg-label-text">
               Lớp: {label.className || '....................'}
             </text>
 
             {/* Student Name (Họ và tên) */}
-            <text x={width / 2} y="415" fontWeight="bold" fontSize="63" textAnchor="middle" className="svg-label-text">
+            <text x={width / 2} y="415" fontWeight="bold" fontSize="52" textAnchor="middle" className="svg-label-text">
               Họ và tên: {label.studentName || '........................................'}
             </text>
 
             {/* School Year (Năm học) */}
-            <text x={width / 2} y="495" fontWeight="bold" fontSize="57" textAnchor="middle" className="svg-label-text">
+            <text x={width / 2} y="495" fontWeight="bold" fontSize="48" textAnchor="middle" className="svg-label-text">
               Năm học {label.schoolYear || '2026 - 2027'}
             </text>
           </g>
