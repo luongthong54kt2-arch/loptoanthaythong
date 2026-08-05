@@ -182,7 +182,7 @@ interface LabelItem {
   slogan: string;
 }
 
-type TemplateType = 'teal' | 'math' | 'chibi' | 'minimalist' | 'space' | 'vintage' | 'sporty';
+type TemplateType = 'teal' | 'math' | 'chibi' | 'minimalist' | 'space' | 'vintage' | 'sporty' | 'classic_bw';
 
 const splitSlogan = (slogan: string, maxLen: number = 42): string[] => {
   if (!slogan) return [];
@@ -238,8 +238,8 @@ export default function NhanVoPage() {
   // --- Manual Mode Settings ---
   const [manualSubject, setManualSubject] = useState('Môn Toán');
 
-  // Default Template is Math Doodle
-  const [template, setTemplate] = useState<TemplateType>('math');
+  // Default Template is B&W Classic
+  const [template, setTemplate] = useState<TemplateType>('classic_bw');
   const [sloganMode, setSloganMode] = useState<'none' | 'random' | string>('random');
 
   // List of active labels to print
@@ -560,6 +560,128 @@ export default function NhanVoPage() {
       `}</style>
     );
 
+    if (template === 'classic_bw') {
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full">
+          {customStyleBlock}
+          <rect width="100%" height="100%" fill="#ffffff" rx="0" />
+          
+          {/* Classic double borders */}
+          <rect x="15" y="15" width={width - 30} height={height - 30} fill="none" stroke="#000000" strokeWidth="6" />
+          <rect x="25" y="25" width={width - 50} height={height - 50} fill="none" stroke="#000000" strokeWidth="1.5" />
+
+          {/* School Name */}
+          <text x={width / 2} y="95" fill="#000000" fontSize="38" fontWeight="bold" textAnchor="middle" letterSpacing="1" className="svg-label-text">
+            {label.schoolName.toUpperCase()}
+          </text>
+
+          {/* Vignette Divider */}
+          <g transform={`translate(${width / 2}, 150) scale(1.3)`} fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round">
+            <path d="M -15,-5 C -25,-25 25,-25 15,-5 C 5,15 -5,15 -15,-5 Z" />
+            <path d="M -15,-5 C -45,-5 -60,10 -90,5 C -110,0 -115,-15 -95,-15 C -80,-15 -75,5 -90,5" />
+            <path d="M 15,-5 C 45,-5 60,10 90,5 C 110,0 115,-15 95,-15 C 80,-15 75,5 90,5" />
+            <circle cx="0" cy="-5" r="3.5" fill="#000000" />
+            <circle cx="-50" cy="0" r="2" fill="#000000" />
+            <circle cx="50" cy="0" r="2" fill="#000000" />
+          </g>
+
+          {/* Centered Fields */}
+          <g fill="#000000">
+            {/* Subject (Vở) */}
+            <text x={width / 2} y="245" fontWeight="bold" fontSize="34" textAnchor="middle" className="svg-label-text">
+              Vở: {label.subject || '........................................'}
+            </text>
+
+            {/* Class (Lớp) */}
+            <text x={width / 2} y="325" fontWeight="bold" fontSize="34" textAnchor="middle" className="svg-label-text">
+              Lớp: {label.className || '....................'}
+            </text>
+
+            {/* Student Name (Họ và tên) */}
+            <text x={width / 2} y="405" fontWeight="bold" fontSize="36" textAnchor="middle" className="svg-label-text">
+              Họ và tên: {label.studentName || '........................................'}
+            </text>
+
+            {/* School Year (Năm học) */}
+            <text x={width / 2} y="485" fontWeight="bold" fontSize="34" textAnchor="middle" className="svg-label-text">
+              Năm học {label.schoolYear || '2026 - 2027'}
+            </text>
+          </g>
+
+          {/* Bottom Left Corner Ornament */}
+          <g transform="translate(45, 575) scale(0.95)" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M 0,-80 L 0,0 L 80,0" strokeWidth="0.8" strokeDasharray="3,3" />
+            <path d="M 10,-10 Q 30,-50 20,-110" />
+            <path d="M 10,-10 Q 50,-30 110,-20" />
+            <path d="M 10,-10 Q 60,-60 90,-90" />
+            
+            <path d="M 15,-35 Q 25,-45 22,-50 Q 15,-45 15,-35 Z" fill="#000000" />
+            <path d="M 12,-35 Q 2,-45 5,-50 Q 12,-45 12,-35 Z" fill="#000000" />
+            <path d="M 18,-65 Q 28,-75 25,-80 Q 18,-75 18,-65 Z" fill="#000000" />
+            <path d="M 15,-65 Q 5,-75 8,-80 Q 15,-75 15,-65 Z" fill="#000000" />
+            <path d="M 20,-95 Q 30,-105 25,-110 Q 18,-102 20,-95 Z" fill="#000000" />
+            
+            <path d="M 35,-15 Q 45,-25 50,-22 Q 45,-15 35,-15 Z" fill="#000000" />
+            <path d="M 35,-12 Q 45,-2 50,-5 Q 45,-12 35,-12 Z" fill="#000000" />
+            <path d="M 65,-18 Q 75,-28 80,-25 Q 75,-18 65,-18 Z" fill="#000000" />
+            <path d="M 65,-15 Q 75,-5 80,-8 Q 75,-15 65,-15 Z" fill="#000000" />
+            <path d="M 95,-20 Q 105,-30 110,-25 Q 102,-18 95,-20 Z" fill="#000000" />
+
+            <path d="M 30,-30 Q 45,-45 42,-50 Q 32,-42 30,-30 Z" fill="#000000" />
+            <path d="M 55,-55 Q 70,-70 67,-75 Q 57,-67 55,-55 Z" fill="#000000" />
+            <path d="M 75,-75 Q 85,-85 90,-90 Q 80,-80 75,-75 Z" fill="#000000" />
+          </g>
+
+          {/* Bottom Right Corner Ornament (Mirrored) */}
+          <g transform="translate(905, 575) scale(-0.95, 0.95)" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M 0,-80 L 0,0 L 80,0" strokeWidth="0.8" strokeDasharray="3,3" />
+            <path d="M 10,-10 Q 30,-50 20,-110" />
+            <path d="M 10,-10 Q 50,-30 110,-20" />
+            <path d="M 10,-10 Q 60,-60 90,-90" />
+            
+            <path d="M 15,-35 Q 25,-45 22,-50 Q 15,-45 15,-35 Z" fill="#000000" />
+            <path d="M 12,-35 Q 2,-45 5,-50 Q 12,-45 12,-35 Z" fill="#000000" />
+            <path d="M 18,-65 Q 28,-75 25,-80 Q 18,-75 18,-65 Z" fill="#000000" />
+            <path d="M 15,-65 Q 5,-75 8,-80 Q 15,-75 15,-65 Z" fill="#000000" />
+            <path d="M 20,-95 Q 30,-105 25,-110 Q 18,-102 20,-95 Z" fill="#000000" />
+            
+            <path d="M 35,-15 Q 45,-25 50,-22 Q 45,-15 35,-15 Z" fill="#000000" />
+            <path d="M 35,-12 Q 45,-2 50,-5 Q 45,-12 35,-12 Z" fill="#000000" />
+            <path d="M 65,-18 Q 75,-28 80,-25 Q 75,-18 65,-18 Z" fill="#000000" />
+            <path d="M 65,-15 Q 75,-5 80,-8 Q 75,-15 65,-15 Z" fill="#000000" />
+            <path d="M 95,-20 Q 105,-30 110,-25 Q 102,-18 95,-20 Z" fill="#000000" />
+
+            <path d="M 30,-30 Q 45,-45 42,-50 Q 32,-42 30,-30 Z" fill="#000000" />
+            <path d="M 55,-55 Q 70,-70 67,-75 Q 57,-67 55,-55 Z" fill="#000000" />
+            <path d="M 75,-75 Q 85,-85 90,-90 Q 80,-80 75,-75 Z" fill="#000000" />
+          </g>
+
+          {/* Optional Slogan */}
+          {(() => {
+            if (!label.slogan) return null;
+            const lines = splitSlogan(label.slogan, 42);
+            if (lines.length === 2) {
+              return (
+                <g transform={`translate(${width / 2}, 542)`}>
+                  <text textAnchor="middle" fill="#000000" fontSize="24" fontStyle="italic" className="svg-label-text">
+                    “ {lines[0]}
+                  </text>
+                  <text dy="30" textAnchor="middle" fill="#000000" fontSize="24" fontStyle="italic" className="svg-label-text">
+                    {lines[1]} ”
+                  </text>
+                </g>
+              );
+            }
+            return (
+              <text x={width / 2} y="555" textAnchor="middle" fill="#000000" fontSize="26" fontStyle="italic" className="svg-label-text">
+                “ {label.slogan} ”
+              </text>
+            );
+          })()}
+        </svg>
+      );
+    }
+
     if (template === 'teal') {
       return (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full">
@@ -769,7 +891,7 @@ export default function NhanVoPage() {
             <line x1="210" y1="118" x2="690" y2="118" stroke="#f472b6" strokeWidth="2" strokeDasharray="5,5" />
 
             {/* Class & Year */}
-            <text x="0" y="190" fontWeight="bold" fill="#be185d" className="svg-label-text" fontSize="32">Lớp lớp:</text>
+            <text x="0" y="190" fontWeight="bold" fill="#be185d" className="svg-label-text" fontSize="32">Lớp:</text>
             <text x="140" y="190" fill="#1e293b" className="svg-label-text" fontSize="32">{label.className}</text>
             <line x1="130" y1="198" x2="250" y2="198" stroke="#f472b6" strokeWidth="1.5" strokeDasharray="5,5" />
 
@@ -1446,6 +1568,15 @@ export default function NhanVoPage() {
             </h2>
 
             <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setTemplate('classic_bw')}
+                className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${template === 'classic_bw' ? 'border-teal-600 bg-teal-50 text-teal-700 font-bold' : 'border-slate-100 hover:border-slate-200 text-slate-500'}`}
+              >
+                <div className="w-8 h-8 rounded-full bg-white border-2 border-double border-slate-900 mb-1.5 flex items-center justify-center text-[10px] font-bold text-slate-800">🔲</div>
+                <span className="text-xs">Đen trắng Cổ điển</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setTemplate('teal')}
