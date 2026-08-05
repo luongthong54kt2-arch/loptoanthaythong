@@ -37,6 +37,7 @@ function removeVietnameseTones(str: string): string {
 
 function sanitizeFileName(name: string): string {
   let clean = removeVietnameseTones(name);
+  clean = clean.replace(/^\d{10,}[_\s-]*/, '');
   clean = clean.replace(/[^a-zA-Z0-9.\-_]/g, '_');
   clean = clean.replace(/_+/g, '_');
   return clean;
@@ -51,13 +52,13 @@ export const uploadPdfToSupabase = async (
   
   const fileBlob = base64ToBlob(base64Data);
   const sanitizedFileName = sanitizeFileName(fileName);
-  const uniqueFilePath = `pdfs/${Date.now()}_${sanitizedFileName}`;
+  const uniqueFilePath = `pdfs/${sanitizedFileName}`;
 
   const { error } = await supabase.storage
     .from('exams_pdf') 
     .upload(uniqueFilePath, fileBlob, {
       contentType: 'application/pdf',
-      upsert: false
+      upsert: true
     });
 
   if (error) {

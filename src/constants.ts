@@ -100,7 +100,7 @@ shape border rotate=45,font=\H](A){\thepage\;};
 }
 \begin{document}
 \begin{center}
-\textbf{\H\color{\mau}\Large ĐỀ KIỂM TRA THƯỜNG XUYÊN}\\[5pt]
+\textbf{\H\color{\mau}\Large BÀI TẬP VỀ NHÀ}\\[5pt]
 \textit{Môn: Toán 12 -- Thời gian: 45 phút}
 \end{center}
 \vspace{0.5cm}
