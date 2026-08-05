@@ -182,7 +182,7 @@ interface LabelItem {
   slogan: string;
 }
 
-type TemplateType = 'teal' | 'math' | 'chibi' | 'minimalist' | 'space' | 'vintage' | 'sporty';
+type TemplateType = 'teal' | 'math' | 'chibi' | 'minimalist' | 'space' | 'vintage' | 'sporty' | 'classic_bw';
 
 const splitSlogan = (slogan: string, maxLen: number = 42): string[] => {
   if (!slogan) return [];
@@ -219,7 +219,7 @@ const splitSlogan = (slogan: string, maxLen: number = 42): string[] => {
 };
 
 export default function NhanVoPage() {
-  const [printMode, setPrintMode] = useState<'curriculum' | 'manual'>('curriculum');
+  const [printMode, setPrintMode] = useState<'curriculum' | 'manual'>('manual');
 
   // --- Shared Student & School Info ---
   const [schoolName, setSchoolName] = useState('TRƯỜNG THCS SƠN TÂY');
@@ -238,8 +238,8 @@ export default function NhanVoPage() {
   // --- Manual Mode Settings ---
   const [manualSubject, setManualSubject] = useState('Môn Toán');
 
-  // Default Template is Math Doodle
-  const [template, setTemplate] = useState<TemplateType>('math');
+  // Default Template is B&W Classic
+  const [template, setTemplate] = useState<TemplateType>('classic_bw');
   const [sloganMode, setSloganMode] = useState<'none' | 'random' | string>('random');
 
   // List of active labels to print
@@ -354,6 +354,80 @@ export default function NhanVoPage() {
 
     setLabels(prev => [...prev, newLabel]);
     toast.success(`Đã thêm nhãn vở môn: ${newLabel.subject}`);
+  };
+
+  // Quick preset: 25 blank notebook labels + 20 SGK labels + 19 SBT labels
+  const handleCreatePresetRequest = () => {
+    if (!studentName.trim()) {
+      toast.error("Vui lòng điền tên học sinh trước!");
+      return;
+    }
+    
+    setPrintMode('manual');
+    const presetLabels: LabelItem[] = [];
+    
+    // 25 blank notebook labels
+    for (let i = 0; i < 25; i++) {
+      let selectedSlogan = '';
+      if (sloganMode === 'random') {
+        selectedSlogan = SLOGANS[presetLabels.length % SLOGANS.length];
+      } else if (sloganMode !== 'none') {
+        selectedSlogan = sloganMode;
+      }
+      
+      presetLabels.push({
+        id: `preset-notebook-${i}-${Date.now()}-${Math.random()}`,
+        studentName: studentName.trim(),
+        className: className.trim() || 'Lớp ...',
+        schoolName: schoolName,
+        subject: '',
+        schoolYear: schoolYear,
+        slogan: selectedSlogan,
+      });
+    }
+    
+    // 20 SGK book labels
+    for (let i = 0; i < 20; i++) {
+      let selectedSlogan = '';
+      if (sloganMode === 'random') {
+        selectedSlogan = SLOGANS[presetLabels.length % SLOGANS.length];
+      } else if (sloganMode !== 'none') {
+        selectedSlogan = sloganMode;
+      }
+      
+      presetLabels.push({
+        id: `preset-sgk-${i}-${Date.now()}-${Math.random()}`,
+        studentName: studentName.trim(),
+        className: className.trim() || 'Lớp ...',
+        schoolName: schoolName,
+        subject: 'Sách giáo khoa',
+        schoolYear: schoolYear,
+        slogan: selectedSlogan,
+      });
+    }
+
+    // 19 SBT book labels
+    for (let i = 0; i < 19; i++) {
+      let selectedSlogan = '';
+      if (sloganMode === 'random') {
+        selectedSlogan = SLOGANS[presetLabels.length % SLOGANS.length];
+      } else if (sloganMode !== 'none') {
+        selectedSlogan = sloganMode;
+      }
+      
+      presetLabels.push({
+        id: `preset-sbt-${i}-${Date.now()}-${Math.random()}`,
+        studentName: studentName.trim(),
+        className: className.trim() || 'Lớp ...',
+        schoolName: schoolName,
+        subject: 'Sách bài tập',
+        schoolYear: schoolYear,
+        slogan: selectedSlogan,
+      });
+    }
+    
+    setLabels(presetLabels);
+    toast.success("Đã tạo bộ 64 nhãn (25 Vở + 20 SGK + 19 SBT)!");
   };
 
   const handleRemoveLabel = (id: string) => {
@@ -559,6 +633,128 @@ export default function NhanVoPage() {
         }
       `}</style>
     );
+
+    if (template === 'classic_bw') {
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full">
+          {customStyleBlock}
+          <rect width="100%" height="100%" fill="#ffffff" rx="0" />
+          
+          {/* Classic double borders */}
+          <rect x="15" y="15" width={width - 30} height={height - 30} fill="none" stroke="#000000" strokeWidth="6" />
+          <rect x="25" y="25" width={width - 50} height={height - 50} fill="none" stroke="#000000" strokeWidth="1.5" />
+
+          {/* School Name */}
+          <text x={width / 2} y="95" fill="#000000" fontSize="56" fontWeight="bold" textAnchor="middle" letterSpacing="1" className="svg-label-text">
+            {label.schoolName.toUpperCase()}
+          </text>
+
+          {/* Vignette Divider */}
+          <g transform={`translate(${width / 2}, 150) scale(1.4)`} fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round">
+            <path d="M -15,-5 C -25,-25 25,-25 15,-5 C 5,15 -5,15 -15,-5 Z" />
+            <path d="M -15,-5 C -45,-5 -60,10 -90,5 C -110,0 -115,-15 -95,-15 C -80,-15 -75,5 -90,5" />
+            <path d="M 15,-5 C 45,-5 60,10 90,5 C 110,0 115,-15 95,-15 C 80,-15 75,5 90,5" />
+            <circle cx="0" cy="-5" r="3.5" fill="#000000" />
+            <circle cx="-50" cy="0" r="2" fill="#000000" />
+            <circle cx="50" cy="0" r="2" fill="#000000" />
+          </g>
+
+          {/* Centered Fields */}
+          <g fill="#000000">
+            {/* Subject (Vở/Sách) */}
+            <text x={width / 2} y="250" fontWeight="bold" fontSize="48" textAnchor="middle" className="svg-label-text">
+              {label.subject ? (/^(Vở|Sách)/i.test(label.subject) ? label.subject : 'Vở: ' + label.subject) : 'Vở: ................................................'}
+            </text>
+
+            {/* Class (Lớp) */}
+            <text x={width / 2} y="330" fontWeight="bold" fontSize="48" textAnchor="middle" className="svg-label-text">
+              Lớp: {label.className || '....................'}
+            </text>
+
+            {/* Student Name (Họ và tên) */}
+            <text x={width / 2} y="415" fontWeight="bold" fontSize="52" textAnchor="middle" className="svg-label-text">
+              Họ và tên: {label.studentName || '........................................'}
+            </text>
+
+            {/* School Year (Năm học) */}
+            <text x={width / 2} y="495" fontWeight="bold" fontSize="48" textAnchor="middle" className="svg-label-text">
+              Năm học {label.schoolYear || '2026 - 2027'}
+            </text>
+          </g>
+
+          {/* Bottom Left Corner Ornament */}
+          <g transform="translate(45, 575) scale(0.95)" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M 0,-80 L 0,0 L 80,0" strokeWidth="0.8" strokeDasharray="3,3" />
+            <path d="M 10,-10 Q 30,-50 20,-110" />
+            <path d="M 10,-10 Q 50,-30 110,-20" />
+            <path d="M 10,-10 Q 60,-60 90,-90" />
+            
+            <path d="M 15,-35 Q 25,-45 22,-50 Q 15,-45 15,-35 Z" fill="#000000" />
+            <path d="M 12,-35 Q 2,-45 5,-50 Q 12,-45 12,-35 Z" fill="#000000" />
+            <path d="M 18,-65 Q 28,-75 25,-80 Q 18,-75 18,-65 Z" fill="#000000" />
+            <path d="M 15,-65 Q 5,-75 8,-80 Q 15,-75 15,-65 Z" fill="#000000" />
+            <path d="M 20,-95 Q 30,-105 25,-110 Q 18,-102 20,-95 Z" fill="#000000" />
+            
+            <path d="M 35,-15 Q 45,-25 50,-22 Q 45,-15 35,-15 Z" fill="#000000" />
+            <path d="M 35,-12 Q 45,-2 50,-5 Q 45,-12 35,-12 Z" fill="#000000" />
+            <path d="M 65,-18 Q 75,-28 80,-25 Q 75,-18 65,-18 Z" fill="#000000" />
+            <path d="M 65,-15 Q 75,-5 80,-8 Q 75,-15 65,-15 Z" fill="#000000" />
+            <path d="M 95,-20 Q 105,-30 110,-25 Q 102,-18 95,-20 Z" fill="#000000" />
+
+            <path d="M 30,-30 Q 45,-45 42,-50 Q 32,-42 30,-30 Z" fill="#000000" />
+            <path d="M 55,-55 Q 70,-70 67,-75 Q 57,-67 55,-55 Z" fill="#000000" />
+            <path d="M 75,-75 Q 85,-85 90,-90 Q 80,-80 75,-75 Z" fill="#000000" />
+          </g>
+
+          {/* Bottom Right Corner Ornament (Mirrored) */}
+          <g transform="translate(905, 575) scale(-0.95, 0.95)" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M 0,-80 L 0,0 L 80,0" strokeWidth="0.8" strokeDasharray="3,3" />
+            <path d="M 10,-10 Q 30,-50 20,-110" />
+            <path d="M 10,-10 Q 50,-30 110,-20" />
+            <path d="M 10,-10 Q 60,-60 90,-90" />
+            
+            <path d="M 15,-35 Q 25,-45 22,-50 Q 15,-45 15,-35 Z" fill="#000000" />
+            <path d="M 12,-35 Q 2,-45 5,-50 Q 12,-45 12,-35 Z" fill="#000000" />
+            <path d="M 18,-65 Q 28,-75 25,-80 Q 18,-75 18,-65 Z" fill="#000000" />
+            <path d="M 15,-65 Q 5,-75 8,-80 Q 15,-75 15,-65 Z" fill="#000000" />
+            <path d="M 20,-95 Q 30,-105 25,-110 Q 18,-102 20,-95 Z" fill="#000000" />
+            
+            <path d="M 35,-15 Q 45,-25 50,-22 Q 45,-15 35,-15 Z" fill="#000000" />
+            <path d="M 35,-12 Q 45,-2 50,-5 Q 45,-12 35,-12 Z" fill="#000000" />
+            <path d="M 65,-18 Q 75,-28 80,-25 Q 75,-18 65,-18 Z" fill="#000000" />
+            <path d="M 65,-15 Q 75,-5 80,-8 Q 75,-15 65,-15 Z" fill="#000000" />
+            <path d="M 95,-20 Q 105,-30 110,-25 Q 102,-18 95,-20 Z" fill="#000000" />
+
+            <path d="M 30,-30 Q 45,-45 42,-50 Q 32,-42 30,-30 Z" fill="#000000" />
+            <path d="M 55,-55 Q 70,-70 67,-75 Q 57,-67 55,-55 Z" fill="#000000" />
+            <path d="M 75,-75 Q 85,-85 90,-90 Q 80,-80 75,-75 Z" fill="#000000" />
+          </g>
+
+          {/* Optional Slogan */}
+          {(() => {
+            if (!label.slogan) return null;
+            const lines = splitSlogan(label.slogan, 42);
+            if (lines.length === 2) {
+              return (
+                <g transform={`translate(${width / 2}, 542)`}>
+                  <text textAnchor="middle" fill="#000000" fontSize="24" fontStyle="italic" className="svg-label-text">
+                    “ {lines[0]}
+                  </text>
+                  <text dy="30" textAnchor="middle" fill="#000000" fontSize="24" fontStyle="italic" className="svg-label-text">
+                    {lines[1]} ”
+                  </text>
+                </g>
+              );
+            }
+            return (
+              <text x={width / 2} y="555" textAnchor="middle" fill="#000000" fontSize="26" fontStyle="italic" className="svg-label-text">
+                “ {label.slogan} ”
+              </text>
+            );
+          })()}
+        </svg>
+      );
+    }
 
     if (template === 'teal') {
       return (
@@ -769,7 +965,7 @@ export default function NhanVoPage() {
             <line x1="210" y1="118" x2="690" y2="118" stroke="#f472b6" strokeWidth="2" strokeDasharray="5,5" />
 
             {/* Class & Year */}
-            <text x="0" y="190" fontWeight="bold" fill="#be185d" className="svg-label-text" fontSize="32">Lớp lớp:</text>
+            <text x="0" y="190" fontWeight="bold" fill="#be185d" className="svg-label-text" fontSize="32">Lớp:</text>
             <text x="140" y="190" fill="#1e293b" className="svg-label-text" fontSize="32">{label.className}</text>
             <line x1="130" y1="198" x2="250" y2="198" stroke="#f472b6" strokeWidth="1.5" strokeDasharray="5,5" />
 
@@ -1224,28 +1420,14 @@ export default function NhanVoPage() {
               Chế độ tạo nhãn vở
             </h2>
             
-            <div className="flex bg-slate-100 p-1 rounded-xl">
-              <button
-                type="button"
-                onClick={() => {
-                  setPrintMode('curriculum');
-                  setLabels([]);
-                }}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-bold text-center transition-all ${printMode === 'curriculum' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-              >
-                In trọn bộ môn (Khối/Sách)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setPrintMode('manual');
-                  setLabels([]);
-                }}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-bold text-center transition-all ${printMode === 'manual' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-              >
-                In lẻ từng nhãn
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleCreatePresetRequest}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-all shadow-sm animate-pulse"
+            >
+              <Sparkles size={16} className="text-teal-600" />
+              Tạo bộ 64 nhãn (25 Vở + 20 SGK + 19 SBT)
+            </button>
           </div>
 
           {/* Unified Student & School Information Card */}
@@ -1321,122 +1503,7 @@ export default function NhanVoPage() {
             </div>
           </div>
 
-          {/* Curriculum Mode configurations */}
-          {printMode === 'curriculum' && (
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-              <h2 className="text-md font-bold text-slate-700 flex items-center gap-2">
-                <Layers size={18} className="text-teal-600" />
-                Cấu hình bộ môn học
-              </h2>
 
-              <div className="space-y-4">
-                {/* Grade Selector */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Chọn Khối Lớp</label>
-                  <select
-                    value={selectedGrade}
-                    onChange={(e) => setSelectedGrade(e.target.value)}
-                    className="w-full rounded-xl border-slate-200 text-sm focus:border-teal-500 focus:ring-teal-500 py-2.5"
-                  >
-                    <option value="6">Khối 6</option>
-                    <option value="7">Khối 7</option>
-                    <option value="8">Khối 8</option>
-                    <option value="9">Khối 9</option>
-                    <option value="10">Khối 10</option>
-                    <option value="11">Khối 11</option>
-                    <option value="12">Khối 12</option>
-                  </select>
-                </div>
-
-                {/* Book Series Selector */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bộ sách giáo khoa</label>
-                  <select
-                    value={selectedCurriculum}
-                    onChange={(e) => setSelectedCurriculum(e.target.value)}
-                    className="w-full rounded-xl border-slate-200 text-sm focus:border-teal-500 focus:ring-teal-500 py-2.5"
-                  >
-                    <option value="ketnoi">Kết nối tri thức và cuộc sống</option>
-                    <option value="chantroi">Chân trời sáng tạo</option>
-                    <option value="canhdieu">Cánh diều</option>
-                    <option value="none">Tự do (Không in tên sách)</option>
-                  </select>
-                </div>
-
-                {/* Subject Checklist */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Danh sách môn học</label>
-                    <div className="flex items-center gap-2 text-[11px]">
-                      <button type="button" onClick={() => handleToggleAllSubjects(true)} className="text-teal-600 hover:underline">Chọn hết</button>
-                      <span className="text-slate-300">|</span>
-                      <button type="button" onClick={() => handleToggleAllSubjects(false)} className="text-slate-500 hover:underline">Bỏ chọn</button>
-                    </div>
-                  </div>
-
-                  <div className="max-h-48 overflow-y-auto border border-slate-100 rounded-xl p-2 space-y-1 bg-slate-50/50 custom-scrollbar">
-                    {curriculumSubjects.map((sub) => (
-                      <label key={sub} className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer text-xs">
-                        <input
-                          type="checkbox"
-                          checked={!!checkedSubjects[sub]}
-                          onChange={() => handleToggleSubject(sub)}
-                          className="rounded text-teal-600 focus:ring-teal-500 border-slate-300 w-4 h-4"
-                        />
-                        <span className="font-medium text-slate-700">{sub}</span>
-                      </label>
-                    ))}
-                  </div>
-
-                  <form onSubmit={handleAddCustomSubject} className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Thêm môn khác..."
-                      value={customSubjectInput}
-                      onChange={(e) => setCustomSubjectInput(e.target.value)}
-                      className="flex-1 rounded-lg border-slate-200 text-xs focus:border-teal-500 focus:ring-teal-500 py-1.5"
-                    />
-                    <button
-                      type="submit"
-                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition-colors"
-                    >
-                      Thêm
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Manual Mode subject configurations */}
-          {printMode === 'manual' && (
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-              <h2 className="text-md font-bold text-slate-700 flex items-center gap-2">
-                <Layers size={18} className="text-teal-600" />
-                Cấu hình môn học lẻ
-              </h2>
-
-              <form onSubmit={handleAddManualLabel} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Môn học / Loại tập</label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: Môn Toán, Vở bài tập Đại số..."
-                    value={manualSubject}
-                    onChange={(e) => setManualSubject(e.target.value)}
-                    className="w-full rounded-xl border-slate-200 text-sm focus:border-teal-500 focus:ring-teal-500 py-2.5"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-all shadow-sm"
-                >
-                  <Plus size={16} />
-                  Thêm nhãn vở lẻ này
-                </button>
-              </form>
-            </div>
-          )}
 
           {/* Design Templates Selector */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
@@ -1446,6 +1513,15 @@ export default function NhanVoPage() {
             </h2>
 
             <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setTemplate('classic_bw')}
+                className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${template === 'classic_bw' ? 'border-teal-600 bg-teal-50 text-teal-700 font-bold' : 'border-slate-100 hover:border-slate-200 text-slate-500'}`}
+              >
+                <div className="w-8 h-8 rounded-full bg-white border-2 border-double border-slate-900 mb-1.5 flex items-center justify-center text-[10px] font-bold text-slate-800">🔲</div>
+                <span className="text-xs">Đen trắng Cổ điển</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setTemplate('teal')}
