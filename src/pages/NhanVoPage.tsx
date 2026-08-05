@@ -219,7 +219,7 @@ const splitSlogan = (slogan: string, maxLen: number = 42): string[] => {
 };
 
 export default function NhanVoPage() {
-  const [printMode, setPrintMode] = useState<'curriculum' | 'manual'>('curriculum');
+  const [printMode, setPrintMode] = useState<'curriculum' | 'manual'>('manual');
 
   // --- Shared Student & School Info ---
   const [schoolName, setSchoolName] = useState('TRƯỜNG THCS SƠN TÂY');
@@ -1420,29 +1420,6 @@ export default function NhanVoPage() {
               Chế độ tạo nhãn vở
             </h2>
             
-            <div className="flex bg-slate-100 p-1 rounded-xl">
-              <button
-                type="button"
-                onClick={() => {
-                  setPrintMode('curriculum');
-                  setLabels([]);
-                }}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-bold text-center transition-all ${printMode === 'curriculum' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-              >
-                In trọn bộ môn (Khối/Sách)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setPrintMode('manual');
-                  setLabels([]);
-                }}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-bold text-center transition-all ${printMode === 'manual' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-              >
-                In lẻ từng nhãn
-              </button>
-            </div>
-
             <button
               type="button"
               onClick={handleCreatePresetRequest}
@@ -1526,122 +1503,7 @@ export default function NhanVoPage() {
             </div>
           </div>
 
-          {/* Curriculum Mode configurations */}
-          {printMode === 'curriculum' && (
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-              <h2 className="text-md font-bold text-slate-700 flex items-center gap-2">
-                <Layers size={18} className="text-teal-600" />
-                Cấu hình bộ môn học
-              </h2>
 
-              <div className="space-y-4">
-                {/* Grade Selector */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Chọn Khối Lớp</label>
-                  <select
-                    value={selectedGrade}
-                    onChange={(e) => setSelectedGrade(e.target.value)}
-                    className="w-full rounded-xl border-slate-200 text-sm focus:border-teal-500 focus:ring-teal-500 py-2.5"
-                  >
-                    <option value="6">Khối 6</option>
-                    <option value="7">Khối 7</option>
-                    <option value="8">Khối 8</option>
-                    <option value="9">Khối 9</option>
-                    <option value="10">Khối 10</option>
-                    <option value="11">Khối 11</option>
-                    <option value="12">Khối 12</option>
-                  </select>
-                </div>
-
-                {/* Book Series Selector */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bộ sách giáo khoa</label>
-                  <select
-                    value={selectedCurriculum}
-                    onChange={(e) => setSelectedCurriculum(e.target.value)}
-                    className="w-full rounded-xl border-slate-200 text-sm focus:border-teal-500 focus:ring-teal-500 py-2.5"
-                  >
-                    <option value="ketnoi">Kết nối tri thức và cuộc sống</option>
-                    <option value="chantroi">Chân trời sáng tạo</option>
-                    <option value="canhdieu">Cánh diều</option>
-                    <option value="none">Tự do (Không in tên sách)</option>
-                  </select>
-                </div>
-
-                {/* Subject Checklist */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Danh sách môn học</label>
-                    <div className="flex items-center gap-2 text-[11px]">
-                      <button type="button" onClick={() => handleToggleAllSubjects(true)} className="text-teal-600 hover:underline">Chọn hết</button>
-                      <span className="text-slate-300">|</span>
-                      <button type="button" onClick={() => handleToggleAllSubjects(false)} className="text-slate-500 hover:underline">Bỏ chọn</button>
-                    </div>
-                  </div>
-
-                  <div className="max-h-48 overflow-y-auto border border-slate-100 rounded-xl p-2 space-y-1 bg-slate-50/50 custom-scrollbar">
-                    {curriculumSubjects.map((sub) => (
-                      <label key={sub} className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer text-xs">
-                        <input
-                          type="checkbox"
-                          checked={!!checkedSubjects[sub]}
-                          onChange={() => handleToggleSubject(sub)}
-                          className="rounded text-teal-600 focus:ring-teal-500 border-slate-300 w-4 h-4"
-                        />
-                        <span className="font-medium text-slate-700">{sub}</span>
-                      </label>
-                    ))}
-                  </div>
-
-                  <form onSubmit={handleAddCustomSubject} className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Thêm môn khác..."
-                      value={customSubjectInput}
-                      onChange={(e) => setCustomSubjectInput(e.target.value)}
-                      className="flex-1 rounded-lg border-slate-200 text-xs focus:border-teal-500 focus:ring-teal-500 py-1.5"
-                    />
-                    <button
-                      type="submit"
-                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition-colors"
-                    >
-                      Thêm
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Manual Mode subject configurations */}
-          {printMode === 'manual' && (
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-              <h2 className="text-md font-bold text-slate-700 flex items-center gap-2">
-                <Layers size={18} className="text-teal-600" />
-                Cấu hình môn học lẻ
-              </h2>
-
-              <form onSubmit={handleAddManualLabel} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Môn học / Loại tập</label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: Môn Toán, Vở bài tập Đại số..."
-                    value={manualSubject}
-                    onChange={(e) => setManualSubject(e.target.value)}
-                    className="w-full rounded-xl border-slate-200 text-sm focus:border-teal-500 focus:ring-teal-500 py-2.5"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-all shadow-sm"
-                >
-                  <Plus size={16} />
-                  Thêm nhãn vở lẻ này
-                </button>
-              </form>
-            </div>
-          )}
 
           {/* Design Templates Selector */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
