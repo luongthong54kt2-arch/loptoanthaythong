@@ -356,7 +356,7 @@ export default function NhanVoPage() {
     toast.success(`Đã thêm nhãn vở môn: ${newLabel.subject}`);
   };
 
-  // Quick preset: 20 blank notebook labels + 30 SGK/SBT labels
+  // Quick preset: 25 blank notebook labels + 39 SGK/SBT labels
   const handleCreatePresetRequest = () => {
     if (!studentName.trim()) {
       toast.error("Vui lòng điền tên học sinh trước!");
@@ -366,8 +366,8 @@ export default function NhanVoPage() {
     setPrintMode('manual');
     const presetLabels: LabelItem[] = [];
     
-    // 20 blank notebook labels
-    for (let i = 0; i < 20; i++) {
+    // 25 blank notebook labels
+    for (let i = 0; i < 25; i++) {
       let selectedSlogan = '';
       if (sloganMode === 'random') {
         selectedSlogan = SLOGANS[presetLabels.length % SLOGANS.length];
@@ -386,8 +386,8 @@ export default function NhanVoPage() {
       });
     }
     
-    // 30 SGK/SBT book labels
-    for (let i = 0; i < 30; i++) {
+    // 39 SGK/SBT book labels
+    for (let i = 0; i < 39; i++) {
       let selectedSlogan = '';
       if (sloganMode === 'random') {
         selectedSlogan = SLOGANS[presetLabels.length % SLOGANS.length];
@@ -407,7 +407,7 @@ export default function NhanVoPage() {
     }
     
     setLabels(presetLabels);
-    toast.success("Đã tạo bộ 50 nhãn (20 nhãn Vở + 30 nhãn Sách)!");
+    toast.success("Đã tạo bộ 64 nhãn (25 nhãn Vở + 39 nhãn Sách)!");
   };
 
   const handleRemoveLabel = (id: string) => {
@@ -625,12 +625,12 @@ export default function NhanVoPage() {
           <rect x="25" y="25" width={width - 50} height={height - 50} fill="none" stroke="#000000" strokeWidth="1.5" />
 
           {/* School Name */}
-          <text x={width / 2} y="95" fill="#000000" fontSize="42" fontWeight="bold" textAnchor="middle" letterSpacing="1" className="svg-label-text">
+          <text x={width / 2} y="95" fill="#000000" fontSize="63" fontWeight="bold" textAnchor="middle" letterSpacing="1" className="svg-label-text">
             {label.schoolName.toUpperCase()}
           </text>
 
           {/* Vignette Divider */}
-          <g transform={`translate(${width / 2}, 150) scale(1.4)`} fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round">
+          <g transform={`translate(${width / 2}, 150) scale(1.7)`} fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round">
             <path d="M -15,-5 C -25,-25 25,-25 15,-5 C 5,15 -5,15 -15,-5 Z" />
             <path d="M -15,-5 C -45,-5 -60,10 -90,5 C -110,0 -115,-15 -95,-15 C -80,-15 -75,5 -90,5" />
             <path d="M 15,-5 C 45,-5 60,10 90,5 C 110,0 115,-15 95,-15 C 80,-15 75,5 90,5" />
@@ -642,22 +642,22 @@ export default function NhanVoPage() {
           {/* Centered Fields */}
           <g fill="#000000">
             {/* Subject (Vở/Sách) */}
-            <text x={width / 2} y="250" fontWeight="bold" fontSize="38" textAnchor="middle" className="svg-label-text">
+            <text x={width / 2} y="250" fontWeight="bold" fontSize="57" textAnchor="middle" className="svg-label-text">
               {label.subject ? (/^(Vở|Sách)/i.test(label.subject) ? label.subject : 'Vở: ' + label.subject) : 'Vở: ................................................'}
             </text>
 
             {/* Class (Lớp) */}
-            <text x={width / 2} y="330" fontWeight="bold" fontSize="38" textAnchor="middle" className="svg-label-text">
+            <text x={width / 2} y="330" fontWeight="bold" fontSize="57" textAnchor="middle" className="svg-label-text">
               Lớp: {label.className || '....................'}
             </text>
 
             {/* Student Name (Họ và tên) */}
-            <text x={width / 2} y="415" fontWeight="bold" fontSize="42" textAnchor="middle" className="svg-label-text">
+            <text x={width / 2} y="415" fontWeight="bold" fontSize="63" textAnchor="middle" className="svg-label-text">
               Họ và tên: {label.studentName || '........................................'}
             </text>
 
             {/* School Year (Năm học) */}
-            <text x={width / 2} y="495" fontWeight="bold" fontSize="38" textAnchor="middle" className="svg-label-text">
+            <text x={width / 2} y="495" fontWeight="bold" fontSize="57" textAnchor="middle" className="svg-label-text">
               Năm học {label.schoolYear || '2026 - 2027'}
             </text>
           </g>
@@ -1429,7 +1429,7 @@ export default function NhanVoPage() {
               className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-all shadow-sm animate-pulse"
             >
               <Sparkles size={16} className="text-teal-600" />
-              Tạo bộ 50 nhãn (20 Vở + 30 Sách)
+              Tạo bộ 64 nhãn (25 Vở + 39 Sách)
             </button>
           </div>
 
