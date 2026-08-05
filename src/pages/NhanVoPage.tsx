@@ -356,7 +356,7 @@ export default function NhanVoPage() {
     toast.success(`Đã thêm nhãn vở môn: ${newLabel.subject}`);
   };
 
-  // Quick preset: 25 blank notebook labels + 39 SGK/SBT labels
+  // Quick preset: 25 blank notebook labels + 20 SGK labels + 19 SBT labels
   const handleCreatePresetRequest = () => {
     if (!studentName.trim()) {
       toast.error("Vui lòng điền tên học sinh trước!");
@@ -386,8 +386,8 @@ export default function NhanVoPage() {
       });
     }
     
-    // 39 SGK/SBT book labels
-    for (let i = 0; i < 39; i++) {
+    // 20 SGK book labels
+    for (let i = 0; i < 20; i++) {
       let selectedSlogan = '';
       if (sloganMode === 'random') {
         selectedSlogan = SLOGANS[presetLabels.length % SLOGANS.length];
@@ -396,18 +396,38 @@ export default function NhanVoPage() {
       }
       
       presetLabels.push({
-        id: `preset-book-${i}-${Date.now()}-${Math.random()}`,
+        id: `preset-sgk-${i}-${Date.now()}-${Math.random()}`,
         studentName: studentName.trim(),
         className: className.trim() || 'Lớp ...',
         schoolName: schoolName,
-        subject: 'Sách giáo khoa / Sách bài tập',
+        subject: 'Sách giáo khoa',
+        schoolYear: schoolYear,
+        slogan: selectedSlogan,
+      });
+    }
+
+    // 19 SBT book labels
+    for (let i = 0; i < 19; i++) {
+      let selectedSlogan = '';
+      if (sloganMode === 'random') {
+        selectedSlogan = SLOGANS[presetLabels.length % SLOGANS.length];
+      } else if (sloganMode !== 'none') {
+        selectedSlogan = sloganMode;
+      }
+      
+      presetLabels.push({
+        id: `preset-sbt-${i}-${Date.now()}-${Math.random()}`,
+        studentName: studentName.trim(),
+        className: className.trim() || 'Lớp ...',
+        schoolName: schoolName,
+        subject: 'Sách bài tập',
         schoolYear: schoolYear,
         slogan: selectedSlogan,
       });
     }
     
     setLabels(presetLabels);
-    toast.success("Đã tạo bộ 64 nhãn (25 nhãn Vở + 39 nhãn Sách)!");
+    toast.success("Đã tạo bộ 64 nhãn (25 Vở + 20 SGK + 19 SBT)!");
   };
 
   const handleRemoveLabel = (id: string) => {
@@ -625,12 +645,12 @@ export default function NhanVoPage() {
           <rect x="25" y="25" width={width - 50} height={height - 50} fill="none" stroke="#000000" strokeWidth="1.5" />
 
           {/* School Name */}
-          <text x={width / 2} y="95" fill="#000000" fontSize="63" fontWeight="bold" textAnchor="middle" letterSpacing="1" className="svg-label-text">
+          <text x={width / 2} y="95" fill="#000000" fontSize="56" fontWeight="bold" textAnchor="middle" letterSpacing="1" className="svg-label-text">
             {label.schoolName.toUpperCase()}
           </text>
 
           {/* Vignette Divider */}
-          <g transform={`translate(${width / 2}, 150) scale(1.5)`} fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round">
+          <g transform={`translate(${width / 2}, 150) scale(1.4)`} fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round">
             <path d="M -15,-5 C -25,-25 25,-25 15,-5 C 5,15 -5,15 -15,-5 Z" />
             <path d="M -15,-5 C -45,-5 -60,10 -90,5 C -110,0 -115,-15 -95,-15 C -80,-15 -75,5 -90,5" />
             <path d="M 15,-5 C 45,-5 60,10 90,5 C 110,0 115,-15 95,-15 C 80,-15 75,5 90,5" />
@@ -1429,7 +1449,7 @@ export default function NhanVoPage() {
               className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-all shadow-sm animate-pulse"
             >
               <Sparkles size={16} className="text-teal-600" />
-              Tạo bộ 64 nhãn (25 Vở + 39 Sách)
+              Tạo bộ 64 nhãn (25 Vở + 20 SGK + 19 SBT)
             </button>
           </div>
 
