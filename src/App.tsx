@@ -40,6 +40,7 @@ import NhanVoPage from '@/pages/NhanVoPage'
 // Pages Thẻ học viên & Tiến trình
 import StudentCards from '@/pages/StudentCards'
 import StudentProgressPage from '@/pages/StudentProgressPage'
+import ZaloCenter from '@/pages/ZaloCenter'
 
 // --- PHỤ TRỢ: LOADER ---
 function Spinner() {
@@ -116,6 +117,7 @@ export default function App() {
         <Route path="student-labels" element={<NhanVoPage />} />
 
         {/* --- Nhóm Hệ thống (Chỉ Admin) --- */}
+        <Route path="zalo"          element={<ProtectedRoute adminOnly><ZaloCenter /></ProtectedRoute>} />
         <Route path="student-cards" element={<ProtectedRoute adminOnly><StudentCards /></ProtectedRoute>} />
         <Route path="tuition"       element={<ProtectedRoute adminOnly><Tuition /></ProtectedRoute>} />
         <Route path="email"         element={<ProtectedRoute adminOnly><EmailCenter /></ProtectedRoute>} />

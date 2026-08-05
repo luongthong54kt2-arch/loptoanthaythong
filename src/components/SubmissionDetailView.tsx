@@ -34,6 +34,59 @@ function normalizeAnswer(ans: string): string {
   return norm;
 }
 
+// ✅ Helper: Kiếm tra câu trả lời có đúng hay không
+function isQuestionCorrect(question: any, submission: any, partNum: number, sbRaw: any, tf: any): boolean {
+  if (!question) return true;
+  const qNum = question.number;
+
+  if (partNum === 1) { // Multiple choice
+    const userAnswer = getAnswerValue(submission?.answers, qNum);
+    return !!userAnswer && String(userAnswer).trim().toUpperCase() === String(question.correctAnswer || '').trim().toUpperCase();
+  }
+
+  if (partNum === 2) { // True / False
+    const breakdown = getTFBreakdown(tf?.details, qNum);
+    if (breakdown) {
+      const totalStatements = breakdown.totalStatements ?? (question.options?.length ?? 4);
+      return breakdown.correctCount === totalStatements && breakdown.answeredCount === totalStatements;
+    }
+    const userAnswer = getAnswerValue(submission?.answers, qNum);
+    if (!userAnswer) return false;
+    const correctArr = (question.correctAnswer || '').toLowerCase().split(',').map((s: string) => s.trim()).filter(Boolean);
+    let userAnswers: Record<string, string> = {};
+    if (userAnswer.includes(':')) {
+      userAnswer.split(',').forEach((p: string) => {
+        const [l, v] = p.split(':');
+        if (l && v) userAnswers[l.trim().toLowerCase()] = v.trim();
+      });
+    }
+    const options = question.options || [];
+    let correctCount = 0;
+    options.forEach((opt: any) => {
+      const letter = opt.letter.toLowerCase();
+      const isCorrectStatement = correctArr.includes(letter);
+      const userVal = userAnswers[letter];
+      if ((userVal === 'T' && isCorrectStatement) || (userVal === 'F' && !isCorrectStatement)) {
+        correctCount++;
+      }
+    });
+    return correctCount === options.length;
+  }
+
+  if (partNum === 3) { // Short answer
+    const userAnswer = getAnswerValue(submission?.answers, qNum);
+    return !!userAnswer && normalizeAnswer(userAnswer) === normalizeAnswer(question.correctAnswer || '');
+  }
+
+  if (partNum === 4) { // Essay
+    const scoreDetail = sbRaw.essay?.details?.[qNum] || sbRaw.essay?.details?.[String(qNum)];
+    if (!scoreDetail) return false;
+    return scoreDetail.score > 0;
+  }
+
+  return true;
+}
+
 function parseEssayAnswer(raw: any) {
   if (!raw) return { text: '', images: [] };
   if (typeof raw === 'object') {
@@ -66,6 +119,7 @@ const SubmissionDetailView: React.FC<SubmissionDetailViewProps> = ({
   const [localExam, setLocalExam] = useState<any>(null);
   const [localRoom, setLocalRoom] = useState<any>(null);
   const [loading, setLoading] = useState(!!submissionId && !propSubmission);
+  const [prioritizeWrong, setPrioritizeWrong] = useState(true);
 
   useEffect(() => {
     setMounted(true);
@@ -209,7 +263,7 @@ const SubmissionDetailView: React.FC<SubmissionDetailViewProps> = ({
       >
         {/* ── Header ── */}
         <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-5 py-4 flex-shrink-0">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
             <div>
               <h2 className="text-xl font-black flex items-center gap-2">
                 📋 Chi tiết bài làm
@@ -221,12 +275,25 @@ const SubmissionDetailView: React.FC<SubmissionDetailViewProps> = ({
                 )}
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="w-9 h-9 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition font-bold text-lg flex-shrink-0"
-            >
-              ✕
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setPrioritizeWrong(!prioritizeWrong)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border shadow-sm ${
+                  prioritizeWrong
+                    ? 'bg-amber-400 text-amber-950 border-amber-300 hover:bg-amber-300'
+                    : 'bg-white/20 text-white border-white/30 hover:bg-white/30'
+                }`}
+                title="Bật/Tắt ưu tiên hiển thị các câu sai lên đầu"
+              >
+                {prioritizeWrong ? '🔥 Đang hiện câu sai lên đầu' : '🔢 Hiện theo thứ tự gốc'}
+              </button>
+              <button
+                onClick={onClose}
+                className="w-9 h-9 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition font-bold text-lg flex-shrink-0"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         </div>
 
@@ -312,7 +379,7 @@ const SubmissionDetailView: React.FC<SubmissionDetailViewProps> = ({
               3: ['short_answer'],
               4: ['writing'],
             };
-            const questionsInPart = (exam.questions || []).filter(q => {
+            const rawQuestionsInPart = (exam.questions || []).filter(q => {
               const qNum = Number(q.number);
               const numBasedPart = Math.floor(qNum / 100);
               if (numBasedPart >= 1 && numBasedPart <= 9) {
@@ -321,7 +388,23 @@ const SubmissionDetailView: React.FC<SubmissionDetailViewProps> = ({
               }
               // Đề trộn/shuffle với sequential numbering → dùng question type
               return (partTypeMap[partNum] || []).includes(q.type || 'multiple_choice');
-            }).sort((a, b) => Number(a.number) - Number(b.number));
+            }).sort((a, b) => Number(a.number) - Number(b.number))
+            .map((q, idx) => ({
+              ...q,
+              originalDisplayIndex: idx + 1
+            }));
+
+            // ✅ Sắp xếp câu sai / chưa làm lên đầu nếu prioritizeWrong === true
+            const questionsInPart = prioritizeWrong
+              ? [...rawQuestionsInPart].sort((a, b) => {
+                  const aCorrect = isQuestionCorrect(a, submission, partNum, sbRaw, tf);
+                  const bCorrect = isQuestionCorrect(b, submission, partNum, sbRaw, tf);
+                  if (aCorrect === bCorrect) {
+                    return Number(a.number) - Number(b.number);
+                  }
+                  return aCorrect ? 1 : -1; // Câu sai (false) lên trước câu đúng (true)
+                })
+              : rawQuestionsInPart;
 
             if (questionsInPart.length === 0) return null;
             const config = partConfigs[partNum];
@@ -329,18 +412,24 @@ const SubmissionDetailView: React.FC<SubmissionDetailViewProps> = ({
             return (
               <div key={partNum}>
                 {/* Section header */}
-                <div className={`bg-gradient-to-r ${config.gradient} rounded-2xl p-4 mb-4 shadow-md`}>
-                  <h3 className="font-black text-white text-base">{config.title}</h3>
-                  <p className="text-white/80 text-xs mt-0.5">{config.desc}</p>
+                <div className={`bg-gradient-to-r ${config.gradient} rounded-2xl p-4 mb-4 shadow-md flex items-center justify-between`}>
+                  <div>
+                    <h3 className="font-black text-white text-base">{config.title}</h3>
+                    <p className="text-white/80 text-xs mt-0.5">{config.desc}</p>
+                  </div>
+                  {prioritizeWrong && (
+                    <span className="text-[11px] font-bold px-2.5 py-1 bg-white/20 text-white rounded-lg backdrop-blur-sm">
+                      ⚠️ Đã ưu tiên câu sai lên đầu
+                    </span>
+                  )}
                 </div>
 
                 <div className="space-y-3">
-                  {questionsInPart.map((question, idx) => {
+                  {questionsInPart.map((question) => {
                     // ✅ FIX BUG 7: robust answer lookup với cả number và string key
                     const userAnswer = getAnswerValue(submission.answers, question.number);
-                    // ✅ FIX: displayIndex = vị trí trong phần (1-based),
-                    // không dùng q.number % 100 vì đề shuffle đánh số 1,2,3...
-                    const displayIndex = idx + 1;
+                    // ✅ Giữ nguyên số thứ tự gốc của câu hỏi trong đề
+                    const displayIndex = (question as any).originalDisplayIndex;
 
                     return (
                       <div key={question.number}>

@@ -53,8 +53,7 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
           .from('exam_submissions')
           .select('id, score, score_breakdown, submitted_at, status, exam_rooms(exams(title, data))')
           .eq('student_id', student.id)
-          .order('submitted_at', { ascending: false })
-          .limit(10),
+          .order('submitted_at', { ascending: false }),
         supabase
           .from('students')
           .select('*')
@@ -527,7 +526,7 @@ export default function StudentScorecardModal({ student, open, onClose }: Studen
 
                 <div className="flex items-center gap-2 mb-4">
                   <Trophy className="w-4 h-4 text-orange-500" />
-                  <h3 className="font-bold text-gray-800 text-xs">10 bài thi gần nhất</h3>
+                  <h3 className="font-bold text-gray-800 text-xs">Tất cả bài thi</h3>
                 </div>
 
                 {submissions.length === 0 ? (

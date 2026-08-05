@@ -32,18 +32,23 @@ export default function Tuition() {
   const [sending, setSending]   = useState(false)
   const [sendResult, setSendResult] = useState<{sent:number;skipped:number;errors:number}|null>(null)
   const [zaloModal, setZaloModal]   = useState<{row:TuitionNotificationRow;msg:string;qrUrl:string;phone:string}|null>(null)
+  const [batchZaloModal, setBatchZaloModal] = useState<{ list: TuitionNotificationRow[]; currentIndex: number } | null>(null)
   const [copiedZalo, setCopiedZalo] = useState<'text'|'img'|null>(null)
+
   const [confirmModal, setConfirmModal] = useState<{studentName:string;amount:number;studentId:string;phone:string;email:string}|null>(null)
   const [sendingConfirm, setSendingConfirm] = useState(false)
 
   // ── Load foundational data on mount ──
   useEffect(() => {
-    void Promise.all([loadClasses(), loadStudents(), loadEnrollments()])
+    void Promise.all([loadClasses(), loadStudents(), loadEnrollments(), loadTuitionNotifications()])
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Load notifications + payments when class changes ──
   useEffect(() => {
-    if (!selClass) return
+    if (!selClass) {
+      void loadTuitionNotifications()
+      return
+    }
     void loadTuitionNotifications(selClass)
     void loadPayments(selClass)
 
@@ -134,20 +139,64 @@ export default function Tuition() {
     })
   }, [selClass, enrollments, students, tuitionNotifications])
 
-  // Statistics
+  // Statistics (School-wide or Class-wide)
   const stats = useMemo(() => {
-    const totalStudents = tuitionData.length
-    const notifiedCount = tuitionData.filter(d => d.status !== 'unnotified').length
-    const paidCount = tuitionData.filter(d => d.status === 'paid').length
-    const unpaidCount = tuitionData.filter(d => d.status === 'unpaid').length
-    
-    const totalPaidAmount = tuitionData
-      .filter(d => d.status === 'paid' && d.notification)
-      .reduce((sum, d) => sum + Number(d.notification.amount), 0)
+    if (selClass) {
+      const totalStudents = tuitionData.length
+      const notifiedCount = tuitionData.filter(d => d.status !== 'unnotified').length
+      const paidCount = tuitionData.filter(d => d.status === 'paid').length
+      const unpaidCount = tuitionData.filter(d => d.status === 'unpaid').length
       
-    const totalUnpaidAmount = tuitionData
-      .filter(d => d.status === 'unpaid' && d.notification)
-      .reduce((sum, d) => sum + Number(d.notification.amount), 0)
+      const totalPaidAmount = tuitionData
+        .filter(d => d.status === 'paid' && d.notification)
+        .reduce((sum, d) => sum + Number(d.notification.amount), 0)
+        
+      const totalUnpaidAmount = tuitionData
+        .filter(d => d.status === 'unpaid' && d.notification)
+        .reduce((sum, d) => sum + Number(d.notification.amount), 0)
+
+      return {
+        totalStudents,
+        notifiedCount,
+        paidCount,
+        unpaidCount,
+        totalPaidAmount,
+        totalUnpaidAmount
+      }
+    }
+
+    // School-wide stats (when no class is selected)
+    // Unique active students enrolled in active classes or overall active students
+    const activeStudentIds = new Set(
+      enrollments
+        .filter(e => {
+          const cls = classes.find(c => c.id === e.class_id)
+          return e.status === 'active' && cls?.status === 'active'
+        })
+        .map(e => e.student_id)
+    )
+    const totalStudents = activeStudentIds.size > 0 
+      ? activeStudentIds.size 
+      : students.filter(s => s.status === 'active').length
+
+    // Tuition notifications across the entire school
+    const uniqueNotifiedStudentIds = new Set(tuitionNotifications.map(n => n.student_id))
+    const notifiedCount = uniqueNotifiedStudentIds.size
+
+    let totalPaidAmount = 0
+    let totalUnpaidAmount = 0
+    let paidCount = 0
+    let unpaidCount = 0
+
+    tuitionNotifications.forEach(n => {
+      if (n.is_paid) {
+        paidCount += 1
+        totalPaidAmount += Number(n.amount || 0)
+      } else {
+        unpaidCount += 1
+        totalUnpaidAmount += Number(n.amount || 0)
+      }
+    })
 
     return {
       totalStudents,
@@ -157,7 +206,7 @@ export default function Tuition() {
       totalPaidAmount,
       totalUnpaidAmount
     }
-  }, [tuitionData])
+  }, [selClass, tuitionData, enrollments, classes, students, tuitionNotifications])
 
   // ── Send notifications for the entire class ──
   const [sendingNotif, setSendingNotif] = useState(false)
@@ -258,6 +307,16 @@ export default function Tuition() {
     setZaloModal({ row, msg, qrUrl, phone: cleanPhone })
     setCopiedZalo(null)
   }
+
+  const startBatchZalo = () => {
+    const unpaidList = tuitionData.filter(r => r.status === 'unpaid')
+    if (unpaidList.length === 0) {
+      toast.error('Không có học sinh nào chưa đóng học phí.')
+      return
+    }
+    setBatchZaloModal({ list: unpaidList, currentIndex: 0 })
+  }
+
 
   const copyZaloContent = async (type: 'text' | 'img') => {
     if (!zaloModal) return
@@ -466,16 +525,45 @@ export default function Tuition() {
         </h1>
       </div>
 
+      {/* Summary Statistics Cards (School-wide or Selected Class) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: selClass ? 'Tổng học sinh lớp' : 'Tổng số học sinh', value: `${stats.totalStudents} HS`, color: 'bg-teal-50 text-teal-700 border border-teal-100' },
+          { label: 'Đã báo học phí', value: `${stats.notifiedCount} HS`, color: 'bg-blue-50 text-blue-700 border border-blue-100' },
+          { label: 'Tổng đã thu', value: fmtVNDShort(stats.totalPaidAmount), color: 'bg-green-50 text-green-700 border border-green-100' },
+          { label: 'Tổng chưa thu', value: fmtVNDShort(stats.totalUnpaidAmount), color: 'bg-red-50 text-red-700 border border-red-100' },
+        ].map(s => (
+          <div key={s.label} className={`card p-5 rounded-2xl ${s.color} shadow-sm transition-all hover:shadow-md`}>
+            <p className="text-xs font-bold opacity-75 uppercase tracking-wider mb-1">{s.label}</p>
+            <p className="text-2xl font-black">{s.value}</p>
+          </div>
+        ))}
+      </div>
+
       {/* Class selection cards grouped by grade */}
       <div className="card p-6 border border-slate-100 shadow-sm rounded-3xl space-y-4">
         <div className="flex items-center justify-between border-b border-teal-50 pb-3">
           <div>
             <h2 className="font-extrabold text-teal-800 text-lg">Chọn Lớp học theo Khối</h2>
-            <p className="text-xs text-gray-450 text-gray-400 font-semibold mt-0.5">Vui lòng nhấp chọn lớp để xem và báo học phí</p>
+            <p className="text-xs text-gray-400 font-semibold mt-0.5">Vui lòng nhấp chọn lớp để xem và báo học phí</p>
           </div>
         </div>
         
         <div className="space-y-4 pt-1">
+          {/* Quick "Toàn trường" option button */}
+          <div className="pb-2 border-b border-slate-100">
+            <button
+              onClick={() => setSelClass('')}
+              className={`px-5 py-2.5 rounded-xl font-extrabold text-sm transition-all duration-200 border cursor-pointer hover:scale-[1.02] active:scale-[0.98]
+                ${!selClass 
+                  ? 'bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-600/15 ring-2 ring-teal-600/20' 
+                  : 'bg-teal-50/70 text-teal-800 border-teal-200 hover:border-teal-400 hover:bg-teal-100/50'
+                }`}
+            >
+              🏫 TOÀN TRƯỜNG (TỔNG HỢP)
+            </button>
+          </div>
+
           {classesByGrade.length === 0 && (
             <div className="text-center py-6 text-gray-400 text-sm font-semibold italic">
               Không tìm thấy lớp học hoạt động nào.
@@ -511,21 +599,6 @@ export default function Tuition() {
 
       {selClass && (
         <>
-          {/* Quick Statistics Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { label: 'Tổng số học sinh', value: `${stats.totalStudents} HS`, color: 'bg-teal-50 text-teal-700 border border-teal-100' },
-              { label: 'Đã báo học phí', value: `${stats.notifiedCount} HS`, color: 'bg-blue-50 text-blue-700 border border-blue-100' },
-              { label: 'Tổng đã thu', value: fmtVNDShort(stats.totalPaidAmount), color: 'bg-green-50 text-green-700 border border-green-100' },
-              { label: 'Tổng chưa thu', value: fmtVNDShort(stats.totalUnpaidAmount), color: 'bg-red-50 text-red-700 border border-red-100' },
-            ].map(s => (
-              <div key={s.label} className={`card p-5 rounded-2xl ${s.color} shadow-sm transition-all hover:shadow-md`}>
-                <p className="text-xs font-bold opacity-75 uppercase tracking-wider mb-1">{s.label}</p>
-                <p className="text-2xl font-black">{s.value}</p>
-              </div>
-            ))}
-          </div>
-
           {/* Form Setup Tuition Notification */}
           <div className="card p-6 bg-gradient-to-br from-teal-50/50 to-white border border-teal-100 shadow-sm rounded-3xl">
             <h3 className="font-extrabold text-teal-800 mb-4 flex items-center gap-2 text-base">
@@ -594,6 +667,13 @@ export default function Tuition() {
                     </span>
                   )}
                   <button
+                    onClick={startBatchZalo}
+                    className="btn-teal text-xs py-2 px-4 flex items-center gap-1.5 font-extrabold shadow-md shadow-blue-500/10 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <MessageCircle className="w-4 h-4" /> 🚀 Gửi Zalo Hàng Loạt ({stats.unpaidCount} HS)
+                  </button>
+
+                  <button
                     onClick={() => sendGmailReminder()}
                     disabled={sending}
                     className="btn-outline border-teal-200 text-teal-700 hover:bg-teal-50 text-xs py-2 px-4 flex items-center gap-1.5 font-bold"
@@ -601,9 +681,10 @@ export default function Tuition() {
                     {sending ? (
                       <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang gửi...</>
                     ) : (
-                      <><Mail className="w-3.5 h-3.5" /> Gửi nhắc Gmail ({stats.unpaidCount} HS chưa đóng)</>
+                      <><Mail className="w-3.5 h-3.5" /> Gửi nhắc Gmail ({stats.unpaidCount} HS)</>
                     )}
                   </button>
+
                 </div>
               )}
             </div>
@@ -950,6 +1031,115 @@ export default function Tuition() {
           </div>
         </div>
       )}
+
+      {/* Batch Zalo Runner Modal */}
+      {batchZaloModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-blue-100">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between text-white">
+              <div>
+                <h3 className="font-black text-lg flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5" /> 🚀 Trợ lý Gửi Zalo Hàng Loạt
+                </h3>
+                <p className="text-xs text-blue-100 font-medium">
+                  Đang tiến hành: Học sinh {batchZaloModal.currentIndex + 1} / {batchZaloModal.list.length}
+                </p>
+              </div>
+              <button
+                onClick={() => setBatchZaloModal(null)}
+                className="text-white/80 hover:text-white text-xl font-extrabold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content for Current Student */}
+            {(() => {
+              const currentRow = batchZaloModal.list[batchZaloModal.currentIndex]
+              if (!currentRow || !currentRow.notification) return null
+              const studentObj = students.find((s: any) => s.id === currentRow.student.id)
+              const rawPhone = (studentObj as any)?.zalo || (studentObj as any)?.parent_phone || ''
+              const digits = rawPhone.replace(/\D/g, '')
+              const cleanPhone = digits.startsWith('84') ? '0' + digits.substring(2) : (digits.startsWith('0') ? digits : '0' + digits)
+              const amt = Number(currentRow.notification.amount)
+
+
+              const msg = `Học phí khóa ${currentRow.notification.course_name} của học sinh ${currentRow.student.full_name} là ${amt.toLocaleString('vi-VN')} Đồng, phụ huynh vui lòng chuyển khoản vào stk: 3714235000320 HKD DINH CONG LINH`
+
+              const openAndCopy = async () => {
+                try {
+                  await navigator.clipboard.writeText(msg)
+                  toast.success(`Đã copy tin nhắn học phí cho ${currentRow.student.full_name}`)
+                } catch {
+                  toast.error('Lỗi copy')
+                }
+                const targetUrl = cleanPhone
+                  ? `https://zalo.me/${cleanPhone}`
+                  : 'https://chat.zalo.me'
+                window.open(targetUrl, '_blank')
+              }
+
+
+              return (
+                <div className="p-6 space-y-4">
+                  {/* Progress bar */}
+                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-blue-600 h-full transition-all duration-300 rounded-full"
+                      style={{ width: `${((batchZaloModal.currentIndex + 1) / batchZaloModal.list.length) * 100}%` }}
+                    />
+                  </div>
+
+                  {/* Student Info Card */}
+                  <div className="bg-blue-50/60 p-4 rounded-2xl border border-blue-100">
+                    <p className="text-xs text-blue-700 font-extrabold uppercase tracking-wider">Học sinh hiện tại</p>
+                    <p className="text-lg font-black text-gray-900 mt-0.5">{currentRow.student.full_name}</p>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-600">
+                      <span>Mã: <strong>{currentRow.student.student_code}</strong></span>
+                      <span>SĐT: <strong>{rawPhone || 'Chưa cập nhật'}</strong></span>
+                      <span>Học phí: <strong>{amt.toLocaleString('vi-VN')} đ</strong></span>
+                    </div>
+                  </div>
+
+                  {/* Script Helper note */}
+                  <div className="bg-amber-50 p-3.5 rounded-2xl border border-amber-200 text-xs text-amber-900 leading-relaxed">
+                    💡 <strong>Mẹo Tự Động 100%:</strong> Đã tạo file <a href="/zalo-auto-sender.user.js" target="_blank" className="underline font-bold text-amber-950">zalo-auto-sender.user.js</a>. Khi cài kịch bản này vào Tampermonkey/Violentmonkey, Zalo Web sẽ tự động dán tin nhắn & tự động bấm gửi!
+                  </div>
+
+                  {/* Action buttons for Current Step */}
+                  <div className="space-y-2 pt-2">
+                    <button
+                      onClick={openAndCopy}
+                      className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-2xl shadow-lg shadow-blue-500/20 text-sm flex items-center justify-center gap-2"
+                    >
+                      <MessageCircle className="w-5 h-5" /> Copy & Mở Zalo Cho {currentRow.student.full_name}
+                    </button>
+
+                    <div className="flex items-center gap-3 pt-2">
+                      <button
+                        disabled={batchZaloModal.currentIndex === 0}
+                        onClick={() => setBatchZaloModal(b => b ? { ...b, currentIndex: b.currentIndex - 1 } : null)}
+                        className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs disabled:opacity-40"
+                      >
+                        ← Học sinh trước
+                      </button>
+                      <button
+                        disabled={batchZaloModal.currentIndex >= batchZaloModal.list.length - 1}
+                        onClick={() => setBatchZaloModal(b => b ? { ...b, currentIndex: b.currentIndex + 1 } : null)}
+                        className="w-1/2 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs disabled:opacity-40"
+                      >
+                        Học sinh tiếp theo →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
