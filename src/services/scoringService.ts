@@ -72,8 +72,15 @@ export function detectSections(questions: Question[]): SectionPointsConfig[] {
   const sectionMap = new Map<string, { type: 'multiple_choice' | 'true_false' | 'short_answer'; count: number; part: number }>();
 
   questions.forEach((q) => {
-    const part = Math.floor(Number(q.number) / 100) || 1;
     const mappedType = mapQuestionType(q.type || 'multiple_choice');
+    const num = Number(q.number);
+    let part = (!isNaN(num) && num >= 100) ? Math.floor(num / 100) : 1;
+    if (isNaN(num) || num < 100) {
+      if (mappedType === 'true_false') part = 2;
+      else if (mappedType === 'short_answer') part = 3;
+      else if (q.type === 'writing') part = 4;
+      else part = 1;
+    }
     const key = `part${part}`;
     if (!sectionMap.has(key)) sectionMap.set(key, { type: mappedType, count: 0, part });
     sectionMap.get(key)!.count++;
@@ -184,12 +191,22 @@ function getQuestionPointsConfig(
     return { points: 0, tfMode: defaultTfMode };
   }
 
-  const part = Math.floor(Number(question.number) / 100) || 1;
-  const sectionId = `part${part}`;
-  let section = config.sections.find((s) => s.sectionId === sectionId);
+  // 1. Ưu tiên tìm section theo questionType tương ứng
+  let section = config.sections.find((s) => s.questionType === mappedType);
 
+  // 2. Nếu không thấy và question.number >= 100, tìm theo sectionId (part1, part2...)
   if (!section) {
-    section = config.sections.find((s) => s.questionType === mappedType);
+    const num = Number(question.number);
+    if (!isNaN(num) && num >= 100) {
+      const part = Math.floor(num / 100);
+      section = config.sections.find((s) => s.sectionId === `part${part}`);
+    }
+  }
+
+  // 3. Dự phòng tìm theo sectionId
+  if (!section) {
+    const part = Math.floor(Number(question.number) / 100) || 1;
+    section = config.sections.find((s) => s.sectionId === `part${part}`);
   }
 
   return {

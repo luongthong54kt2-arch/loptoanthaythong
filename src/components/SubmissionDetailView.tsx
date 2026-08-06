@@ -215,11 +215,13 @@ const SubmissionDetailView: React.FC<SubmissionDetailViewProps> = ({
   const totalScore = submission.totalScore ?? (submission as any).score ?? sbRaw.totalScore ?? 0;
   const percentage = submission.percentage ?? sbRaw.percentage ?? 0;
 
-  // ✅ FIX: correctCount từ scoreBreakdown nếu không có ở submission
+  // ✅ FIX: correctCount & totalQuestions từ submission / scoreBreakdown / exam.questions
   const correctCount = submission.correctCount ??
-    ((mc.correct || 0) + (tf.correct || 0) + (sa.correct || 0));
+    ((mc.correct || 0) + (tf.correct || 0) + (sa.correct || 0) + (sbRaw.essay?.correct || 0));
 
-  const totalQuestions = exam?.questions?.length || 0;
+  const totalQuestions = submission.totalQuestions ||
+    exam?.questions?.length ||
+    ((mc.total || 0) + (tf.total || 0) + (sa.total || 0) + (sbRaw.essay?.total || 0)) || 0;
 
   const partConfigs: Record<number, { title: string; desc: string; gradient: string; border: string; badge: string }> = {
     1: {
