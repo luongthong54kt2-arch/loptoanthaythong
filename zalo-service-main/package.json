@@ -1,0 +1,17 @@
+{
+  "name": "zalo-service",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "login": "node login.js",
+    "session-env": "node session-to-env.js"
+  },
+  "dependencies": {
+    "zca-js": "2.1.2",
+    "image-size": "^1.1.1",
+    "express": "^4.19.2",
+    "dotenv": "^16.4.5"
+  }
+}

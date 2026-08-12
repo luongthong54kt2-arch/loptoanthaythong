@@ -1,0 +1,222 @@
+﻿==================================================
+SHEET INDEX 1 : Danh mục
+==================================================
+Row   2:  |                 CÔNG TY CỔ PHẦN SÁCH VÀ THIẾT BỊ GIÁO DỤC MIỀN BẮC |  |  |  |  |  |  | 
+Row   3:  |                         ĐC: Số 24 - 25 liền kề 11, khu đô thị mới Văn Khê, P. La Khê, Q. Hà Đông, TP Hà Nội |  |  |  |  |  |  | 
+Row   4:  |  Điện thoại : 024.38562011 -  Fax : 024.38562493 |  |  |  |  |  |  | 
+Row   5:  | Hotline: Mr Đinh Trọng Tâm - TP kinh doanh: 0913 345 231  |  |  |  |  |  |  | 
+Row   6:  |  Email: kd.stbmb@gmail.com     Website: stbmienbac.vn   |  |  |  |  |  |  | 
+Row   9: DANH MỤC SÁCH THEO CHƯƠNG TRÌNH GDPT 2018
+PHỤC VỤ NĂM HỌC 2023 - 2024 |  |  |  |  |  |  |  | 
+Row  11: STT | TT | Mã SP | TÊN SÁCH | TÁC GIẢ | QUY CÁCH |  |   GIÁ BÌA 
+(đồng) | 
+Row  12:  |  |  |  |  | Số trang | Khổ sách |  | 
+Row  13: LỚP 1 |  |  |  |  |  |  |  | 
+Row  14: Bộ " Kết nối tri thức với cuộc sống" |  |  |  |  |  |  |  | 
+Row  15:  | I | Sách giáo khoa |  |  |  |  |  | 
+Row  16:  | 1 | G1HH1T001 | Toán 1, tập 1 (Kết nối tri thức với cuộc sống) | Hà Huy Khoái (Tổng Chủ biên), Lê Anh Vinh (Chủ biên), Nguyễn Áng, Vũ Văn Dương, Nguyễn Minh Hải, Bùi Bá Mạnh |  | 19 x 26,5 | 17,000 | 
+Row  17:  | 2 | G1HH1T002 | Toán 1, tập 2 (Kết nối tri thức với cuộc sống) | Hà Huy Khoái (Tổng Chủ biên), Lê Anh Vinh (Chủ biên), Nguyễn Áng, Vũ Văn Dương, Nguyễn Minh Hải, Bùi Bá Mạnh |  | 19 x 26,5 | 16,000 | 
+Row  18:  | 3 | G1HH1V001 | Tiếng Việt 1, tập 1 (Kết nối tri thức với cuộc sống) | Bùi Mạnh Hùng (Tổng Chủ biên kiêm Chủ biên), Lê Thị Lan Anh, Nguyễn Thị Ngân Hoa, Vũ Thị Thanh Hương, Vũ Thị Lan |  | 19 x 26,5 | 30,000 | 
+Row  19:  | 4 | G1HH1V002 | Tiếng Việt 1, tập 2 (Kết nối tri thức với cuộc sống) | Bùi Mạnh Hùng (Tổng Chủ biên kiêm Chủ biên), Vũ Kim Bảng, Trịnh Cẩm Lan, Chu Thị Phương, Trần Kim Phượng, Đặng Thị Hảo Tâm |  | 19 x 26,5 | 29,000 | 
+Row  20:  | 5 | G1HH1X001 | Tự nhiên và Xã hội 1 (Kết nối tri thức với cuộc sống) | Vũ Văn Hùng (Tổng Chủ biên), Nguyễn Thị Thấn (Chủ biên), Đào Thị Hồng, Phương Hà Lan, Hoàng Quý Tỉnh |  | 19 x 26,5 | 21,000 | 
+Row  21:  | 6 | G1HH1E001 | Giáo dục Thể chất 1 (Kết nối tri thức với cuộc sống) | Nguyễn Duy Quyết (Tổng Chủ biên), Lê Anh Thơ (Chủ biên), Vũ Thị Thư, Vũ Thị Hồng Thu, Đỗ Mạnh Hưng, Vũ Văn Thịnh, Phạm Mai Vương |  | 19 x 26,5 | 16,000 | 
+Row  22:  | 7 | G1HH1G001 | Đạo đức 1 (Kết nối tri thức với cuộc sống) | Nguyễn Thị Toan (Tổng Chủ biên), Trần Thành Nam (Chủ biên), Lê Thị Tuyết Mai, Lục Thị Nga |  | 19 x 26,5 | 12,000 | 
+Row  23:  | 8 | G1HH1M001 | Mĩ thuật 1 (Kết nối tri thức với cuộc sống) | Đinh Gia Lê (Tổng Chủ biên), Trần Thị Biển (Chủ biên), Phạm Duy Anh |  | 19 x 26,5 | 12,000 | 
+Row  24:  | 9 | G1HH1Q001 | Hoạt động trải nghiệm 1 (Kết nối tri thức với cuộc sống) | Bùi Sỹ Tụng (Tổng Chủ biên), Nguyễn Thanh Bình (Chủ biên), Trần Thị Thu, Vũ Thị Lan Anh, Lê Thị Luận |  | 19 x 26,5 | 15,000 | 
+Row  25:  | 10 | G1HH1R001 | Âm nhạc 1 (Kết nối tri thức với cuộc sống) | Đỗ Thị Minh Chính (Tổng Chủ biên kiêm Chủ biên), Mai Linh Chi, Nguyễn Thị Phương Mai, Đặng Khánh Nhật, Nguyễn Thị Thanh Vân |  | 19 x 26,5 | 11,000 | 
+Row  26:  | II | Sách bổ trợ |  |  |  |  |  | 
+Row  27:  | 1 | G1BH1T001 | Vở bài tập Toán 1, tập 1 (Kết nối tri thức với cuộc sống) | Lê Anh Vinh (Chủ biên), Nguyễn Áng, Vũ Văn Dương, Nguyễn Minh Hải, Bùi Bá Mạnh |  | 17 x 24 | 16,000 | 
+Row  28:  | 2 | G1BH1T002 | Vở bài tập Toán 1, tập 2  (Kết nối tri thức với cuộc sống) | Lê Anh Vinh (Chủ biên), Nguyễn Áng, Vũ Văn Dương, Nguyễn Minh Hải, Bùi Bá Mạnh, Hoàng Quế Hường |  | 17 x 24 | 16,000 | 
+Row  29:  | 3 | G1BH1V001 | Vở bài tập Tiếng Việt 1, tập 1 (Kết nối tri thức với cuộc sống) | Bùi Mạnh Hùng (Chủ biên), Lê Thị Lan Anh, Vũ Thị Thanh Hương, Vũ Thị Lan, Văn Thị Phương Mỹ, Hoàng Minh Ngọc |  | 17 x 24 | 13,000 | 
+Row  30:  | 4 | G1BH1V002 | Vở bài tập Tiếng Việt 1, tập 2 (Kết nối tri thức với cuộc sống) | Bùi Mạnh Hùng (Chủ biên), Vũ Kim Bảng, Trịnh Cẩm Lan, Chu Thị Phương, Trần Kim Phượng, Đặng Thị Hảo Tâm |  | 17 x 24 | 13,000 | 
+Row  31:  | 5 | G1BH1X001 | Vở bài tập Tự nhiên và Xã hội 1 (Kết nối tri thức với cuộc sống) | Vũ Văn Hùng (Chủ biên), Đào Thị Hồng, Phương Hà Lan, Nguyễn Thị Thấn, Hoàng Quý Tỉnh,  |  | 17 x 24 | 13,000 | 
+Row  32:  | 6 | G1BH1G001 | Vở bài tập Đạo đức 1 (Kết nối tri thức với cuộc sống) | Nguyễn Thị Toan (Chủ biên), Trần Thành Nam, Lê Thị Tuyết Mai, Lục Thị Nga |  | 17 x 24 | 11,000 | 
+Row  33:  | 7 | G1BH1M001 | Vở bài tập Mĩ thuật 1 (Kết nối tri thức với cuộc sống) | Đinh Gia Lê (Chủ biên), Trần Thị Biển, Phạm Duy Anh |  | 17 x 24 | 10,000 | 
+Row  34:  | 8 | G1BH1Q001 | Vở bài tập Hoạt động trải nghiệm 1 (Kết nối tri thức với cuộc sống) | Bùi Sỹ Tụng (Chủ biên), Lê Thị Luận, Lưu Danh Văn |  | 17 x 24 | 9,000 | 
+Row  35:  | 9 | G1BH1R001 | Vở bài tập Âm nhạc 1 (Kết nối tri thức với cuộc sống) | Đỗ Thị Minh Chính (Chủ biên), Mai Linh Chi, Nguyễn Thị Phương Mai, Đặng Khánh Nhật, Nguyễn Thị Thanh Vân |  | 17 x 24 | 8,000 | 
+Row  36:  | 10 | G1BH1V003 | Tập viết 1, tập 1 (Kết nối tri thức với cuộc sống) | Bùi Mạnh Hùng, Phạm Kim Chung |  | 17 x 24 | 9,000 | 
+Row  37:  | 11 | G1BH1V004 | Tập viết 1, tập 2 (Kết nối tri thức với cuộc sống) | Bùi Mạnh Hùng, Phạm Kim Chung |  | 17 x 24 | 8,000 | 
+Row  38:  | III | Sách giáo viên |  |  |  |  |  | 
+Row  39:  | 1 | G1HG1T001 | Toán 1 – Sách giáo viên (Kết nối tri thức với cuộc sống) | Hà Huy Khoái (Tổng chủ biên) – Lê Anh Vinh (Chủ biên) – Nguyễn Áng – Vũ Văn Dương – Nguyễn Minh Hải – Vũ Văn Luân - Bùi Bá Mạnh   |  | 19 x 26,5 | 40,000 | 
+Row  40:  | 2 | G1HG1V001 | Tiếng Việt 1, tập một – Sách giáo viên (Kết nối tri thức với cuộc sống) | Bùi Mạnh Hùng (Tổng chủ biên kiêm Chủ biên) - Lê Thị Lan Anh- Nguyễn Thị Ngân Hoa- Vũ Thị Thanh Hương – Vũ Thị Lan |  | 19 x 26,5 | 99,000 | 
+Row  41:  | 3 | G1HG1V002 | Tiếng Việt 1, tập hai – Sách giáo viên (Kết nối tri thức với cuộc sống) | Bùi Mạnh Hùng (Tổng chủ biên kiêm Chủ biên) – Vũ Kim Bảng – Trịnh Cẩm Lan – Chu Thị Phương – Trần Kim Phượng – Đặng Thị Hảo Tâm |  | 19 x 26,5 | 69,000 | 
+Row  42:  | 4 | G1HG1X001 | Tự nhiên và  xã hội 1 – Sách giáo viên (Kết nối tri thức với cuộc sống) | Vũ Văn Hùng (Tổng chủ biên) – Nguyễn Thị Thấn (Chủ biên) – Đào Thị Hồng – Phương Hà Lan – Hoàng Quý Tỉnh |  | 19 x 26,5 | 43,000 | 
+Row  43:  | 5 | G1HG1E001 | Giáo dục  thể chất 1 – Sách giáo viên (Kết nối tri thức với cuộc sống) | Nguyễn Duy Quyết (Tổng chủ biên) – Lê Anh Thơ (Chủ biên) – Đỗ Mạnh Hưng – Vũ Văn Thịnh – Vũ Thị Hồng Thu – Vũ Thị Thư – Phạm Mai Vương |  | 19 x 26,5 | 39,000 | 
+Row  44:  | 6 | G1HG1G001 | Đạo đức 1 – Sách giáo viên (Kết nối tri thức với cuộc sống) | Nguyễn Thị Toan (Tổng chủ biên) – Trần Thành Nam (Chủ biên) – Lê Thị Tuyết Mai – Lục Thị Nga |  | 19 x 26,5 | 34,000 | 
+Row  45:  | 7 | G1HG1M001 | Mĩ thuật 1 – Sách giáo viên (Kết nối tri thức với cuộc sống) | Đinh Gia Lê (Tổng chủ biên) – Trần Thị Biển (Chủ biên) – Phạm Duy Anh |  | 19 x 26,5 | 15,000 | 
+Row  46:  | 8 | G1HG1Q001 | Hoạt động  trải nghiệm 1 – Sách giáo viên (Kết nối tri thức với cuộc sống) | Bùi Sỹ Tụng (Tổng chủ biên) – Nguyễn Thanh Bình (Chủ biên) – Vũ Thị Lan Anh – Nguyễn Thị Mai Lan – Trần Thị Thu  |  | 19 x 26,5 | 68,000 | 
+Row  47:  | 9 | G1HG1R001 | Âm nhạc 1 – Sách giáo viên (Kết nối tri thức với cuộc sống) | Đỗ Thị Minh Chính (Tổng chủ biên kiêm Chủ biên) – Mai Linh Chi – Nguyễn Thị Phương Mai – Đặng Khánh Nhật – Nguyễn Thị Thanh Vân |  | 19 x 26,5 | 27,000 | 
+Row  48: Bộ " Chân trời sáng tạo" |  |  |  |  |  |  |  | 
+Row  49:  | I | Sách giáo khoa |  |  |  |  |  | 
+Row  50:  | 1 | G2HH1T001 | Toán 1 (Chân trời sáng tạo) | Trần Nam Dũng (Tổng Chủ biên), Khúc Thành Chính (Chủ biên), Đinh Thị Xuân Dung, Nguyễn Kính Đức, Đinh Thị Kim Lan, Huỳnh Thị Kim Trang |  | 19 x 26.5 | 28,000 | 
+Row  51:  | 2 | G2HH1V001 | Tiếng Việt 1, Tập 1 (Chân trời sáng tạo) | Bùi Mạnh Hùng (Tổng Chủ biên), Nguyễn Thị Ly Kha (Chủ biên), Nguyễn Lương Hải Như, Phạm Thị Kim Oanh, Vũ Minh Tâm, Nguyễn Xuân Tùng |  | 19 x 26.5 | 33,000 | 
+Row  52:  | 3 | G2HH1V002 | Tiếng Việt 1, Tập 2 (Chân trời sáng tạo) | Bùi Mạnh Hùng (Tổng Chủ biên), Nguyễn Thị Ly Kha (Chủ biên), Nguyễn Thành Ngọc Bảo, Phạm Vĩnh Lộc, Nguyễn Lương Hải Như, Nguyễn Thị Xuân Yến |  | 19 x 26.5 | 31,000 | 
+Row  53:  | 4 | G2HH1X001 | Tự nhiên và xã hội 1 (Chân trời sáng tạo) | Đỗ Xuân Hội (Tổng Chủ biên), Nguyễn Thị Thu Hằng (Chủ biên), Phạm Phương Anh, Lưu Phương Thanh Bình, Trần Thị Thu Hiền, Lý Khánh Hoa, Mai Thị Kim Phượng |  | 19 x 26.5 | 24,000 | 
+Row  54:  | 5 | G2HH1E001 | Giáo dục thể chất 1 (Chân trời sáng tạo) | Phạm Thị Lệ Hằng (Chủ biên), Bùi Ngọc Bích, Trần Thanh Dũng, Lê Hải, Nguyễn Đình Phát, Nguyễn Hoàng Minh Thuận, Trần Minh Tuấn |  | 19 x 26.5 | 16,000 | 
+Row  55:  | 6 | G2HH1G001 | Đạo đức 1 (Chân trời sáng tạo) | Đinh Phương Duy (Tổng Chủ biên), Trần Thanh Bình (Chủ biên), Trần Minh Hường, Lê Phương Trí, Trần Hoàng Túy |  | 19 x 26.5 | 13,000 | 
+Row  56:  | 7 | G2HH1M001 | Mĩ thuật 1 (Chân trời sáng tạo) | Nguyễn Xuân Tiên (Tổng Chủ biên), Hoàng Minh Phúc (Chủ biên), Nguyễn Thị Hiền, Nguyễn Minh Thiên Hoàng, Nguyễn Hồng Ngọc, Lâm Yến Như |  | 19 x 26.5 | 13,000 | 
+Row  57:  | 8 | G2HH1Q001 | Hoạt động trải nghiệm 1 (Chân trời sáng tạo) | Vũ Quang Tuyên (Tổng Chủ biên), Nguyễn Hữu Tâm (Chủ biên), Lê Phương Trí, Nguyễn Thị Hà Liên |  | 19 x 26.5 | 16,000 | 
+Row  58:  | 9 | G2HH1R001 | Âm nhạc 1 (Chân trời sáng tạo) | Hồ Ngọc Khải (Tổng Chủ biên kiêm Chủ biên), Nguyễn Đăng Bửu, Trần Ngọc Hưng |  | 19 x 26.5 | 12,000 | 
+Row  59:  | II | Sách bổ trợ |  |  |  |  |  | 
+Row  60:  | 1 | G2BH1T001 | Vở bài tập Toán 1, tập 1 (Chân trời sáng tạo) | Trần Nam Dũng (Tổng Chủ biên), Khúc Thành Chính (Chủ biên), Đinh Thị Xuân Dung, Nguyễn Kính Đức, Đinh Thị Kim Lan, Huỳnh Thị Kim Trang |  | 17 x 24 | 16,000 | 
+Row  61:  | 2 | G2BH1T002 | Vở bài tập Toán 1, tập 2 (Chân trời sáng tạo) | Trần Nam Dũng (Tổng Chủ biên), Khúc Thành Chính (Chủ biên), Đinh Thị Xuân Dung, Nguyễn Kính Đức, Đinh Thị Kim Lan, Huỳnh Thị Kim Trang |  | 17 x 24 | 15,000 | 
+Row  62:  | 3 | G2BH1V001 | Vở bài tập Tiếng Việt 1, Tập 1 (Chân trời sáng tạo) | Bùi Mạnh Hùng (Tổng Chủ biên), Nguyễn Thị Ly Kha (Chủ biên), Nguyễn Lương Hải Như, Phạm Thị Kim Oanh, Vũ Minh Tâm, Nguyễn Xuân Tùng |  | 17 x 24 | 12,000 | 
+Row  63:  | 4 | G2BH1V002 | Vở bài tập Tiếng Việt 1 , Tập 2 (Chân trời sáng tạo) | Bùi Mạnh Hùng (Tổng Chủ biên), Nguyễn Thị Ly Kha (Chủ biên), Nguyễn Thành Ngọc Bảo, Nguyễn Phước Bảo Khôi, Phạm Vĩnh Lộc, Nguyễn Lương Hải Như, Nguyễn Thị Xuân Yến |  | 17 x 24 | 15,000 | 
+Row  64:  | 5 | G2BH1X001 | Vở bài tập Tự nhiên và Xã hội 1 (Chân trời sáng tạo) | Đỗ Xuân Hội (Tổng Chủ biên), Nguyễn Thị Thu Hằng (Chủ biên), Phạm Phương Anh, Lưu Phương Thanh Bình, Trần Thị Thu Hiền, Lý Khánh Hoa, Mai Thị Kim Phượng |  | 17 x 24 | 16,000 | 
+Row  65:  | 6 | G2BH1G001 | Vở bài tập Đạo đức 1 (Chân trời sáng tạo) | Trần Thanh Bình (Chủ biên), Mai Khắc Hùng, Trần Minh Hường, Hà Thị Thanh Nga, Lâm Hồng Lãm Thúy, Lê Phương Trí |  | 17 x 24 | 10,000 | 
+Row  66:  | 7 | G2BH1M001 | Vở bài tập Mĩ thuật 1 (Chân trời sáng tạo) | Nguyễn Xuân Tiên (Tổng Chủ biên), Hoàng Minh Phúc (Chủ biên), Nguyễn Thị Hiền, Nguyễn Minh Thiên Hoàng, Nguyễn Hồng Ngọc, Lâm Yến Như |  | 17 x 24 | 10,000 | 
+Row  67:  | 8 | G2BH1Q001 | Vở bài tập Hoạt động trải nghiệm 1 (Chân trời sáng tạo) | Vũ Quang Tuyên (Tổng Chủ biên), Nguyễn Hữu Tâm (Chủ biên), Nguyễn Thị Hà Liên, Lê Phương Trí. |  | 17 x 24 | 15,000 | 
+Row  68:  | 9 | G2BH1R001 | Vở bài tập Âm nhạc 1 (Chân trời sáng tạo) | Hồ Ngọc Khải (Tổng Chủ biên kiêm Chủ biên), Nguyễn Đăng Bửu, Trần Ngọc Hưng, Lâm Đức Vinh |  | 17 x 24 | 13,000 | 
+Row  69:  | 10 | G2BH1V003 | Tập viết 1, tập 1 (Chân trời sáng tạo) | Bùi Mạnh Hùng (Tổng Chủ biên), Nguyễn Thị Ly Kha (Chủ biên), Nguyễn Lương Hải Như, Phạm Thị Kim Oanh, Vũ Minh Tâm, Nguyễn Xuân Tùng |  | 17 x 24 | 9,000 | 
+Row  70:  | 11 | G2BH1V004 | Tập viết 1, tập 2 (Chân trời sáng tạo) | Bùi Mạnh Hùng (Tổng Chủ biên), Nguyễn Thị Ly Kha (Chủ biên), Nguyễn Thành Ngọc Bảo, Phạm Vĩnh Lộc, Nguyễn Lương Hải Như, Nguyễn Thị Xuân Yến |  | 17 x 24 | 7,000 | 
+Row  71:  | III | Sách giáo viên |  |  |  |  |  | 
+Row  72:  | 1 | G2HG1T001 | Toán 1 - Sách giáo viên (Chân trời sáng tạo) | Trần Nam Dũng (Tổng chủ biên) -– Khúc Thành Chính (Chủ biên) - Đinh Thị Xuân Dung - Nguyễn Kính Đức - Đinh Thị Kim Lan - Huỳnh Thị Kim Trang |  | 19 x 26.5 | 56,000 | 
+Row  73:  | 2 | G2HG1V002 | Tiếng Việt 1, tập một - Sách giáo viên (Chân trời sáng tạo) | Bùi Mạnh Hùng (Tổng Chủ biên) - Nguyễn Thị Ly Kha (Chủ biên) - Phạm Vĩnh Lộc - Nguyễn Lương Hải Như  - Phạm Thị Kim Oanh - Vũ Minh Tâm - Nguyễn Xuân Tùng  |  | 19 x 26.5 | 104,000 | 
+Row  74:  | 3 | G2HG1V001 | Tiếng Việt 1, tập hai - Sách giáo viên (Chân trời sáng tạo) | Bùi Mạnh Hùng (Tổng Chủ biên) – Nguyễn Thị Ly Kha (Chủ biên) – Nguyễn Thành Ngọc Bảo – Nguyễn Phước Bảo Khôi – Nguyễn Lương Hải Như  – Nguyễn Thị Xuân Yến |  | 19 x 26.5 | 89,000 | 
+Row  75:  | 4 | G2HG1X001 | Tự nhiên và xã hội 1 - Sách giáo viên (Chân trời sáng tạo) | Đỗ Xuân Hội (Tổng Chủ biên) - Nguyễn Thị Thu Hằng (Chủ biên) - Phạm Phương Anh - Lưu Phương Thanh Bình - Trần Thị Thu Hiền - Lý Khánh Hoa - Mai Thị Kim Phượng |  | 19 x 26.5 | 41,000 | 
+Row  76:  | 5 | G2HG1E001 | Giáo dục thể chất 1 - Sách giáo viên (Chân trời sáng tạo) | Phạm Thị Lệ Hằng (Chủ biên), Bùi Ngọc Bích, Trần Thanh Dũng, Lê Hải, Nguyễn Đình Phát, Nguyễn Hoàng Minh Thuận, Trần Minh Tuấn |  | 19 x 26.5 | 41,000 | 
+Row  77:  | 6 | G2HG1G001 | Đạo đức 1 - Sách giáo viên (Chân trời sáng tạo) | Đinh Phương Duy (Tổng Chủ biên) - Trần Thanh Bình (Chủ biên) - Mai Khắc Hùng - Trần Minh Hường - Hà Thị Thanh Nga - Lâm Hồng Lãm Thúy - Lê Phương Trí |  | 19 x 26.5 | 23,000 | 
+Row  78:  | 7 | G2HG1M001 | Mĩ thuật 1 - Sách giáo viên (Chân trời sáng tạo) | Nguyễn Xuân Tiên (Tổng Chủ biên) - Hoàng Minh Phúc (Chủ biên) -Nguyễn Thị Hiền - Nguyễn Minh Thiên Hoàng - Nguyễn Hồng Ngọc - Lâm Yến Như |  | 19 x 26.5 | 20,000 | 
+Row  79:  | 8 | G2HG1Q001 | Hoạt động trải nghiệm 1 - Sách giáo viên (Chân trời sáng tạo) | Vũ Quang Tuyên (Tổng Chủ biên), Nguyễn Hữu Tâm (Chủ biên), Lê Phương Trí, Nguyễn Thị Hà Liên |  | 19 x 26.5 | 49,000 | 
+Row  80:  | 9 | G2HG1R001 | Âm nhạc 1 - Sách giáo viên (Chân trời sáng tạo) | Hồ Ngọc Khải (Tổng Chủ biên kiêm Chủ biên) - Nguyễn Đăng Bửu - Trần Ngọc Hưng |  | 19 x 26.5 | 25,000 | 
+Row  81:  |  | Bộ " Cùng học để phát triển năng lực" |  |  |  |  |  | 
+Row  82:  | I | Sách giáo khoa |  |  |  |  |  | 
+Row  83:  | 1 | G3HH1T001 | Toán 1, tập một - Cùng học để phát triển năng lực | Đinh Thế Lục (Tổng chủ biên) - Phan Doãn Thoại (Chủ biên) - Nguyễn Phương Anh - Nguyễn Thị Mỵ - Nguyễn Thị Bích Thuận |  | 19 x 26,5 | 21,000 | 
+Row  84:  | 2 | G3HH1T002 | Toán 1, tập hai - Cùng học để phát triển năng lực | Đinh Thế Lục (Tổng chủ biên) - Phan Doãn Thoại (Chủ biên) - Nguyễn Phương Anh - Nguyễn Thị Mỵ - Nguyễn Thị Bích Thuận |  | 19 x 26,5 | 18,000 | 
+Row  85:  | 3 | G3HH1V001 | Tiếng Việt 1, tập một - Cùng học để phát triển năng lực | Nguyễn Thị Hạnh (Chủ biên) - Nguyễn Thị Hương Giang - Nguyễn Lê Hằng - Đặng Thị Lanh - Trần Thị Hiền Lương - Trịnh Cam Ly. |  | 19 x 26,5 | 31,000 | 
+Row  86:  | 4 | G3HH1V002 | Tiếng Việt 1, tập hai - Cùng học để phát triển năng lực | Nguyễn Thị Hạnh (Chủ biên) - Nguyễn Thị Hương Giang - Nguyễn Lê Hằng - Đặng Thị Lanh - Trần Thị Hiền Lương - Trịnh Cam Ly. |  | 19 x 26,5 | 29,000 | 
+Row  87:  | 5 | G3HH1X001 | Tự nhiên và Xã hội 1 - Cùng học để phát triển năng lực | Nguyễn Hữu Đĩnh (Tổng chủ biên) - Phan Thanh Hà (Chủ biên) - Nguyễn Thị Thu Hằng - Nguyễn Hồng Liên |  | 19 x 26,5 | 21,000 | 
+Row  88:  | 6 | G3HH1E001 | Giáo dục thể chất 1 - Cùng học để phát triển năng lực | Hồ Đắc Sơn (Tổng chủ biên kiêm Chủ biên) - Nguyễn Thị Hà - Nguyễn Thành Trung - Nguyễn Duy Tuyến |  | 19 x 26,5 | 18,000 | 
+Row  89:  | 7 | G3HH1G001 | Đạo đức 1 - Cùng học để phát triển năng lực | Nguyễn Thị Mỹ Lộc (Tổng chủ biên) - Huỳnh Văn Sơn (Chủ biên) - Nguyễn Thị Mỹ Hạnh - Mai Mỹ Hạnh - Nguyễn Thanh Huân - Nguyễn Thị Xuân Phương - Nguyễn Thị Diễm My |  | 19 x 26,5 | 11,000 | 
+Row  90:  | 8 | G3HH1M001 | Mĩ thuật 1 - Cùng học để phát triển năng lực | Đoàn Thị Mỹ Hương (Tổng chủ biên) - Trịnh Đức Minh - Bạch Ngọc Diệp (Đồng Chủ biên) - Nguyễn Gia Bảy - Nguyễn Quỳnh Nga - Trần Thị Thu Trang |  | 19 x 26,5 | 15,000 | 
+Row  91:  | 9 | G3HH1Q001 | Hoạt động trải nghiệm 1 - Cùng học để phát triển năng lực | Lưu Thu Thuỷ (Tổng chủ biên) - Nguyễn Thụy Anh (Chủ biên) - Bùi Thị Hương Liên - Lê Thị Thắm |  | 19 x 26,5 | 18,000 | 
+Row  92:  | 10 | G3HH1R001 | Âm nhạc 1 - Cùng học để phát triển năng lực | Hoàng Long (Tổng chủ biên kiêm Chủ biên) - Nguyễn Thị Thanh Bình - Trần Văn Minh - Nguyễn Thị Nga |  | 19 x 26,5 | 12,000 | 
+Row  93:  | II | Sách bổ trợ |  |  |  |  |  | 
+Row  94:  | 1 | G3BH1T001 | Vở bài tập Toán 1, tập một (Cùng học để phát triển năng lực) | Đinh Thế Lục (Tổng chủ biên), Phan Doãn Thoại (Chủ biên), Nguyễn Phương Anh, Nguyễn Thị Mỵ, Trần Thị Kim Thanh, Nguyễn Thị Bích Thuận, Đặng Văn Tuyến |  | 17 x 24 | 14,000 | 
+Row  95:  | 2 | G3BH1T002 | Vở bài tập Toán 1, tập hai (Cùng học để phát triển năng lực) | Đinh Thế Lục (Tổng chủ biên), Phan Doãn Thoại (Chủ biên), Nguyễn Phương Anh, Nguyễn Thị Mỵ, Trần Thị Kim Thanh, Nguyễn Thị Bích Thuận, Đặng Văn Tuyến |  | 17 x 24 | 12,000 | 
+Row  96:  | 3 | G3BH1V002 | Vở bài tập Tiếng Việt 1,  tập một (Cùng học để phát triển năng lực) | Nguyễn Thị Hạnh (Chủ biên), Nguyễn Thị Hương Giang, Nguyễn Lê Hằng, Đặng Thị Lanh, Trần Thị Hiền Lương, Trịnh Cam Ly |  | 17 x 24 | 16,000 | 
+Row  97:  | 4 | G3BH1V003 | Vở bài tập Tiếng Việt 1,  tập hai (Cùng học để phát triển năng lực) | Nguyễn Thị Hạnh (Chủ biên), Nguyễn Thị Hương Giang, Nguyễn Lê Hằng, Đặng Thị Lanh, Trần Thị Hiền Lương, Trịnh Cam Ly |  | 17 x 24 | 14,000 | 
+Row  98:  | 5 | G3BH1X001 | Vở bài tập Tự nhiên và Xã hội 1 (Cùng học để phát triển năng lực) | Nguyễn Hữu Đĩnh (Tổng chủ biên), Phan Thanh Hà (Chủ biên), Nguyễn Thị Thu Hằng, Nguyễn Hồng Liên |  | 17 x 24 | 11,000 | 
+Row  99:  | 6 | G3BH1G001 | Vở bài tập Đạo đức 1 (Cùng học để phát triển năng lực) | Nguyễn Thị Mỹ Lộc (Tổng chủ biên), Huỳnh Văn Sơn (Chủ biên) Nguyễn Thị Mỹ Hạnh, Mai Mỹ Hạnh, Nguyễn Thanh Huân, Nguyễn Thị Diễm My, Nguyễn Thị Xuân Phương |  | 17 x 24 | 9,000 | 
+Row 100:  | 7 | G3BH1M001 | Vở bài tập Mĩ thuật 1 (Cùng học để phát triển năng lực) | Đoàn Thị Mĩ Hương (Tổng chủ biên), Trịnh Đức Minh, Bạch Ngọc Diệp (Đồng Chủ biên), Nguyễn Gia Bảy, Nguyễn Quỳnh Nga, Trẩn Thị Thu Trang |  | 26,5 x 19 | 15,000 | 
+Row 101:  | 8 | G3BH1V001 | Tập viết 1,  tập một (Cùng học để phát triển năng lực) | Nguyễn Thị Hạnh (Chủ biên), Đặng Thị Lanh |  | 17 x 24 | 7,000 | 
+Row 102:  | 9 | G3BH1V004 | Tập viết 1,  tập hai (Cùng học để phát triển năng lực) | Nguyễn Thị Hạnh (Chủ biên), Đặng Thị Lanh, Trần Thị Hiền Lương |  | 17 x 24 | 6,000 | 
+Row 103:  | III | Sách giáo viên |  |  |  |  |  | 
+Row 104:  | 1 | G3HG1T001 | Toán 1, Sách giáo viên (Cùng học để phát triển năng lực) | Đinh Thế Lục (Tổng chủ biên), Phan Doãn Thoại (Chủ biên), Nguyễn Phương Anh.  |  | 19 x 26,5 | 73,000 | 
+Row 105:  | 2 | G3HG1V001 | Tiếng Việt 1, Sách giáo viên (Cùng học để phát triển năng lực) | Nguyễn Thị Hạnh (Chủ biên), Nguyễn Thị Hương Giang, Nguyễn Lệ Hằng, Đặng Thị Lanh, Trần Thị Hiền Lương, Trịnh Cam Ly. |  | 19 x 26,5 | 117,000 | 
+Row 106:  | 3 | G3HG1X001 | Tự nhiên và xã hội 1, Sách giáo viên (Cùng học để phát triển năng lực) | Nguyễn Hữu Đĩnh (Tổng chủ biên), Phan Thanh Hà (Chủ biên), Nguyễn Thị Thu Hằng, Nguyễn Hồng Liên. |  | 19 x 26,5 | 49,000 | 
+Row 107:  | 4 | G3HG1E001 | Giáo dục thể chất 1, Sách giáo viên (Cùng học để phát triển năng lực) | Hồ Đắc Sơn (Tổng chủ biên kiêm chủ biên), Nguyễn Thị Hà, Nguyễn Thành Trung, Nguyễn Duy Tuyến |  | 20,5 x 58,5 | 46,000 | 
+Row 108:  | 5 | G3HG1G001 | Đạo đức 1, Sách giáo viên (Cùng học để phát triển năng lực) | Nguyễn Thị Mỹ Lộc (Tổng chủ biên), Huỳnh Văn Sơn (Chủ biên) Nguyễn Thị Mỹ Hạnh, Mai Mỹ Hạnh, Nguyễn Thanh Huân, Nguyễn Thị Diễm My, Nguyễn Thị Xuân Phương. |  | 19 x 26,5 | 27,000 | 
+Row 109:  | 6 | G3HG1M001 | Mĩ thuật 1, Sách giáo viên (Cùng học để phát triển năng lực) | Đoàn Thị Mỹ Hương (Tổng chủ biên), Trịnh Đức Minh, Bạch Ngọc Diệp (Đồng Chủ biên), Nguyễn Gia Bảy, Nguyễn Quỳnh Nga, Trần Thị Thu Trang |  | 19 x 26,5 | 29,000 | 
+Row 110:  | 7 | G3HG1Q001 | Hoạt động trải nghiệm 1, Sách giáo viên (Cùng học để phát triển năng lực) | Lưu Thu Thủy (Tổng chủ biên), Nguyễn Thụy Anh (Chủ biên), Bùi Thị Hương Liên, Lê Thị Thắm. |  | 19 x 26,5 | 65,000 | 
+Row 111:  | 8 | G3HG1R001 | Âm nhạc 1, Sách giáo viên (Cùng học để phát triển năng lực) | Hoàng Long (Tổng chủ biên kiêm chủ biên), Nguyễn Thị Thanh Bình, Trần Văn Minh, Nguyễn Thị Nga. |  | 19 x 26,5 | 27,000 | 
+Row 112:  |  | Bộ " Vì sự bình đẳng và dân chủ trong giáo dục" |  |  |  |  |  | 
+Row 113:  | I | Sách giáo khoa |  |  |  |  |  | 
+Row 114:  | 1 | G4HH1T001 | Toán 1, Tập 1 (Vì sự bình đẳng và dân chủ trong giáo dục) | Trần Diên Hiển (Chủ biên), Nguyễn Đình Khuê, Nguyễn Thúy Vân, Đào Thái Lai |  | 19 x 26,5 | 22,000 | 
+Row 115:  | 2 | G4HH1T002 | Toán 1, Tập 2 (Vì sự bình đẳng và dân chủ trong giáo dục) | Trần Diên Hiển (Chủ biên), Nguyễn Đình Khuê, Nguyễn Thúy Vân, Đào Thái Lai |  | 19 x 26,5 | 20,000 | 
+Row 116:  | 3 | G4HH1V001 | Tiếng Việt 1 – Tập 1 (Vì sự bình đẳng và dân chủ trong giáo dục) | Đỗ Việt Hùng (Tổng Chủ biên), Lê Phương Nga (Chủ biên), Thạch Thị Lan Anh |  | 19 x 26,5 | 35,000 | 
+Row 117:  | 4 | G4HH1V002 | Tiếng Việt 1, Tập 2 (Vì sự bình đẳng và dân chủ trong giáo dục) | Đỗ Việt Hùng (Tổng Chủ biên), Lê Phương Nga (Chủ biên), Thạch Thị Lan Anh, Lương Thị Hiền |  | 19 x 26,5 | 31,000 | 
+Row 118:  | 5 | G4HH1R001 | Âm nhạc 1 (Vì sự bình đẳng và dân chủ trong giáo dục) | Đặng Châu Anh, Lê Anh Tuấn (đồng Chủ biên), Lương Diệu Ánh, Phùng Ngọc Hà, Trịnh Mai Trang, Hà Thị Thư, Tô Ngọc Tú |  | 19 x 26,5 | 15,000 | 
+Row 119:  | 6 | G4HH1G001 | Đạo đức 1 (Vì sự bình đẳng và dân chủ trong giáo dục) | Phạm Quỳnh (Chủ biên), Trần Thị Thùy Dung, Nguyễn Hà My, Nguyễn Huyền Trang |  | 19 x 26,5 | 15,000 | 
+Row 120:  | 7 | G4HH1M001 | Mĩ thuật 1 (Vì sự bình đẳng và dân chủ trong giáo dục) | Nguyễn Thị Nhung, Nguyễn Tuấn Cường (đồng Chủ biên), Lương Thanh Khiết, Trần Thị Hương Ly, Hà Thị Quỳnh Nga, Phạm Văn Thuận, Nguyễn Thị Tuệ Thư |  | 19 x 26,5 | 15,000 | 
+Row 121:  | 8 | G4HH1Q001 | Hoạt động trải nghiệm 1 A (Vì sự bình đẳng và dân chủ trong giáo dục) | Đinh Thị Kim Thoa (Chủ biên), Vũ Phương Liên, Lại Thị Yến Ngọc, Trần Thị Quỳnh Trang, Bùi Ngọc Diệp |  | 19 x 26,5 | 18,000 | 
+Row 122:  | 9 | G4HH1Q002 | Hoạt động trải nghiệm 1 B (Vì sự bình đẳng và dân chủ trong giáo dục) | Phó Đức Hoà, Bùi Ngọc Diệp (đồng Chủ biên), Nguyễn Hà My, Đặng Thị Thanh Nhàn, Nguyễn Huyền Trang |  | 19 x 26,5 | 18,000 | 
+Row 123:  | II | Sách bổ trợ |  |  |  |  |  | 
+Row 124:  | 1 | G4BH1T001 | Vở bài tập Toán 1, Tập một (Vì sự bình đẳng và dân chủ trong giáo dục) | Trần Diên Hiển (Chủ biên) – Nguyễn Đình Khuê – Đào Thái Lai – Nguyễn Thị Kiều Oanh – Phạm Thanh Tâm – Nguyễn Thuý Vân. |  | 19 x 26,5 | 16,000 | 
+Row 125:  | 2 | G4BH1T002 | Vở bài tập Toán 1, Tập hai (Vì sự bình đẳng và dân chủ trong giáo dục) | Trần Diên Hiển (Chủ biên) – Nguyễn Đình Khuê – Đào Thái Lai – Nguyễn Thị Kiều Oanh – Phạm Thanh Tâm – Nguyễn Thuý Vân. |  | 19 x 26,5 | 16,000 | 
+Row 126:  | 3 | G4BH1V001 | Vở bài tập Tiếng Việt 1, Tập một (Vì sự bình đẳng và dân chủ trong giáo dục) | Đỗ Việt Hùng (Tổng Chủ biên) – Lê Phương Nga (Chủ biên) – Thạch Thị Lan Anh |  | 19 x 26,5 | 17,000 | 
+Row 127:  | 4 | G4BH1V002 | Vở bài tập Tiếng Việt 1, Tập hai (Vì sự bình đẳng và dân chủ trong giáo dục) | Đỗ Việt Hùng (Tổng Chủ biên) – Lê Phương Nga (Chủ biên) – Thạch Thị Lan Anh – Lương Thị Hiền |  | 19 x 26,5 | 16,000 | 
+Row 128:  | 5 | G4BH1G001 | Vở bài tập Đạo đức 1 (Vì sự bình đẳng và dân chủ trong giáo dục) | Phạm Quỳnh (Chủ biên), Trần Thị Thùy Dung, Nguyễn Hà My, Nguyễn Huyền Trang |  | 19 x 26,5 | 14,000 | 
+Row 129:  | 6 | G4BH1M001 | Vở bài tập Mĩ thuật 1 (Vì sự bình đẳng và dân chủ trong giáo dục) | Nguyễn Tuấn Cường – Nguyễn Thị Nhung (đồng Chủ biên), Lương Thanh Khiết, Trần Thị Hương Ly, Hà Thị Quỳnh Nga, Phạm Văn Thuận, Nguyễn Thị Tuệ Thư |  | 19 x 26,5 | 13,000 | 
+Row 130:  | 7 | G4BH1Q001 | Vở bài tập Hoạt động trải nghiệm 1 A (Vì sự bình đẳng và dân chủ trong giáo dục) | Đinh Thị Kim Thoa (Chủ biên), Vũ Phương Liên, Lại Thị Yến Ngọc, Trần Thị Quỳnh Trang |  | 19 x 26,5 | 18,000 | 
+Row 131:  | 8 | G4BH1Q002 | Vở bài tập Hoạt động trải nghiệm 1 B (Vì sự bình đẳng và dân chủ trong giáo dục) | Bùi Ngọc Diệp – Phó Đức Hoà (đồng Chủ biên) - Nguyễn Hà My -   Đặng Thị Thanh Nhàn - Nguyễn Huyền Trang |  | 19 x 26,5 | 16,000 | 
+Row 132:  | 9 | G4BH1R001 | Vở bài tập Âm nhạc 1 (Vì sự bình đẳng và dân chủ trong giáo dục) | Đặng Châu Anh – Lê Anh Tuấn (đồng Chủ biên), Lương Diệu Ánh, Phùng Ngọc Hà, Hà Thị Thư, Trịnh Mai Trang, Tô Ngọc Tú |  | 19 x 26,5 | 13,000 | 
+Row 133:  | 10 | G4BH1V003 | Tập viết 1, Tập một (Vì sự bình đẳng và dân chủ trong giáo dục) | Đỗ Việt Hùng (Chủ biên), Lê Phương Nga (Chủ biên), Thạch Thị Lan Anh |  | 17 x 24 | 11,000 | 
+Row 134:  | 11 | G4BH1V004 | Tập viết 1, Tập hai (Vì sự bình đẳng và dân chủ trong giáo dục) | Đỗ Việt Hùng (Chủ biên), Lê Phương Nga (Chủ biên), Thạch Thị Lan Anh |  | 17 x 24 | 6,000 | 
+Row 135:  | III | Sách giáo viên |  |  |  |  |  | 
+Row 136:  | 1 | G4HG1T001 | Toán 1, Sách giáo viên (Vì sự bình đẳng và dân chủ trong giáo dục) | Trần Diên Hiển (Chủ biên), Nguyễn Đình Khuê, Đào Thái Lai, Nguyễn Thuý Vân |  | 19 x 26,5 | 38,000 | 
+Row 137:  | 2 | G4HG1V001 | Tiếng Việt 1, Tập một, Sách giáo viên (Vì sự bình đẳng và dân chủ trong giáo dục) | Đỗ Việt Hùng (Tổng Chủ biên), Lê Phương Nga (Chủ biên), Thạch Thị Lan Anh |  | 19 x 26,5 | 73,000 | 
+Row 138:  | 3 | G4HG1V002 | Tiếng Việt 1, Tập hai, Sách giáo viên (Vì sự bình đẳng và dân chủ trong giáo dục) | Đỗ Việt Hùng (Tổng Chủ biên), Lê Phương Nga (Chủ biên), Thạch Thị Lan Anh, Lương Thị Hiền |  | 19 x 26,5 | 62,000 | 
+Row 139:  | 4 | G4HG1R001 | Âm nhạc 1, Sách giáo viên (Vì sự bình đẳng và dân chủ trong giáo dục) | Đặng Châu Anh – Lê Anh Tuấn (đồng Chủ biên), Lương Diệu Ánh, Phùng Ngọc Hà, Hà Thị Thư, Trịnh Mai Trang, Tô Ngọc Tú |  | 19 x 26,5 | 65,000 | 
+Row 140:  | 5 | G4HG1G001 | Đạo đức 1, Sách giáo viên (Vì sự bình đẳng và dân chủ trong giáo dục) | Phạm Quỳnh (Chủ biên), Trần Thị Thùy Dung, Nguyễn Hà My, Nguyễn Huyền Trang |  | 19 x 26,5 | 41,000 | 
+Row 141:  | 6 | G4HG1M001 | Mĩ thuật 1, Sách giáo viên (Vì sự bình đẳng và dân chủ trong giáo dục) | Nguyễn Tuấn Cường – Nguyễn Thị Nhung (đồng Chủ biên), Lương Thanh Khiết, Trần Thị Hương Ly, Hà Thị Quỳnh Nga, Phạm Văn Thuận, Nguyễn Thị Tuệ Thư |  | 19 x 26,5 | 42,000 | 
+Row 142:  | 7 | G4HG1Q001 | Tổ chức Hoạt động trải nghiệm 1, Sách giáo viên A (Vì sự bình đẳng và dân chủ trong giáo dục) | Đinh Thị Kim Thoa (Chủ biên), Vũ Phương Liên, Lại Thị Yến Ngọc, Trần Thị Quỳnh Trang |  | 19 x 26,5 | 33,000 | 
+Row 143:  | 8 | G4HG1Q002 | Hướng dẫn tổ chức Hoạt động trải nghiệm 1, Sách giáo viên B (Vì sự bình đẳng và dân chủ trong giáo dục) | Bùi Ngọc Diệp – Phó Đức Hoà (đồng Chủ biên) - Nguyễn Hà My - Đặng Thị Thanh Nhàn - Nguyễn Huyền Trang |  | 19 x 26,5 | 36,000 | 
+Row 144:  |  | LỚP 2 |  |  |  |  |  | 
+Row 145:  |  | Bộ sách số 01 " Kết nối tri thức với cuộc sống" |  |  |  |  |  | 
+Row 146:  | I | Sách giáo khoa |  |  |  |  |  | 
+Row 147:  | 1 | G1HH2V001 | Tiếng Việt 2, tập một | Bùi Mạnh Hùng (Tổng Chủ biên), Bùi Mạnh Hùng - Trần Thị Hiền Lương (đồng Chủ biên), Lê Thị Lan Anh, Đỗ Hồng Dương, Vũ Thị Thanh Hương, Trịnh Cẩm Lan, Vũ Thị Lan, Nguyễn Thị Ngọc Minh, Chu Thị Phương, Trần Kim Phượng, Đặng Thị Hảo Tâm. |  | 19 x 26,5 | 25,000 | 
+Row 148:  | 2 | G1HH2V002 | Tiếng Việt 2, tập hai | Bùi Mạnh Hùng (Tổng Chủ biên), Bùi Mạnh Hùng - Trần Thị Hiền Lương (đồng Chủ biên), Lê Thị Lan Anh, Đỗ Hồng Dương, Vũ Thị Thanh Hương, Trịnh Cẩm Lan, Vũ Thị Lan, Nguyễn Thị Ngọc Minh, Chu Thị Phương, Trần Kim Phượng, Đặng Thị Hảo Tâm. |  | 19 x 26,5 | 25,000 | 
+Row 149:  | 3 | G1HH2T001 | Toán 2, tập một | Hà Huy Khoái (Tổng Chủ biên), Lê Anh Vinh (Chủ biên), Nguyễn Áng, Vũ Văn Dương, Nguyễn Minh Hải, Hoàng Quế Hường, Bùi Bá Mạnh. |  | 19 x 26,5 | 23,000 | 
+Row 150:  | 4 | G1HH2T002 | Toán 2, tập hai | Hà Huy Khoái (Tổng Chủ biên), Lê Anh Vinh (Chủ biên), Nguyễn Áng, Vũ Văn Dương, Nguyễn Minh Hải, Hoàng Quế Hường, Bùi Bá Mạnh. |  | 19 x 26,5 | 23,000 | 
+Row 151:  | 5 | G1HH2X001 | Tự nhiên và xã hội 2 | Vũ Văn Hùng (Tổng Chủ biên), Nguyễn Thị Thấn (Chủ biên), Đào Thị Hồng, Phương Hà Lan, Phạm Việt Quỳnh, Hoàng Quý Tỉnh. |  | 19 x 26,5 | 19,000 | 
+Row 152:  | 6 | G1HH2G001 | Đạo đức 2 | Nguyễn Thị Toan (Tổng Chủ biên), Trần Thành Nam (Chủ biên), Nguyễn Thị Hoàng Anh, Nguyễn Ngọc Dung, Lê Thị Tuyết Mai. |  | 19 x 26,5 | 13,000 | 
+Row 153:  | 7 | G3HH2R001 | Âm nhạc 2 | Hoàng Long, Đỗ Thị Minh Chính (đồng Tổng Chủ biên kiêm Chủ biên), Nguyễn Thị Thanh Bình, Mai Linh Chi, Nguyễn Thị Phương Mai, Nguyễn Thị Nga, Đặng Khánh Nhật, Trần Thị Kim Thăng, Nguyễn Thị Thanh Vân. |  | 19 x 26,5 | 12,000 | 
+Row 154:  | 8 | G1HH2M001 | Mĩ thuật 2 | Đoàn Thị Mỹ Hương, Đinh Gia Lê (đồng Tổng Chủ biên), Trần Thị Biển (Chủ biên), Phạm Duy Anh, Bạch Ngọc Diệp, Trần Thị Thu Trang, Bùi Quang Tuấn. |  | 19 x 26,5 | 12,000 | 
+Row 155:  | 9 | G3HH2Q001 | Hoạt động trải nghiệm 2 | Lưu Thu Thủy, Bùi Sỹ Tụng (đồng Tổng Chủ biên), Nguyễn Thụy Anh, Nguyễn Thanh Bình (đồng Chủ biên), Vũ Thị Lan Anh, Nguyễn Thị Thanh Bình, Bùi Thị Hương Liên, Lê Thị Luận, Trần Thị Tố Oanh, Trần Thị Thu. |  | 19 x 26,5 | 17,000 | 
+Row 156:  | 10 | G1HH2E001 | Giáo dục thể chất 2 | Nguyễn Duy Quyết, Hồ Đắc Sơn (đồng Tổng Chủ biên), Lê Anh Thơ (Chủ biên), Nguyễn Thị Hà, Đỗ Mạnh Hưng, Vũ Văn Thịnh, Vũ Thị Hồng Thu, Vũ Thị Thư, Nguyễn Thành Trung, Nguyễn Duy Tuyến, Phạm Mai Vương. |  | 19 x 26,5 | 17,000 | 
+Row 157:  | II | Sách bổ trợ |  |  |  |  |  | 
+Row 158:  | 1 | G1BH2T001 | VBT Toán 2, tập 1 | Lê Anh Vinh (Chủ biên) - Nguyễn Áng - Vũ Văn Dương - Nguyễn Minh Hải - Hoàng Quế Hường - Bùi Bá Mạnh  |  | 17 x 24 | 20,000 | 
+Row 159:  | 2 | G1BH2T002 | VBT Toán 2, tập 2 | Lê Anh Vinh (Chủ biên) - Nguyễn Áng - Vũ Văn Dương - Nguyễn Minh Hải - Hoàng Quế Hường - Bùi Bá Mạnh  |  | 17 x 24 | 19,000 | 
+Row 160:  | 3 | G1BH2V001 | VBT Tiếng Việt 2, tập 1  | Trần Thị Hiền Lương  (Chủ biên) - Đỗ Hồng Dương - Vũ Thị Thanh Hương - Vũ Thị Lan - Nguyễn Thị Ngọc Minh - Trần Kim Phượng |  | 17 x 24 | 14,000 | 
+Row 161:  | 4 | G1BH2V002 | VBT Tiếng Việt 2, tập 2  | Trần Thị Hiền Lương  (Chủ biên) - Lê Thị Lan Anh - Trịnh Cẩm Lan - Chu Thị Phương - Đặng Thị Hảo Tâm |  | 17 x 24 | 14,000 | 
+Row 162:  | 5 | G1BH2G001 | VBT Đạo đức 2  | Nguyễn Thị Toan (Tổng chủ biên) - Trần Thành Nam (Chủ biên) - Nguyễn Thị Hoàng Anh - Nguyễn Ngọc Dung - Lê Thị Tuyết Mai |  | 17 x 24 | 11,000 | 
+Row 163:  | 6 | G1BH2M001 | VBT Mĩ thuật 2  | Đoàn Thị Mỹ Hương - Đinh Gia Lê (Đồng Tổng Chủ biên) - Trần Thị Biển (Chủ biên) - Phạm Duy Anh - Bạch Ngọc Diệp - Trần Thị Thu Trang - Bùi Quang Tuấn |  | 17 x 24 | 10,000 | 
+Row 164:  | 7 | G1BH2X001 | VBT Tự nhiên và  xã hội 2  | Vũ Văn Hùng (Tổng Chủ biên) - Nguyễn Thị Thấn (Chủ biên) - Đào Thị Hồng – Phương Hà Lan - Phạm Việt Quỳnh – Hoàng Quý Tỉnh |  | 17 x 24 | 13,000 | 
+Row 165:  | 8 | G3BH2Q001 | VBT hoạt động trải nghiệm 2  | Nguyễn Thụy Anh |  | 17 x 24 | 12,000 | 
+Row 166:  | 9 | G3BH2R001 | VBT Âm nhạc 2 | Hoàng Long - Đỗ Thị Minh Chính (đồng Tổng chủ biên kiêm Chủ biên), Nguyễn Thị Thanh Bình, Mai Linh Chi, Nguyễn Thị Phương Mai, Nguyễn Thị Nga, Đặng Khánh Nhật, Trần Thị Kim Thăng, Nguyễn Thị Thanh Vân |  | 17 x 24 | 8,000 | 
+Row 167:  | 10 | G1BH2V003 | Tập viết 2, tập 1 | Bùi Mạnh Hùng (Chủ biên) – Trần Thị Hiền Lương – Vũ Thị Lan |  | 17 x 24 | 7,000 | 
+Row 168:  | 11 | G1BH2V004 | Tập viết 2, tập 2 | Bùi Mạnh Hùng (Chủ biên) – Trần Thị Hiền Lương – Đặng Thị Hảo Tâm |  | 17 x 24 | 6,000 | 
+Row 169:  | III | Sách giáo viên |  |  |  |  |  | 
+Row 170:  | 1 | G1HG2T001 | Toán 2, SGV | Hà Huy Khoái (Tổng chủ biên), Lê Anh Vinh (Chủ biên), Nguyễn Áng, Vũ Văn Dương, Nguyễn Minh Hải, Hoàng Quế Hường, Bùi Bá Mạnh |  | 19 x 26,5 | 59,000 | 
+Row 171:  | 2 | G1HG2V001 | Tiếng Việt 2, tập 1 SGV | Bùi Mạnh Hùng (Tổng Chủ biên) - Bùi Mạnh Hùng - Trần Thị Hiền Lương (Đồng Chủ biên) - Đỗ Hồng Dương - Vũ Thị Thanh Hương - Vũ Thị Lan - Nguyễn Thị Ngọc Minh - Trần Kim Phượng |  | 19 x 26,5 | 57,000 | 
+Row 172:  | 3 | G1HG2V002 | Tiếng Việt 2, tập 2 SGV | Bùi Mạnh Hùng (Tổng Chủ biên), Bùi Mạnh Hùng - Trần Thị Hiền Lương (Đồng Chủ biên), Lê Thị Lan Anh,  Trịnh Cẩm Lan, Chu Thị Phương, Đặng Thị Hảo Tâm |  | 19 x 26,5 | 53,000 | 
+Row 173:  | 4 | G1HG2X001 | Tự nhiên và  Xã hội 2 SGV | Vũ Văn Hùng (Tổng Chủ biên), Nguyễn Thị Thấn (Chủ biên), Đào Thị Hồng, Phương Hà Lan, Phạm Việt Quỳnh, Hoàng Quý Tỉnh |  | 19 x 26,5 | 30,000 | 
+Row 174:  | 5 | G1HG2E001 | Giáo dục  thể chất 2 SGV | Nguyễn Duy Quyết - Hồ Đắc Sơn (Đồng Tổng Chủ biên), Lê Anh Thơ (Chủ biên), Nguyễn Thị Hà, Đỗ Mạnh Hưng, Vũ Văn Thịnh, Vũ Thị Hồng Thu, Vũ Thị Thư, Nguyễn Thành Trung, Nguyễn Duy Tuyến, Phạm Mai Vương |  | 19 x 26,5 | 27,000 | 
+Row 175:  | 6 | G1HG2G001 | Đạo đức 2 SGV | Nguyễn Thị Toan (Tổng chủ biên), Trần Thành Nam (Chủ biên), Nguyễn Thị Hoàng Anh, Nguyễn Ngọc Dung, Lê Thị Tuyết Mai |  | 19 x 26,5 | 14,000 | 
+Row 176:  | 7 | G1HG2M001 | Mĩ thuật 2 SGV | Đoàn Thị Mỹ Hương - Đinh Gia Lê (Đồng Tổng Chủ biên), Trần Thị Biển (Chủ biên), Phạm Duy Anh, Bạch Ngọc Diệp, Trần Thị Thu Trang, Bùi Quang Tuấn |  | 19 x 26,5 | 14,000 | 
+Row 177:  | 8 | G3HG2Q001 | Hoạt động trải nghiệm 2, SGV | Lưu Thu Thủy (Tổng Chủ biên), Nguyễn Thụy Anh (Chủ biên), Nguyễn Thị Thanh Bình, Bùi Thị Hương Liên, Trần Thị Tố Oanh. |  | 19 x 26,5 | 43,000 | 
+Row 178:  | 9 | G3HG2R001 | Âm nhạc 2, SGV | Hoàng Long - Đỗ Thị Minh Chính (đồng Tổng chủ biên kiêm Chủ biên), Nguyễn Thị Thanh Bình, Mai Linh Chi, Nguyễn Thị Phương Mai, Nguyễn Thị Nga, Đặng Khánh Nhật, Trần Thị Kim Thăng, Nguyễn Thị Thanh Vân |  | 19 x 26,5 | 15,000 | 
+Row 179:  |  | Bộ sách số 2 " Chân trời sáng tạo" |  |  |  |  |  | 
+Row 180:  | I | Sách giáo khoa |  |  |  |  |  | 
+Row 181:  | 1 | G2HH2V001 | Tiếng Việt 2, tập một | Nguyễn Thị Ly Kha (Chủ biên), Nguyễn Thị Thu Huyền, Trịnh Cam Ly, Nguyễn Lương Hải Như, Phạm Thị Kim Oanh, Nguyễn Thành Ngọc Bảo, Bùi Thanh Truyền, Nguyễn Thị Xuân Yến. |  | 19 x 26.5 | 25,000 | 
+Row 182:  | 2 | G2HH2V002 | Tiếng Việt 2, tập hai | Nguyễn Thị Ly Kha (Chủ biên), Nguyễn Thị Thu Huyền, Trịnh Cam Ly, Nguyễn Lương Hải Như, Phạm Thị Kim Oanh, Nguyễn Thành Ngọc Bảo, Bùi Thanh Truyền, Nguyễn Thị Xuân Yến. |  | 19 x 26.5 | 24,000 | 
+Row 183:  | 3 | G2HH2T001 | Toán 2, tập một | Trần Nam Dũng (Tổng Chủ biên), Khúc Thành Chính (Chủ biên), Đinh Thị Xuân Dung, Nguyễn Kính Đức, Đinh Thị Kim Lan, Huỳnh Thị Kim Trang. |  | 19 x 26.5 | 22,000 | 
+Row 184:  | 4 | G2HH2T002 | Toán 2, tập hai | Trần Nam Dũng (Tổng Chủ biên), Khúc Thành Chính (Chủ biên), Đinh Thị Xuân Dung, Nguyễn Kính Đức, Đinh Thị Kim Lan, Huỳnh Thị Kim Trang. |  | 19 x 26.5 | 19,000 | 
+Row 185:  | 5 | G2HH2X001 | Tự nhiên và xã hội 2 | Đỗ Xuân Hội (Tổng Chủ biên), Nguyễn Thị Thu Hằng (Chủ biên), Lưu Phương Thanh Bình, Trần Thị Thu Hiền, Lý Khánh Hoa, Mai Thị Kim Phượng. |  | 19 x 26.5 | 20,000 | 
+Row 186:  | 6 | G2HH2G001 | Đạo đức 2 | Trần Thanh Bình, Đinh Phương Duy, Phạm Quỳnh (đồng Chủ biên), Trần Thị Thùy Dung, Nguyễn Hà My, Lâm Hồng Lãm Thúy, Nguyễn Huyền Trang, Lê Phương Trí. |  | 19 x 26.5 | 12,000 | 
+Row 187:  | 7 | G2HH2R001 | Âm nhạc 2 | Hồ Ngọc Khải - Lê Anh Tuấn (đồng Tổng Chủ biên) - Đặng Châu Anh (Chủ biên), Lương Diệu Ánh, Nguyễn Đăng Bửu, Trần Ngọc Hưng, Nguyễn Mai Kiên, Hà Thị Thư, Trịnh Mai Trang, Tô Ngọc Tú, Lâm Đức Vinh. |  | 19 x 26.5 | 11,000 | 
+Row 188:  | 8 | G4HH2M001 | Mĩ thuật 2 | Nguyễn Xuân Tiên, Nguyễn Thị Nhung (đồng Tổng Chủ biên), Nguyễn Tuấn Cường, Hoàng Minh Phúc (đồng Chủ biên), Lương Thanh Khiết, Vũ Đức Long, Nguyễn Ánh Phương Nam, Lâm Yến Như, Phạm Văn Thuận, Đàm Thị Hải Uyên, Trần Thị Vân. |  | 19 x 26.5 | 15,000 | 
+Row 189:  | 9 | G4HH2Q001 | Hoạt động trải nghiệm 2 | Phó Đức Hòa, Vũ Quang Tuyên (đồng Tổng Chủ biên), Bùi Ngọc Diệp, Nguyễn Hữu Tâm, Đinh Thị Kim Thoa (đồng Chủ biên), Nguyễn Hồng Kiên, Nguyễn Thị Bích Liên, Nguyễn Thị Hà Liên, Vũ Phương Liên, Nguyễn Hà My, Lại Thị Yến Ngọc, Đặng Thị Thanh Nhàn, Nguyễn Huyền Trang, Trần Thị Quỳnh Trang, Lê Phương Trí |  | 19 x 26.5 | 16,000 | 
+Row 190:  | 10 | G2HH2E001 | Giáo dục thể chất 2 | Phạm Thị Lệ Hằng (Chủ biên), Bùi Ngọc Bích, Lê Hải, Nguyễn Đình Phát, Trần Minh Tuấn. |  | 19 x 26.5 | 15,000 | 
+Row 191:  | II | Sách bổ trợ |  |  |  |  |  | 
+Row 192:  | 1 | G2BH2T001 | Vở bài tập Toán 2, tập một  | Trần Nam Dũng (Tổng Chủ biên), Khúc Thành Chính (Chủ biên), Đinh Thị Xuân Dung, Đinh Thị Kim Lan, Huỳnh Thị Kim Trang |  | 17 x 24 | 20,000 | 
+Row 193:  | 2 | G2BH2T002 | Vở bài tập Toán 2, tập hai  | Trần Nam Dũng (Tổng Chủ biên), Khúc Thành Chính (Chủ biên), Đinh Thị Xuân Dung, Đinh Thị Kim Lan, Huỳnh Thị Kim Trang |  | 17 x 24 | 18,000 | 
+Row 194:  | 3 | G2BH2V001 | Vở bài tập Tiếng Việt 2, tập một  | Nguyễn Thị Ly Kha (Chủ biên), Trịnh Cam Ly, Phạm Thị Kim Oanh  |  | 17 x 24 | 17,000 | 
+Row 195:  | 4 | G2BH2V002 | Vở bài tập Tiếng Việt 2, tập hai   | Nguyễn Thị Ly Kha (Chủ biên), Trịnh Cam Ly, Phạm Thị Kim Oanh |  | 17 x 24 | 17,000 | 
+Row 196:  | 5 | G2BH2G001 | Vở bài tập Đạo đức 2 | Trần Thanh Bình, Phạm Quỳnh (đồng Chủ biên), Trần Thị Thùy Dung, Nguyễn Hà My, Nguyễn Huyền Trang   |  | 17 x 24 | 9,000 | 
+Row 197:  | 6 | G2BH2R001 | Vở bài tập Âm nhạc 2  | Hồ Ngọc Khải, Lê Anh Tuấn (đồng Tổng Chủ biên), Đặng Châu Anh (Chủ biên), Lương Diệu Ánh, Nguyễn Đăng Bửu, Trần Ngọc Hưng, Nguyễn Mai Kiên, Hà Thị Thư, Trịnh Mai Trang, Tô Ngọc Tú, Lâm Đức Vinh |  | 17 x 24 | 13,000 | 
+Row 198:  | 7 | G2BH2X001 | Vở bài tập Tự nhiên và xã hội 2  | Đỗ Xuân Hội (Tổng Chủ biên), Nguyễn Thị Thu Hằng (Chủ biên), Lưu Phương Thanh Bình, Trần Thị Thu Hiền,  Lý Khánh Hoa,  Mai Thị Kim Phượng. |  | 17 x 24 | 13,000 | 
+Row 199:  | 8 | G4BH2M001 | Vở bài tập Mĩ thuật 2  | Nguyễn Thị Nhung, Nguyễn Xuân Tiên (đồng Tổng Chủ biên) – Nguyễn Tuấn Cường, Hoàng Minh Phúc (đồng Chủ biên) – Lương Thanh Khiết – Phạm Văn Thuận – Đàm Thị Hải Uyên – Trần Thị Vân |  | 19 x 26.5 | 9,000 | 
+Row 200:  | 9 | G4BH2Q001 | Vở bài tập Hoạt động trải nghiệm 2  | Phó Đức Hoà – Vũ Quang Tuyên (đồng Tổng Chủ biên) - Bùi Ngọc Diệp – Nguyễn Hữu Tâm (đồng Chủ biên) -Nguyễn Hà My – Đặng Thị Thanh Nhàn – Nguyễn Huyền Trang  |  | 17 x 24 | 11,000 | 
+Row 201:  | 10 | G2BH2V003 | Tập viết 2, tập một  | Nguyễn Thị Ly Kha (Chủ biên), Trịnh Cam Ly, Phạm Thị Kim Oanh |  | 17 x 24 | 6,000 | 
+Row 202:  | 11 | G2BH2V004 | Tập viết 2, tập hai  | Nguyễn Thị Ly Kha (Chủ biên), Trịnh Cam Ly, Phạm Thị Kim Oanh |  | 17 x 24 | 6,000 | 
+Row 203:  | III | Sách giáo viên |  |  |  |  |  | 
+Row 204:  | 1 | G2HG2T001 | Toán 2 - sách giáo viên  | Trần Nam Dũng (Tổng Chủ biên), Khúc Thành Chính (Chủ biên), Đinh Thị Xuân Dung, Đinh Thị Kim Lan, Huỳnh Thị Kim Trang |  | 19 x 26.5 | 62,000 | 
+Row 205:  | 2 | G2HG2V001 | Tiếng Việt 2, tập một - sách giáo viên  | Nguyễn Thị Ly Kha (Chủ biên), Nguyễn Thị Thu Huyền,  Trịnh Cam Ly,  Phạm Thị Kim Oanh,  Bùi Thanh Truyền,  Nguyễn Thị Xuân Yến |  | 19 x 26.5 | 57,000 | 
+Row 206:  | 3 | G2HG2V002 | Tiếng Việt 2, tập hai - sách giáo viên  | Nguyễn Thị Ly Kha (Chủ biên), Nguyễn Thành Ngọc Bảo, Trịnh Cam Ly, Nguyễn Lương Hải Như, Phạm Thị Kim Oanh, Bùi Thanh Truyền, Nguyễn Thị Xuân Yến |  | 19 x 26.5 | 48,000 | 
+Row 207:  | 4 | G2HG2X001 | Tự nhiên và xã hội 2 - sách giáo viên  | Đỗ Xuân Hội (Tổng Chủ biên), Nguyễn Thị Thu Hằng (Chủ biên), Lưu Phương Thanh Bình, Trần Thị Thu Hiền, Lý Khánh Hoa, Mai Thị Kim Phượng |  | 19 x 26.5 | 28,000 | 
+Row 208:  | 5 | G2HG2E001 | Giáo dục thể chất 2 - sách giáo viên  | Phạm Thị Lệ Hằng (Chủ biên), Bùi Ngọc Bích, Lê Hải, Nguyễn Đình Phát, Trần Minh Tuấn |  | 19 x 26.5 | 29,000 | 
+Row 209:  | 6 | G2HG2G001 | Đạo đức 2 - sách giáo viên  | Trần Thanh Bình, Phạm Quỳnh (đồng Chủ biên), Trần Thị Thùy Dung, Nguyễn Hà My, Nguyễn Huyền Trang, Lê Phương Trí  |  | 19 x 26.5 | 20,000 | 
+Row 210:  | 7 | G2HG2R001 | Âm nhạc 2 - sách giáo viên  | Hồ Ngọc Khải, Lê Anh Tuấn (đồng Tổng Chủ biên), Đặng Châu Anh (Chủ biên), Lương Diệu Ánh, Nguyễn Đăng Bửu, Trần Ngọc Hưng, Nguyễn Mai Kiên, Hà Thị Thư, Trịnh Mai Trang, Tô Ngọc Tú, Lâm Đức Vinh |  | 19 x 26.5 | 17,000 | 
+Row 211:  | 8 | G4HG2M001 | Mĩ thuật 2, Sách giáo viên  | Nguyễn Thị Nhung, Nguyễn Xuân Tiên (đồng Tổng Chủ biên) – Nguyễn Tuấn Cường, Hoàng Minh Phúc (đồng Chủ biên) – Lương Thanh Khiết – Phạm Văn Thuận – Đàm Thị Hải Uyên – Trần Thị Vân |  | 19 x 26.5 | 22,000 | 
+Row 212:  | 9 | G4HG2Q001 | Hoạt động trải nghiệm 2, sách giáo viên  | Phó Đức Hoà – Vũ Quang Tuyên (đồng Tổng Chủ biên) - Bùi Ngọc Diệp – Nguyễn Hữu Tâm – Đinh Thị Kim Thoa (đồng Chủ biên) - Vũ Phương Liên - Nguyễn Hà My – Đặng Thị Thanh Nhàn – Nguyễn Huyền Trang - Trần Thị Quỳnh Trang. |  | 19 x 26.5 | 40,000 | 
+Row 213:  |  | LỚP 3 |  |  |  |  |  | 
+Row 214:  |  | Bộ sách số 01 " Kết nối tri thức với cuộc sống" |  |  |  |  |  | 
+Row 215:  | I | Sách giáo khoa |  |  |  |  |  | 
+Row 216:  | 1 | G1HH3T001 | Toán 3 - Tập một - (KNTT) | Hà Huy Khoái (Tổng Chủ biên) – Lê Anh Vinh (Chủ biên) | 124 | 19 x 26,5 | 19,000 | 
+Row 217:  | 2 | G1HH3T002 | Toán 3 - Tập hai  - (KNTT) | Hà Huy Khoái (Tổng Chủ biên) – Lê Anh Vinh (Chủ biên)  | 128 | 19 x 26,5 | 19,000 | 
+Row 218:  | 3 | G1HH3V001 | Tiếng Việt 3 tập một - (KNTT) | Bùi Mạnh Hùng (Tổng Chủ biên) – Trần Thị Hiền Lương (Chủ biên) |  | 19 x 26,5 | 22,000 | 
+Row 219:  | 4 | G1HH3V002 | Tiếng Việt 3 tập hai - (KNTT) | Bùi Mạnh Hùng (Tổng Chủ biên) – Trần Thị Hiền Lương (Chủ biên)  |  | 19 x 26,5 | 21,000 | 
+Row 220:  | 5 | G1HH3C001 | Công nghệ 3 - (KNTT) | Lê Huy Hoàng (Tổng Chủ biên), Đặng Văn Nghĩa (Chủ biên) | 64 | 19 x 26,5 | 10,000 | 
+Row 221:  | 6 | G1HH3I001 | Tin học 3 - (KNTT)

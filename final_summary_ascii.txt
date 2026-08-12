@@ -1,0 +1,113 @@
+﻿=========================================================================================================
+TONG HOP CHI TIET DON DAT SACH GIAO KHOA THPT (TU FILE SGKTHPT.xlsx)
+=========================================================================================================
+[Lá»›p 10] STT  1 | Ma: G1HHXV001  | Ten: Ngữ văn 10, tập một (KNTT)                              | Gia:   20,200 Ä‘ | SL:  9 | ThanhTien:    181,800 Ä‘ | Ghi chu: 
+[Lá»›p 10] STT  2 | Ma: G1BHXV001  | Ten: Bài tập Ngữ văn 10, tập một (KNTT)                      | Gia:   13,000 Ä‘ | SL:  8 | ThanhTien:    104,000 Ä‘ | Ghi chu: Trần Thị Dung Nhi không lấy vở
+[Lá»›p 10] STT  3 | Ma: G1HHXV002  | Ten: Ngữ văn 10, tập hai (KNTT)                              | Gia:   16,500 Ä‘ | SL:  9 | ThanhTien:    148,500 Ä‘ | Ghi chu: 
+[Lá»›p 10] STT  4 | Ma: G1BHXV002  | Ten: Bài tập Ngữ văn 10, tập hai (KNTT)                      | Gia:   12,000 Ä‘ | SL:  8 | ThanhTien:     96,000 Ä‘ | Ghi chu: Trần Thị Dung Nhi không lấy vở
+[Lá»›p 10] STT  5 | Ma: G1HHXV003  | Ten: Chuyên đề học tập Ngữ văn 10 (KNTT)                     | Gia:   12,900 Ä‘ | SL:  4 | ThanhTien:     51,600 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT  6 | Ma: G1HHXT001  | Ten: Toán 10 tập một  (KNTT)                                 | Gia:   12,800 Ä‘ | SL:  9 | ThanhTien:    115,200 Ä‘ | Ghi chu: 
+[Lá»›p 10] STT  7 | Ma: G1BHXT001  | Ten: Bài tập Toán 10, tập một (KNTT)                         | Gia:   18,000 Ä‘ | SL:  9 | ThanhTien:    162,000 Ä‘ | Ghi chu: 
+[Lá»›p 10] STT  8 | Ma: G1HHXT002  | Ten: Toán 10 tập hai (KNTT)                                  | Gia:   12,400 Ä‘ | SL:  9 | ThanhTien:    111,600 Ä‘ | Ghi chu: 
+[Lá»›p 10] STT  9 | Ma: G1BHXT002  | Ten: Bài tập Toán 10, tập hai (KNTT)                         | Gia:   19,000 Ä‘ | SL:  9 | ThanhTien:    171,000 Ä‘ | Ghi chu: 
+[Lá»›p 10] STT 10 | Ma: G1HHXT003  | Ten: Chuyên đề học tập - Toán 10 (KNTT)                      | Gia:    7,600 Ä‘ | SL:  8 | ThanhTien:     60,800 Ä‘ | Ghi chu: Khối A (4 HS) + Khối D (4 HS)
+[Lá»›p 10] STT 11 | Ma: G1HHXS001  | Ten: Lịch Sử 10 (KNTT)                                       | Gia:   13,900 Ä‘ | SL:  4 | ThanhTien:     55,600 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT 12 | Ma: G1HHXS002  | Ten:  Chuyên đề học tập Lịch Sử 10 (KNTT)                    | Gia:    8,200 Ä‘ | SL:  4 | ThanhTien:     32,800 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT 13 | Ma: G0MHXS001  | Ten: Tập bản đồ và tư liệu Lịch sử 10 - phần Lịch sử         | Gia:   38,000 Ä‘ | SL:  4 | ThanhTien:    152,000 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT 14 | Ma: G0MHXD001  | Ten: Tập bản đồ Địa lí 10 - phần Địa lí                      | Gia:   39,800 Ä‘ | SL:  4 | ThanhTien:    159,200 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT 15 | Ma: G1BHXS001  | Ten: Bài tập Lịch sử 10 (KNTT)                               | Gia:   18,000 Ä‘ | SL:  4 | ThanhTien:     72,000 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT 20 | Ma: G1HHXQ001  | Ten: Hoạt động trải nghiệm, Hướng nghiệp 10  (KNTT)          | Gia:    9,100 Ä‘ | SL:  9 | ThanhTien:     81,900 Ä‘ | Ghi chu: 
+[Lá»›p 10] STT 21 | Ma: G1BHXQ001  | Ten: Bài tập hoạt động trải nghiệm, hướng nghiệp 10 (KNTT)   | Gia:   10,000 Ä‘ | SL:  9 | ThanhTien:     90,000 Ä‘ | Ghi chu: 
+[Lá»›p 10] STT 22 | Ma: G3HHXP001  | Ten: Giáo dục quốc phòng và an ninh 10 (KNTT)                | Gia:   11,400 Ä‘ | SL:  9 | ThanhTien:    102,600 Ä‘ | Ghi chu: 
+[Lá»›p 10] STT 23 | Ma: G3BHXP001  | Ten: Giáo dục quốc phòng và an ninh 10, Sách bài tập   (KNTT) | Gia:   10,000 Ä‘ | SL:  9 | ThanhTien:     90,000 Ä‘ | Ghi chu: 
+[Lá»›p 10] STT 24 | Ma: G3HHXA001  | Ten: Tiếng Anh 10 – Sách học sinh  - Global Success          | Gia:   31,300 Ä‘ | SL:  9 | ThanhTien:    281,700 Ä‘ | Ghi chu: 
+[Lá»›p 10] STT 25 | Ma: G3BHXA001  | Ten: Tiếng Anh 10 – Sách bài tập  - Global Success           | Gia:   60,000 Ä‘ | SL:  9 | ThanhTien:    540,000 Ä‘ | Ghi chu: 
+[Lá»›p 10] STT 26 | Ma: G1HHXL001  | Ten: Vật lí 10 (KNTT)                                        | Gia:   17,100 Ä‘ | SL:  4 | ThanhTien:     68,400 Ä‘ | Ghi chu: Khối A (4 HS)
+[Lá»›p 10] STT 27 | Ma: G1HHXL002  | Ten: Chuyên đề học tập Vật lí 10 (KNTT)                      | Gia:    9,500 Ä‘ | SL:  4 | ThanhTien:     38,000 Ä‘ | Ghi chu: Khối A (4 HS)
+[Lá»›p 10] STT 28 | Ma: G1BHXL001  | Ten: Bài tập Vật lí 10 (KNTT)                                | Gia:   17,000 Ä‘ | SL:  4 | ThanhTien:     68,000 Ä‘ | Ghi chu: Khối A (4 HS)
+[Lá»›p 10] STT 29 | Ma: G1HHXH001  | Ten: Hóa học 10  (KNTT)                                      | Gia:   14,900 Ä‘ | SL:  4 | ThanhTien:     59,600 Ä‘ | Ghi chu: Khối A (4 HS)
+[Lá»›p 10] STT 30 | Ma: G1HHXH002  | Ten: Chuyên đề học tập Hóa học 10 (KNTT)                     | Gia:    9,100 Ä‘ | SL:  4 | ThanhTien:     36,400 Ä‘ | Ghi chu: Khối A (4 HS)
+[Lá»›p 10] STT 31 | Ma: G0AHPH001  | Ten: Bảng tuần hoàn các nguyên tố hóa học (Dành cho học sinh Trung học phổ thông - Theo chương trình GDPT năm 2018) | Gia:    9,000 Ä‘ | SL:  4 | ThanhTien:     36,000 Ä‘ | Ghi chu: Khối A (4 HS)
+[Lá»›p 10] STT 32 | Ma: G1BHXH001  | Ten: Bài tập Hóa học 10 (KNTT)                               | Gia:   17,000 Ä‘ | SL:  4 | ThanhTien:     68,000 Ä‘ | Ghi chu: Khối A (4 HS)
+[Lá»›p 10] STT 33 | Ma: G1HHXB001  | Ten: Sinh học 10  (KNTT)                                     | Gia:   19,600 Ä‘ | SL:  4 | ThanhTien:     78,400 Ä‘ | Ghi chu: Khối A (4 HS)
+[Lá»›p 10] STT 34 | Ma: G1HHXB002  | Ten: Chuyên đề học tập Sinh học 10 (KNTT)                    | Gia:   10,800 Ä‘ | SL:  4 | ThanhTien:     43,200 Ä‘ | Ghi chu: Khối A (4 HS)
+[Lá»›p 10] STT 35 | Ma: G1BHXB001  | Ten: Bài tập Sinh học 10 (KNTT)                              | Gia:   14,000 Ä‘ | SL:  4 | ThanhTien:     56,000 Ä‘ | Ghi chu: Khối A (4 HS)
+[Lá»›p 10] STT 36 | Ma: G1HHXD001  | Ten: Địa lí 10  (KNTT)                                       | Gia:   14,500 Ä‘ | SL:  4 | ThanhTien:     58,000 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT 37 | Ma: G1HHXD002  | Ten: Chuyên đề học tập Địa lí 10  (KNTT)                     | Gia:    5,400 Ä‘ | SL:  4 | ThanhTien:     21,600 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT 38 | Ma: G1BHXD001  | Ten: Bài tập Địa lí 10 (KNTT)                                | Gia:   17,000 Ä‘ | SL:  4 | ThanhTien:     68,000 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT 41 | Ma: G1HHXY001  | Ten: Giáo dục Kinh tế và Pháp luật 10  (KNTT)                | Gia:   19,200 Ä‘ | SL:  4 | ThanhTien:     76,800 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT 42 | Ma: G1HHXY002  | Ten: Chuyên đề học tập Giáo dục kinh tế và Pháp luật 10 (KNTT) | Gia:   10,000 Ä‘ | SL:  4 | ThanhTien:     40,000 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT 43 | Ma: G1BHXY001  | Ten: Bài tập Giáo dục kinh tế và pháp luật 10 (KNTT)         | Gia:   14,000 Ä‘ | SL:  4 | ThanhTien:     56,000 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT 44 | Ma: G1HHXI001  | Ten: Tin học 10  (KNTT)                                      | Gia:   20,500 Ä‘ | SL:  4 | ThanhTien:     82,000 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 10] STT 47 | Ma: G1BHXI001  | Ten: Bài tập Tin học 10 (KNTT)                               | Gia:   20,000 Ä‘ | SL:  4 | ThanhTien:     80,000 Ä‘ | Ghi chu: Khối D (4 HS)
+[Lá»›p 11] STT  1 | Ma: G1HHYV001  | Ten: Ngữ văn 11, tập một (KNTT)                              | Gia:   19,800 Ä‘ | SL:  1 | ThanhTien:     19,800 Ä‘ | Ghi chu: Khối A (1 HS: Đinh Lê Bảo Sơn)
+[Lá»›p 11] STT  2 | Ma: G1BHYV001  | Ten: Bài tập Ngữ văn 11- tập một (KNTT)                      | Gia:   13,000 Ä‘ | SL:  1 | ThanhTien:     13,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT  3 | Ma: G1HHYV002  | Ten: Ngữ văn 11, tập hai (KNTT)                              | Gia:   16,100 Ä‘ | SL:  1 | ThanhTien:     16,100 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT  4 | Ma: G1BHYV002  | Ten: Bài tập Ngữ văn 11 - tập hai (KNTT)                     | Gia:   13,000 Ä‘ | SL:  1 | ThanhTien:     13,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT  6 | Ma: G1HHYT001  | Ten: Toán 11 tập một  (KNTT)                                 | Gia:   16,200 Ä‘ | SL:  1 | ThanhTien:     16,200 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT  7 | Ma: G1BHYT001  | Ten: Bài tập Toán 11 - tập một (KNTT)                        | Gia:   22,000 Ä‘ | SL:  1 | ThanhTien:     22,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT  8 | Ma: G1HHYT002  | Ten: Toán 11 tập hai (KNTT)                                  | Gia:   13,900 Ä‘ | SL:  1 | ThanhTien:     13,900 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT  9 | Ma: G1BHYT002  | Ten: Bài tập Toán 11 - tập hai (KNTT)                        | Gia:   18,000 Ä‘ | SL:  1 | ThanhTien:     18,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 10 | Ma: G1HHYT003  | Ten: Chuyên đề học tập - Toán 11 (KNTT)                      | Gia:    9,900 Ä‘ | SL:  1 | ThanhTien:      9,900 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 18 | Ma: G1HHYQ001  | Ten: Hoạt động trải nghiệm, Hướng nghiệp 11  (KNTT)          | Gia:    9,000 Ä‘ | SL:  1 | ThanhTien:      9,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 19 | Ma: HG1BHYQ001 | Ten: Bài tập hoạt động trải nghiệm, hướng nghiệp 11(KNTT)    | Gia:   12,000 Ä‘ | SL:  1 | ThanhTien:     12,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 20 | Ma: G3HHYP001  | Ten: Giáo dục quốc phòng và an ninh 11 (KNTT)                | Gia:    9,500 Ä‘ | SL:  1 | ThanhTien:      9,500 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 21 | Ma: G3BHYP001  | Ten: Giáo dục quốc phòng và an ninh 11- Sách bài tập (KNTT)  | Gia:   12,000 Ä‘ | SL:  1 | ThanhTien:     12,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 22 | Ma: G3HHYA001  | Ten: Tiếng Anh 11 – Sách học sinh  - Global Success          | Gia:   32,500 Ä‘ | SL:  1 | ThanhTien:     32,500 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 23 | Ma: G3BHYA001  | Ten: Tiếng Anh 11 – Sách bài tập  - Global Success           | Gia:   60,000 Ä‘ | SL:  1 | ThanhTien:     60,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 25 | Ma: G1HHYL001  | Ten: Vật lí 11 (KNTT)                                        | Gia:   14,600 Ä‘ | SL:  1 | ThanhTien:     14,600 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 26 | Ma: G1HHYL002  | Ten: Chuyên đề học tập Vật lí 11 (KNTT)                      | Gia:    7,800 Ä‘ | SL:  1 | ThanhTien:      7,800 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 27 | Ma: G1BHYL001  | Ten: Bài tập Vật lí 11(KNTT)                                 | Gia:   18,000 Ä‘ | SL:  1 | ThanhTien:     18,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 28 | Ma: G1HHYH001  | Ten: Hóa học 11  (KNTT)                                      | Gia:   19,300 Ä‘ | SL:  1 | ThanhTien:     19,300 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 29 | Ma: G1HHYH002  | Ten: Chuyên đề học tập Hóa học 11 (KNTT)                     | Gia:    7,300 Ä‘ | SL:  1 | ThanhTien:      7,300 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 30 | Ma: G0AHPH001  | Ten: Bảng tuần hoàn các nguyên tố hóa học (Dành cho học sinh Trung học phổ thông - Theo chương trình GDPT năm 2018) | Gia:    9,000 Ä‘ | SL:  1 | ThanhTien:      9,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 31 | Ma: G1BHYH001  | Ten: Bài tập Hóa học 11 (KNTT)                               | Gia:   24,000 Ä‘ | SL:  1 | ThanhTien:     24,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 32 | Ma: G1HHYB001  | Ten: Sinh học 11  (KNTT)                                     | Gia:   23,100 Ä‘ | SL:  1 | ThanhTien:     23,100 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 33 | Ma: G1HHYB002  | Ten: Chuyên đề học tập Sinh học 11 (KNTT)                    | Gia:    9,000 Ä‘ | SL:  1 | ThanhTien:      9,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 11] STT 34 | Ma: G1BHYB001  | Ten: Bài tập Sinh học 11(KNTT)                               | Gia:   22,000 Ä‘ | SL:  1 | ThanhTien:     22,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 12] STT  1 | Ma: G1HHZV004  | Ten: Ngữ văn 12, tập một (KNTT)                              | Gia:   20,300 Ä‘ | SL:  2 | ThanhTien:     40,600 Ä‘ | Ghi chu: Khối A (1 HS: Hà Nam) + Khối D (1 HS: Đinh Lê Quỳnh Chi)
+[Lá»›p 12] STT  2 | Ma: G1BHZV001  | Ten: Bài tập Ngữ văn 12, tập một (KNTT)                      | Gia:   14,000 Ä‘ | SL:  2 | ThanhTien:     28,000 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT  3 | Ma: G1HHZV005  | Ten: Ngữ văn 12, tập hai (KNTT)                              | Gia:   17,100 Ä‘ | SL:  2 | ThanhTien:     34,200 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT  4 | Ma: G1BHZV002  | Ten: Bài tập Ngữ văn 12, tập hai (KNTT)                      | Gia:   11,000 Ä‘ | SL:  2 | ThanhTien:     22,000 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT  5 | Ma: G1HHZV006  | Ten: Chuyên đề học tập Ngữ văn 12 (KNTT)                     | Gia:   11,900 Ä‘ | SL:  1 | ThanhTien:     11,900 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT  6 | Ma: G1HHZT004  | Ten: Toán 12, tập một (KNTT)                                 | Gia:   12,500 Ä‘ | SL:  2 | ThanhTien:     25,000 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT  7 | Ma: G1BHZT001  | Ten: Bài tập Toán 12, tập một (KNTT)                         | Gia:   16,000 Ä‘ | SL:  2 | ThanhTien:     32,000 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT  8 | Ma: G1HHZT005  | Ten: Toán 12, tập hai (KNTT)                                 | Gia:   11,700 Ä‘ | SL:  2 | ThanhTien:     23,400 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT  9 | Ma: G1BHZT002  | Ten: Bài tập Toán 12, tập hai (KNTT)                         | Gia:   16,000 Ä‘ | SL:  2 | ThanhTien:     32,000 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT 10 | Ma: G1HHZT006  | Ten: Chuyên đề học tập - Toán 12 (KNTT)                      | Gia:    8,800 Ä‘ | SL:  2 | ThanhTien:     17,600 Ä‘ | Ghi chu: Khối A (1 HS) + Khối D (1 HS)
+[Lá»›p 12] STT 11 | Ma: G1HHZS003  | Ten: Lịch Sử 12 (KNTT)                                       | Gia:   13,900 Ä‘ | SL:  1 | ThanhTien:     13,900 Ä‘ | Ghi chu: Khối D (1 HS: Đinh Lê Quỳnh Chi)
+[Lá»›p 12] STT 12 | Ma: G1HHZS004  | Ten: Chuyên đề học tập Lịch Sử 12 (KNTT)                     | Gia:    8,000 Ä‘ | SL:  1 | ThanhTien:      8,000 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT 13 | Ma: C0MHZS001  | Ten: Tập bản đồ và tư liệu Lịch sử 12 - Phần Lịch sử         | Gia:   38,000 Ä‘ | SL:  1 | ThanhTien:     38,000 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT 14 | Ma: C0MHZD001  | Ten: Tập bản đồ Địa lí 12 - Phần Địa lý                      | Gia:   39,000 Ä‘ | SL:  1 | ThanhTien:     39,000 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT 15 | Ma: G1BHZS001  | Ten: Bài tập Lịch sử 12 (KNTT)                               | Gia:   18,000 Ä‘ | SL:  1 | ThanhTien:     18,000 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT 20 | Ma: G1HHZQ002  | Ten: Hoạt động trải nghiệm, Hướng nghiệp 12 (KNTT)           | Gia:   12,100 Ä‘ | SL:  2 | ThanhTien:     24,200 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT 21 | Ma: G1BHZQ001  | Ten: Bài tập hoạt động trải nghiệm, hướng nghiệp 12 (KNTT)   | Gia:   10,000 Ä‘ | SL:  2 | ThanhTien:     20,000 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT 22 | Ma: G3HHZP002  | Ten: Giáo dục quốc phòng và an ninh 12                       | Gia:   11,000 Ä‘ | SL:  2 | ThanhTien:     22,000 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT 23 | Ma: G3BHZP001  | Ten: Bài tập Giáo dục quốc phòng và an ninh 12               | Gia:   17,000 Ä‘ | SL:  2 | ThanhTien:     34,000 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT 24 | Ma: G3HHZA002  | Ten: Tiếng Anh 12 – Sách học sinh  - Global Success          | Gia:   37,900 Ä‘ | SL:  2 | ThanhTien:     75,800 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT 25 | Ma: G3BHZA001  | Ten: Tiếng Anh 12 – Sách bài tập  - Global Success           | Gia:   70,000 Ä‘ | SL:  2 | ThanhTien:    140,000 Ä‘ | Ghi chu: 
+[Lá»›p 12] STT 26 | Ma: G1HHZL003  | Ten: Vật lí 12 (KNTT)                                        | Gia:   15,200 Ä‘ | SL:  1 | ThanhTien:     15,200 Ä‘ | Ghi chu: Khối A (1 HS: Hà Nam)
+[Lá»›p 12] STT 27 | Ma: G1HHZL004  | Ten: Chuyên đề học tập Vật lí 12 (KNTT)                      | Gia:    8,900 Ä‘ | SL:  1 | ThanhTien:      8,900 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 12] STT 28 | Ma: G1BHZL001  | Ten: Bài tập Vật lí 12 (KNTT)                                | Gia:   18,000 Ä‘ | SL:  1 | ThanhTien:     18,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 12] STT 29 | Ma: G1HHZH003  | Ten: Hóa học 12 (KNTT)                                       | Gia:   17,900 Ä‘ | SL:  1 | ThanhTien:     17,900 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 12] STT 30 | Ma: G1HHZH004  | Ten: Chuyên đề học tập Hóa học 12 (KNTT)                     | Gia:    7,000 Ä‘ | SL:  1 | ThanhTien:      7,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 12] STT 31 | Ma: G0AHPH001  | Ten: Bảng tuần hoàn các nguyên tố hóa học (Dành cho học sinh Trung học phổ thông - Theo chương trình GDPT năm 2018) | Gia:    9,000 Ä‘ | SL:  1 | ThanhTien:      9,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 12] STT 32 | Ma: G1BHZH001  | Ten: Bài tập Hóa học 12 (KNTT)                               | Gia:   20,000 Ä‘ | SL:  1 | ThanhTien:     20,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 12] STT 33 | Ma: G1HHZB003  | Ten: Sinh học 12 (KNTT)                                      | Gia:   24,100 Ä‘ | SL:  1 | ThanhTien:     24,100 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 12] STT 34 | Ma: G1HHZB004  | Ten: Chuyên đề học tập Sinh học 12 (KNTT)                    | Gia:   11,000 Ä‘ | SL:  1 | ThanhTien:     11,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 12] STT 35 | Ma: G1BHZB001  | Ten: Bài tập Sinh học 12 (KNTT)                              | Gia:   16,000 Ä‘ | SL:  1 | ThanhTien:     16,000 Ä‘ | Ghi chu: Khối A (1 HS)
+[Lá»›p 12] STT 36 | Ma: G1HHZD003  | Ten: Địa lí 12 (KNTT)                                        | Gia:   21,700 Ä‘ | SL:  1 | ThanhTien:     21,700 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT 37 | Ma: G1HHZD004  | Ten: Chuyên đề học tập Địa lí 12 (KNTT)                      | Gia:    7,900 Ä‘ | SL:  1 | ThanhTien:      7,900 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT 38 | Ma: G1BHZD001  | Ten: Bài tập Địa lí 12 (KNTT)                                | Gia:   17,000 Ä‘ | SL:  1 | ThanhTien:     17,000 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT 39 | Ma: G1HHZY003  | Ten: Giáo dục Kinh tế và Pháp luật 12 (KNTT)                 | Gia:   17,700 Ä‘ | SL:  1 | ThanhTien:     17,700 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT 40 | Ma: G1HHZY004  | Ten: Chuyên đề học tập Giáo dục kinh tế và Pháp luật 12 (KNTT) | Gia:    8,000 Ä‘ | SL:  1 | ThanhTien:      8,000 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT 41 | Ma: G1BHZY001  | Ten: Bài tập Giáo dục kinh tế và pháp luật 12 (KNTT)         | Gia:   14,000 Ä‘ | SL:  1 | ThanhTien:     14,000 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT 43 | Ma: G1HHZI006  | Ten: Tin học 12 - Định hướng Tin học ứng dụng (KNTT)         | Gia:   19,500 Ä‘ | SL:  1 | ThanhTien:     19,500 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT 45 | Ma: G1HHZI008  | Ten: Chuyên đề học tập Tin học 12  
+Định hướng Tin học ứng dụng (KNTT) | Gia:   16,800 Ä‘ | SL:  1 | ThanhTien:     16,800 Ä‘ | Ghi chu: Khối D (1 HS)
+[Lá»›p 12] STT 46 | Ma: G1BHZI002  | Ten: Bài tập Tin học 12 
+ Định hướng Tin học ứng dụng (KNTT) | Gia:   19,000 Ä‘ | SL:  1 | ThanhTien:     19,000 Ä‘ | Ghi chu: Khối D (1 HS)
+=========================================================================================================
+TONG SO LUONG SACH DAT: 308 quyen
+TONG THANH TIEN:        5,314,000 VNÄ
+=========================================================================================================

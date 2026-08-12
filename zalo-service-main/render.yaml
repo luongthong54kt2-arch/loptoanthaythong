@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: zalo-service
+    runtime: node
+    region: singapore          # gần Việt Nam nhất, giảm rủi ro Zalo chặn
+    plan: starter              # KHÔNG dùng free: free tự ngủ sau 15 phút, session sẽ chết
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: ZALO_SESSION      # dán base64 từ session-to-env.js, đánh dấu là secret
+        sync: false
+      - key: API_KEY
+        generateValue: true
+      - key: MIN_DELAY_MS
+        value: 8000
+      - key: MAX_DELAY_MS
+        value: 15000
+      - key: DAILY_LIMIT
+        value: 150
+      - key: SEND_HOUR_FROM
+        value: 7
+      - key: SEND_HOUR_TO
+        value: 21
