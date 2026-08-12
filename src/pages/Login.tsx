@@ -20,8 +20,8 @@ export default function Login() {
       await login(email, password)
       toast.success('Đăng nhập thành công! 🎉')
       void navigate('/')
-    } catch {
-      toast.error('Sai email hoặc mật khẩu')
+    } catch (err: any) {
+      toast.error(err?.message || 'Sai email hoặc mật khẩu')
     } finally {
       setLoading(false)
     }
