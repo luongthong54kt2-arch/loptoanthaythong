@@ -43,6 +43,8 @@ create table if not exists students (
   grade        text,
   address      text,
   note         text,
+  date_of_birth date,
+  password     text,
   status       text default 'active',
   created_at   timestamptz default now()
 );
