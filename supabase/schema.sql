@@ -183,3 +183,82 @@ create policy "Allow read tuition_notifications" on tuition_notifications
 
 create policy "Allow write tuition_notifications" on tuition_notifications
   for all using (auth.role() = 'authenticated');
+
+-- ── Exams & Submissions ──────────────────────────────────────────────────────
+create table if not exists exams (
+  id          uuid default uuid_generate_v4() primary key,
+  title       text not null,
+  data        jsonb,
+  created_by  uuid references profiles(id),
+  created_at  timestamptz default now()
+);
+
+create table if not exists exam_rooms (
+  id          uuid default uuid_generate_v4() primary key,
+  code        text unique not null,
+  exam_id     uuid references exams(id) on delete cascade,
+  class_id    uuid references classes(id) on delete cascade,
+  teacher_id  uuid references profiles(id) on delete set null,
+  status      text default 'waiting',
+  time_limit  integer default 45,
+  settings    jsonb,
+  created_at  timestamptz default now()
+);
+
+create table if not exists exam_submissions (
+  id              uuid default uuid_generate_v4() primary key,
+  room_id         uuid references exam_rooms(id) on delete cascade,
+  student_id      uuid references students(id) on delete cascade,
+  status          text default 'in_progress',
+  answers         jsonb default '{}'::jsonb,
+  total_score     numeric,
+  essay_score     numeric,
+  auto_score      numeric,
+  score_breakdown jsonb,
+  started_at      timestamptz default now(),
+  submitted_at    timestamptz,
+  created_at      timestamptz default now(),
+  unique(room_id, student_id)
+);
+
+create table if not exists courses (
+  id           uuid default uuid_generate_v4() primary key,
+  title        text not null,
+  description  text,
+  teacher_id   uuid references profiles(id) on delete set null,
+  is_published boolean default false,
+  created_at   timestamptz default now()
+);
+
+create table if not exists lessons (
+  id          uuid default uuid_generate_v4() primary key,
+  course_id   uuid references courses(id) on delete cascade,
+  title       text not null,
+  content     text,
+  video_url   text,
+  order_index integer default 0,
+  created_at  timestamptz default now()
+);
+
+create table if not exists course_progress (
+  id           uuid default uuid_generate_v4() primary key,
+  student_id   uuid references students(id) on delete cascade,
+  lesson_id    uuid references lessons(id) on delete cascade,
+  is_completed boolean default false,
+  completed_at timestamptz,
+  unique(student_id, lesson_id)
+);
+
+alter table exams enable row level security;
+alter table exam_rooms enable row level security;
+alter table exam_submissions enable row level security;
+alter table courses enable row level security;
+alter table lessons enable row level security;
+alter table course_progress enable row level security;
+
+create policy "Allow all on exams" on exams for all using (true);
+create policy "Allow all on exam_rooms" on exam_rooms for all using (true);
+create policy "Allow all on exam_submissions" on exam_submissions for all using (true);
+create policy "Allow all on courses" on courses for all using (true);
+create policy "Allow all on lessons" on lessons for all using (true);
+create policy "Allow all on course_progress" on course_progress for all using (true);
