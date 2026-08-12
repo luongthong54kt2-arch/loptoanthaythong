@@ -299,7 +299,7 @@ export default function StudentProgressPage() {
             {/* Lời nhắn gửi phụ huynh */}
             <div className="bg-gradient-to-br from-violet-50 via-purple-50/50 to-white border border-purple-100 rounded-xl p-4 space-y-2">
               <div className="flex items-center gap-1.5 text-purple-700 font-extrabold text-xs">
-                <span>💡 Lời nhắn gửi từ Thầy Lĩnh:</span>
+                <span>💡 Lời nhắn gửi từ Thầy Thông:</span>
               </div>
               <p className="text-xs text-purple-950 leading-relaxed font-medium">
                 Kính gửi phụ huynh, sự đồng hành của gia đình là động lực lớn nhất của con. Trung tâm rất mong phụ huynh dành thêm thời gian kèm cặp, đôn đốc con học hành nhiều hơn, chăm chỉ tự giác làm bài tập đầy đủ để đạt kết quả học tập tốt nhất!
