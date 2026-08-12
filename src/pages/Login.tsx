@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GraduationCap, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
+import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 
 export default function Login() {
@@ -17,6 +18,7 @@ export default function Login() {
     if (!email || !password) { toast.error('Vui lòng nhập đủ thông tin'); return }
     setLoading(true)
     try {
+      await supabase.auth.signOut()
       await login(email, password)
       toast.success('Đăng nhập thành công! 🎉')
       void navigate('/')
