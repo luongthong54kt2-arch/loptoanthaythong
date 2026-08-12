@@ -55,6 +55,7 @@ create table if not exists classes (
   class_name       text not null,
   subject          text default 'Toán',
   grade            text,
+  teacher_id       uuid references profiles(id) on delete set null,
   fee_per_session  numeric default 0,
   planned_sessions integer default 0,
   start_date       date,
