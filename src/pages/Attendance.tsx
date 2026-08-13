@@ -143,7 +143,6 @@ export default function Attendance() {
           student_id: s.id,
           present:    isPresent,
           late:       isLate,
-          status:     (isPresent ? (isLate ? 'late' : 'present') : 'absent') as AttendanceStatus,
           note:       draft[s.id]?.note || '',
         }
       })

@@ -200,8 +200,9 @@ export const useDataStore = create<DataState>((set, _get) => ({
   },
 
   upsertAttendance: async (rows) => {
+    const cleanedRows = rows.map(({ status, ...r }: any) => r)
     const { data, error } = await supabase.from('attendance')
-      .upsert(rows, { onConflict: 'date,class_id,student_id' })
+      .upsert(cleanedRows, { onConflict: 'date,class_id,student_id' })
       .select()
     if (error) throw error
     const updated_rows = data as AttendanceRecord[]
