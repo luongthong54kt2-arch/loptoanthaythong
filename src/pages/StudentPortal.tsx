@@ -489,6 +489,9 @@ export default function StudentPortal() {
                   value={studentCodeInput}
                   onChange={e => setStudentCodeInput(e.target.value.toUpperCase())}
                   placeholder="VD: HS001"
+                  autoCapitalize="characters"
+                  autoCorrect="off"
+                  spellCheck={false}
                   className="w-full px-4 py-3 rounded-xl border-2 border-teal-100 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20 transition-all font-mono font-bold text-lg text-center uppercase tracking-widest bg-white"
                   required
                 />

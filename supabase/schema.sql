@@ -140,15 +140,15 @@ alter table payments   enable row level security;
 alter table email_logs enable row level security;
 alter table teacher_classes enable row level security;
 
--- All authenticated users can read
-create policy "auth read profiles"   on profiles   for select using (auth.role() = 'authenticated');
-create policy "auth read students"   on students   for select using (auth.role() = 'authenticated');
-create policy "auth read classes"    on classes    for select using (auth.role() = 'authenticated');
-create policy "auth read enrollments" on enrollments for select using (auth.role() = 'authenticated');
-create policy "auth read attendance" on attendance  for select using (auth.role() = 'authenticated');
-create policy "auth read payments"   on payments    for select using (auth.role() = 'authenticated');
-create policy "auth read email_logs" on email_logs  for select using (auth.role() = 'authenticated');
-create policy "auth read tc"         on teacher_classes for select using (auth.role() = 'authenticated');
+-- All authenticated users and anon (students logging in) can read students & enrollments
+create policy "Allow read profiles"   on profiles   for select using (auth.role() = 'authenticated');
+create policy "Allow read students"   on students   for select using (true);
+create policy "Allow read classes"    on classes    for select using (true);
+create policy "Allow read enrollments" on enrollments for select using (true);
+create policy "Allow read attendance" on attendance  for select using (auth.role() = 'authenticated');
+create policy "Allow read payments"   on payments    for select using (auth.role() = 'authenticated');
+create policy "Allow read email_logs" on email_logs  for select using (auth.role() = 'authenticated');
+create policy "Allow read tc"         on teacher_classes for select using (auth.role() = 'authenticated');
 
 -- All authenticated users can write (role-based access enforced in app layer)
 create policy "auth write students"  on students   for all using (auth.role() = 'authenticated');
