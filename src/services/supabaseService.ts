@@ -54,15 +54,37 @@ export const uploadPdfToSupabase = async (
   const sanitizedFileName = sanitizeFileName(fileName);
   const uniqueFilePath = `pdfs/${sanitizedFileName}`;
 
-  const { error } = await supabase.storage
+  let { error } = await supabase.storage
     .from('exams_pdf') 
     .upload(uniqueFilePath, fileBlob, {
       contentType: 'application/pdf',
       upsert: true
     });
 
+  if (error && (error.message.includes('Bucket not found') || error.message.includes('not found'))) {
+    console.warn('⚠️ Bucket "exams_pdf" chưa tồn tại, thử tự động tạo...');
+    try {
+      await supabase.storage.createBucket('exams_pdf', { public: true });
+      const retryRes = await supabase.storage
+        .from('exams_pdf')
+        .upload(uniqueFilePath, fileBlob, {
+          contentType: 'application/pdf',
+          upsert: true
+        });
+      error = retryRes.error;
+    } catch (createErr) {
+      console.error('Không thể tạo bucket tự động:', createErr);
+    }
+  }
+
   if (error) {
     console.error('Lỗi Supabase:', error);
+    if (error.message.includes('Bucket not found')) {
+      throw new Error('Lỗi Supabase: Bucket "exams_pdf" chưa được tạo trên Supabase Dashboard.');
+    }
+    if (error.message.includes('row-level security')) {
+      throw new Error('Lỗi Supabase RLS: Bucket "exams_pdf" chưa được cấp quyền (Policies = 0). Vui lòng chạy SQL cấp quyền trong Supabase SQL Editor.');
+    }
     throw new Error('Lỗi khi tải lên Supabase: ' + error.message);
   }
 
