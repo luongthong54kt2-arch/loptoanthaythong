@@ -290,11 +290,10 @@ export default function Tuition() {
     const phone = (student as any)?.zalo || (student as any)?.parent_phone || ''
     const amountVal = Number(row.notification.amount)
 
-    const msg = `Học phí khóa ${row.notification.course_name} của học sinh ${row.student.full_name} là ${amountVal.toLocaleString('vi-VN')} Đồng, phụ huynh vui lòng chuyển khoản vào stk: 3714235000320 HKD DINH CONG LINH`
-
-    const bankId      = import.meta.env.VITE_BANK_ID      || ''
-    const bankAccount = import.meta.env.VITE_BANK_ACCOUNT || ''
-    const bankName    = import.meta.env.VITE_BANK_NAME    || import.meta.env.VITE_BANK_ACCOUNT_NAME || ''
+    const bankId      = import.meta.env.VITE_BANK_ID      || 'VCB'
+    const bankAccount = import.meta.env.VITE_BANK_ACCOUNT || '1333279999'
+    const bankName    = import.meta.env.VITE_BANK_NAME    || import.meta.env.VITE_BANK_ACCOUNT_NAME || 'NGUYEN LUONG THONG'
+    const msg = `Học phí khóa ${row.notification.course_name} của học sinh ${row.student.full_name} là ${amountVal.toLocaleString('vi-VN')} Đồng, phụ huynh vui lòng chuyển khoản vào stk: ${bankAccount} Vietcombank (${bankName})`
     const addInfo     = 'HP ' + row.student.student_code + ' KH'
     const qrUrl       = bankId && bankAccount
       ? 'https://img.vietqr.io/image/' + bankId + '-' + bankAccount + '-compact2.png'
@@ -1065,7 +1064,9 @@ export default function Tuition() {
               const amt = Number(currentRow.notification.amount)
 
 
-              const msg = `Học phí khóa ${currentRow.notification.course_name} của học sinh ${currentRow.student.full_name} là ${amt.toLocaleString('vi-VN')} Đồng, phụ huynh vui lòng chuyển khoản vào stk: 3714235000320 HKD DINH CONG LINH`
+              const bankAcc = import.meta.env.VITE_BANK_ACCOUNT || '1333279999'
+              const bankHolder = import.meta.env.VITE_BANK_NAME || import.meta.env.VITE_BANK_ACCOUNT_NAME || 'NGUYEN LUONG THONG'
+              const msg = `Học phí khóa ${currentRow.notification.course_name} của học sinh ${currentRow.student.full_name} là ${amt.toLocaleString('vi-VN')} Đồng, phụ huynh vui lòng chuyển khoản vào stk: ${bankAcc} Vietcombank (${bankHolder})`
 
               const openAndCopy = async () => {
                 try {

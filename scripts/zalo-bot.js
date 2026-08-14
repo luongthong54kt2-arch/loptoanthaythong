@@ -114,8 +114,9 @@ async function main() {
       continue;
     }
 
-    const amountVal = Number(item.amount);
-    const msg = `Học phí khóa ${item.course_name} của học sinh ${student.full_name} là ${amountVal.toLocaleString('vi-VN')} Đồng, phụ huynh vui lòng chuyển khoản vào stk: 3714235000320 HKD DINH CONG LINH (Nội dung: HP ${student.student_code} KH)`;
+    const bankAccount = process.env.VITE_BANK_ACCOUNT || '1333279999';
+    const bankName = process.env.VITE_BANK_NAME || 'NGUYEN LUONG THONG';
+    const msg = `Học phí khóa ${item.course_name} của học sinh ${student.full_name} là ${amountVal.toLocaleString('vi-VN')} Đồng, phụ huynh vui lòng chuyển khoản vào stk: ${bankAccount} Vietcombank (${bankName}) (Nội dung: HP ${student.student_code} KH)`;
 
     console.log(`[${i + 1}/${notifications.length}] 💬 Đang gửi đến: ${student.full_name} (${cleanPhone})...`);
 
