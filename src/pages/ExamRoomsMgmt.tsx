@@ -518,7 +518,7 @@ export default function ExamRoomsMgmt() {
                         
                         <div className="flex gap-1">
                           <button 
-                            onClick={() => exportExamRoomScores(room.id)}
+                            onClick={() => exportExamRoomScores({ roomId: room.id, roomData: room })}
                             className="p-2 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl border border-transparent hover:border-emerald-100 transition-all"
                             title="Xuất file Excel bảng điểm & vi phạm"
                           >

@@ -22,19 +22,33 @@ export async function exportExamRoomScores(options: ExportExamExcelOptions | str
     if (!room) {
       const { data: roomData, error: roomErr } = await supabase
         .from('exam_rooms')
-        .select('*, exams(title, data), classes(id, class_name, name, grade)')
+        .select('*, exams(title, data)')
         .eq('id', roomId)
         .single()
 
       if (roomErr || !roomData) {
-        throw new Error('Không tìm thấy thông tin phòng thi')
+        console.error('Lỗi truy vấn phòng thi:', roomErr)
+        throw new Error('Không tìm thấy thông tin phòng thi: ' + (roomErr?.message || ''))
       }
       room = roomData
     }
 
+    // Lấy thông tin lớp học nếu chưa có
+    let className = (room.classes as any)?.class_name || (room.classes as any)?.name || ''
+    if (!className && room.class_id) {
+      const { data: clsData } = await supabase
+        .from('classes')
+        .select('id, class_name')
+        .eq('id', room.class_id)
+        .maybeSingle()
+      if (clsData) {
+        className = clsData.class_name
+      }
+    }
+    if (!className) className = 'Tất cả'
+
     const examTitle = room.exams?.title || 'Bài thi'
     const roomCode = room.code || '—'
-    const className = (room.classes as any)?.class_name || (room.classes as any)?.name || 'Tất cả'
     const examQuestions = room.exams?.data?.questions || []
     const defaultTotalQ = examQuestions.length
 
