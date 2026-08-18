@@ -297,13 +297,39 @@ export default function StudentProgressPage() {
             )}
 
             {/* Lời nhắn gửi phụ huynh */}
-            <div className="bg-gradient-to-br from-violet-50 via-purple-50/50 to-white border border-purple-100 rounded-xl p-4 space-y-2">
+            <div className="bg-gradient-to-br from-violet-50 via-purple-50/50 to-white border border-purple-100 rounded-xl p-4 space-y-3">
               <div className="flex items-center gap-1.5 text-purple-700 font-extrabold text-xs">
                 <span>💡 Lời nhắn gửi từ Thầy Thông:</span>
               </div>
               <p className="text-xs text-purple-950 leading-relaxed font-medium">
-                Kính gửi phụ huynh, sự đồng hành của gia đình là động lực lớn nhất của con. Trung tâm rất mong phụ huynh dành thêm thời gian kèm cặp, đôn đốc con học hành nhiều hơn, chăm chỉ tự giác làm bài tập đầy đủ để đạt kết quả học tập tốt nhất!
+                Kính gửi phụ huynh, sự đồng hành của gia đình là động lực lớn nhất của con. Thầy Thông rất mong phụ huynh dành thêm thời gian kèm cặp, đôn đốc con học hành nhiều hơn, chăm chỉ tự giác làm bài tập đầy đủ để đạt kết quả học tập tốt nhất!
               </p>
+
+              {/* Mã QR cá nhân của học sinh */}
+              {student?.student_code && (
+                <div className="pt-2 border-t border-purple-100/80 flex flex-col sm:flex-row items-center gap-3 bg-white/80 p-3 rounded-xl border border-purple-100">
+                  <div className="bg-white p-1.5 rounded-lg border border-purple-200 shadow-sm shrink-0">
+                    <img
+                      src={`https://quickchart.io/qr?text=${encodeURIComponent(
+                        `${window.location.origin}/progress?code=${student.student_code}`
+                      )}&size=160&margin=2&dark=0d9488&light=ffffff`}
+                      alt={`QR ${student.full_name}`}
+                      className="w-24 h-24 block object-contain"
+                    />
+                  </div>
+                  <div className="text-center sm:text-left space-y-1">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-black text-teal-700 uppercase tracking-wide">
+                      📱 Mã QR tra cứu tiến độ của con
+                    </span>
+                    <p className="text-[11px] text-gray-500 font-medium leading-tight">
+                      Phụ huynh có thể lưu lại ảnh mã QR này hoặc quét mã bằng camera điện thoại/Zalo để cập nhật tình hình học tập của <strong className="text-gray-800 font-bold">{student.full_name}</strong> mọi lúc!
+                    </p>
+                    <div className="text-[10px] text-gray-400 font-mono">
+                      Mã HS: <span className="font-bold text-teal-600">{student.student_code}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
