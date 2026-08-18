@@ -276,7 +276,7 @@ export default function StudentProgressPage() {
             {pendingExams.length === 0 ? (
               <div className="text-center py-6">
                 <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
-                <p className="text-green-600 text-sm font-bold">Con đã hoàn thành đầy đủ tất cả bài tập về nhà!</p>
+                <p className="text-green-600 text-sm font-bold">Cháu đã hoàn thành đầy đủ tất cả bài tập về nhà!</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
@@ -302,7 +302,7 @@ export default function StudentProgressPage() {
                 <span>💡 Lời nhắn gửi từ Thầy Thông:</span>
               </div>
               <p className="text-xs text-purple-950 leading-relaxed font-medium">
-                Kính gửi phụ huynh, sự đồng hành của gia đình là động lực lớn nhất của con. Thầy Thông rất mong phụ huynh dành thêm thời gian kèm cặp, đôn đốc con học hành nhiều hơn, chăm chỉ tự giác làm bài tập đầy đủ để đạt kết quả học tập tốt nhất!
+                Kính gửi phụ huynh, sự đồng hành của gia đình là động lực lớn nhất của cháu. Thầy Thông rất mong phụ huynh dành thêm thời gian kèm cặp, đôn đốc cháu học hành nhiều hơn, chăm chỉ tự giác làm bài tập đầy đủ để đạt kết quả học tập tốt nhất!
               </p>
 
               {/* Mã QR cá nhân của học sinh */}
@@ -319,7 +319,7 @@ export default function StudentProgressPage() {
                   </div>
                   <div className="text-center sm:text-left space-y-1">
                     <span className="inline-flex items-center gap-1 text-[11px] font-black text-teal-700 uppercase tracking-wide">
-                      📱 Mã QR tra cứu tiến độ của con
+                      📱 Mã QR tra cứu tiến độ của cháu
                     </span>
                     <p className="text-[11px] text-gray-500 font-medium leading-tight">
                       Phụ huynh có thể lưu lại ảnh mã QR này hoặc quét mã bằng camera điện thoại/Zalo để cập nhật tình hình học tập của <strong className="text-gray-800 font-bold">{student.full_name}</strong> mọi lúc!
