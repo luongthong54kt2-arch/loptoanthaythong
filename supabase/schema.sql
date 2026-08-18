@@ -45,6 +45,7 @@ create table if not exists students (
   note         text,
   date_of_birth date,
   password     text,
+  avatar_url   text,
   status       text default 'active',
   created_at   timestamptz default now()
 );
@@ -152,6 +153,7 @@ create policy "Allow read tc"         on teacher_classes for select using (auth.
 
 -- All authenticated users can write (role-based access enforced in app layer)
 create policy "auth write students"  on students   for all using (auth.role() = 'authenticated');
+create policy "Allow update students" on students for update using (true);
 create policy "auth write classes"   on classes    for all using (auth.role() = 'authenticated');
 create policy "auth write enrollments" on enrollments for all using (auth.role() = 'authenticated');
 create policy "auth write attendance" on attendance for all using (auth.role() = 'authenticated');

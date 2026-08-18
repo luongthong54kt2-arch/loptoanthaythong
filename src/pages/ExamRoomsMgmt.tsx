@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from 'react'
-import { MonitorPlay, Plus, Trash2, KeyRound, BarChart3, RefreshCw, Settings } from 'lucide-react'
+import { MonitorPlay, Plus, Trash2, KeyRound, BarChart3, RefreshCw, Settings, FileSpreadsheet } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useExamRoomStore } from '@/store/examRoomStore'
 import { useExamStore } from '@/store/examStore'
 import { useDataStore } from '@/store/dataStore'
+import { exportExamRoomScores } from '@/utils/exportExamExcel'
 import Modal from '@/components/Modal'
 import toast from 'react-hot-toast'
 
@@ -516,6 +517,13 @@ export default function ExamRoomsMgmt() {
                         </select>
                         
                         <div className="flex gap-1">
+                          <button 
+                            onClick={() => exportExamRoomScores(room.id)}
+                            className="p-2 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl border border-transparent hover:border-emerald-100 transition-all"
+                            title="Xuất file Excel bảng điểm & vi phạm"
+                          >
+                            <FileSpreadsheet className="w-5 h-5" />
+                          </button>
                           <button 
                             onClick={() => {
                               sessionStorage.setItem('exam_rooms_active_grade', activeGrade.toString())

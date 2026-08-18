@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { ChevronLeft, BrainCircuit, Eye, AlertTriangle } from 'lucide-react'
+import { ChevronLeft, BrainCircuit, Eye, AlertTriangle, FileSpreadsheet } from 'lucide-react'
 import Modal from '@/components/Modal'
 import EssayGraderPanel from '@/components/EssayGraderPanel'
 import SubmissionDetailView from '@/components/SubmissionDetailView'
 import toast from 'react-hot-toast'
 import StudentScorecardModal from '@/components/StudentScorecardModal'
+import { exportExamRoomScores } from '@/utils/exportExamExcel'
 
 export default function ExamResultsPage() {
   const { roomId } = useParams()
@@ -173,12 +174,26 @@ export default function ExamResultsPage() {
           </div>
         </div>
 
-        <button
-          onClick={() => setShowEssayGrader(true)}
-          className="btn-teal bg-violet-600 hover:bg-violet-700 flex items-center gap-2 w-max"
-        >
-          <BrainCircuit className="w-4 h-4" /> Chấm Tự luận AI
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => exportExamRoomScores({
+              roomId: room?.id || roomId || '',
+              roomData: room,
+              submissions: submissions,
+              notSubmittedStudents: notSubmittedStudents
+            })}
+            className="px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-600 hover:text-white rounded-xl text-sm font-bold shadow-sm transition-all duration-200 flex items-center gap-2"
+          >
+            <FileSpreadsheet className="w-4 h-4" /> Xuất Excel Điểm & Vi phạm
+          </button>
+
+          <button
+            onClick={() => setShowEssayGrader(true)}
+            className="btn-teal bg-violet-600 hover:bg-violet-700 flex items-center gap-2 w-max"
+          >
+            <BrainCircuit className="w-4 h-4" /> Chấm Tự luận AI
+          </button>
+        </div>
       </div>
 
       {/* Tab Selector */}
