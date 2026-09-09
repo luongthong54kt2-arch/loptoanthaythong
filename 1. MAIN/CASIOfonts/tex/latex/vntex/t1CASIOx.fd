@@ -1,0 +1,4 @@
+\ProvidesFile{t1CASIOx.fd}
+\DeclareFontFamily{T1}{CASIOx}{}
+\DeclareFontShape{T1}{CASIOx}{m}{n}{ <-> mCASIOfont}{}
+\pdfmapline{+mCASIOfont\space <CASIOfont.ttf\space <T1-WGL4.enc}

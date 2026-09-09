@@ -22,7 +22,8 @@ import StudentPortal from '@/pages/StudentPortal'
 import ExamRoomPage from '@/pages/ExamRoomPage'
 import CreatePdfExamPage from '@/pages/CreatePdfExamPage'
 import CreateTexExamPage from '@/pages/CreateTexExamPage'
-import CreateWorksheetPage from '@/pages/CreateWorksheetPage'   // ← MỚI
+import CreateWorksheetPage from '@/pages/CreateWorksheetPage'
+import LessonExamsPage from '@/pages/LessonExamsPage'
 
 // Pages Khóa học mới
 import CourseMgmt from '@/pages/CourseMgmt'
@@ -105,7 +106,8 @@ export default function App() {
         <Route path="exams"                element={<ExamMgmt />} />
         <Route path="create-pdf-exam"      element={<CreatePdfExamPage />} />
         <Route path="create-tex-exam"      element={<CreateTexExamPage />} />
-        <Route path="create-worksheet"     element={<CreateWorksheetPage />} />  {/* ← MỚI */}
+        <Route path="create-worksheet"     element={<CreateWorksheetPage />} />
+        <Route path="lesson-exams"         element={<LessonExamsPage />} />
         <Route path="exam-rooms"           element={<ExamRoomsMgmt />} />
         <Route path="exam-results/:roomId" element={<ExamResultsPage />} />
         <Route path="phieu-grader"         element={<PhieuGrader />} />

@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, BookOpen, CalendarCheck, Banknote,
   Mail, Settings, LogOut, FileText, MonitorPlay, ScanText,
   GraduationCap, Sigma, FilePlus, PlaySquare, Zap, FileType, CreditCard,
-  ClipboardList, Tag, MessageCircle,                                  // ← MỚI ZALO
+  ClipboardList, Tag, MessageCircle, FileCheck2,
 } from 'lucide-react'
 
 export default function Layout() {
@@ -38,7 +38,8 @@ export default function Layout() {
         { path: '/exams',             icon: FileText,      label: 'Ngân hàng đề' },
         { path: '/create-pdf-exam',   icon: FilePlus,      label: 'Tạo đề PDF' },
         { path: '/create-tex-exam',   icon: Sigma,         label: 'Tạo đề LaTeX' },
-        { path: '/create-worksheet',  icon: ClipboardList, label: 'Phiếu Bài Tập' },  // ← MỚI
+        { path: '/create-worksheet',  icon: ClipboardList, label: 'Phiếu Bài Tập' },
+        { path: '/lesson-exams',      icon: FileCheck2,    label: 'Kiểm tra Buổi học' },
         { path: '/exam-rooms',        icon: MonitorPlay,   label: 'Phòng thi' },
         { path: '/phieu-grader',      icon: Zap,           label: 'Chấm Phiếu AI' },
       ],

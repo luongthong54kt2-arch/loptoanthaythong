@@ -27,3 +27,14 @@ npm-debug.log*
 # Local sessions
 .zalo_session/
 
+# LaTeX build artifacts
+*.aux
+*.out
+*.synctex.gz
+*.thm
+*.toc
+*.fls
+*.fdb_latexmk
+1. MAIN/main.pdf
+
+
