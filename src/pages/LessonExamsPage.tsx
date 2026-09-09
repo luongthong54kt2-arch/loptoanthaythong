@@ -27,8 +27,9 @@ interface StudentItem {
 
 interface ParsedExam {
   code: string;           // e.g. "001"
-  question1: string;      // LaTeX của câu 1
-  question2: string;      // LaTeX của câu 2
+  questions: string[];    // Danh sách toàn bộ các câu hỏi trong mã đề (1, 2, 3, 4... câu)
+  question1?: string;      // LaTeX của câu 1 (giữ tương thích)
+  question2?: string;      // LaTeX của câu 2 (giữ tương thích)
   rawText: string;
 }
 
@@ -375,6 +376,7 @@ function parseLatexExamCodes(raw: string): ParsedExam[] {
     if (exMatches.length > 0) {
       return [{
         code: '001',
+        questions: exMatches,
         question1: exMatches[0] || '',
         question2: exMatches[1] || '',
         rawText: raw.trim(),
@@ -390,11 +392,12 @@ function parseLatexExamCodes(raw: string): ParsedExam[] {
     const end = i + 1 < matches.length ? matches[i + 1].index : raw.length;
     const chunk = raw.slice(start, end).trim();
 
-    // Bỏ dòng tiêu đề mã đề ra khỏi chunk để lấy các câu
+    // Lấy toàn bộ các câu hỏi trong đề (1, 2, 3, 4 hoặc nhiều câu)
     const questions = extractQuestions(chunk);
 
     results.push({
       code: matches[i].code,
+      questions: questions.length > 0 ? questions : ['% (Chưa có nội dung câu hỏi)'],
       question1: questions[0] || '% (Chưa có nội dung Câu 1)',
       question2: questions[1] || '% (Chưa có nội dung Câu 2)',
       rawText: chunk,
@@ -428,8 +431,9 @@ function extractQuestions(chunk: string): string[] {
     if (clean) {
       const parts = clean.split(/\n\s*\n/);
       if (parts.length >= 2) {
-        questions.push(parts[0].trim());
-        questions.push(parts.slice(1).join('\n\n').trim());
+        parts.forEach(p => {
+          if (p.trim()) questions.push(p.trim());
+        });
       } else {
         questions.push(clean);
       }
@@ -442,8 +446,9 @@ function extractQuestions(chunk: string): string[] {
 // ─── Generators: Sinh mã LaTeX cho 1. MAIN/data/Cau1.tex ─────────────────────
 
 /**
- * Sinh nội dung phiếu thi cho 1 học sinh (Đúng 2 trang A4 in 2 mặt có dòng kẻ chấm)
- * Sử dụng đúng lệnh \dotlineEX{...} đã định nghĩa trong 1. MAIN/main.tex
+ * Sinh nội dung phiếu thi cho 1 học sinh
+ * Tự động chảy qua các trang (không ngắt \newpage cứng giữa các bài vì có thể có 2, 3, 4 bài).
+ * Cuối mỗi đề kết thúc bằng \setcounterpageref{ex}{0} và \newpage.
  */
 function generateStudentExamLatex(
   student: StudentItem,
@@ -455,25 +460,31 @@ function generateStudentExamLatex(
   const sCode = student.student_code || student.id?.slice(0, 6) || 'HS-000';
   const eCode = exam.code || '001';
 
-  // Khi dùng \dotlinefull{ex}, nếu câu hỏi đã có \loigiai{...} thì ex_test sẽ tự động
-  // chuyển lời giải thành số dòng kẻ chấm tương ứng với độ dài lời giải.
-  // Nếu câu hỏi không có \loigiai{...}, ta thêm dòng kẻ dự phòng bằng \dotlineEX.
-  const hasLoigiai1 = exam.question1.includes('\\loigiai');
-  const hasLoigiai2 = exam.question2.includes('\\loigiai');
+  // Lấy toàn bộ danh sách câu hỏi trong đề (hỗ trợ 2, 3, 4 hoặc nhiều câu)
+  const questionList = exam.questions && exam.questions.length > 0
+    ? exam.questions
+    : [exam.question1, exam.question2].filter(Boolean) as string[];
 
-  const fallbackDotted1 = hasLoigiai1
-    ? ''
-    : String.raw`\vspace{0.25cm}
+  // Render các câu hỏi nối tiếp nhau:
+  // - Nếu có \loigiai thì \dotlinefull{ex} tự động tạo số dòng chấm tương ứng
+  // - Nếu không có \loigiai thì thêm fallback \dotlineEX{16}
+  const questionsTex = questionList.map((q) => {
+    const hasLoigiai = q.includes('\\loigiai');
+    const fallbackDotted = hasLoigiai
+      ? ''
+      : String.raw`\vspace{0.25cm}
 \noindent\textit{\textbf{Bài làm:}}
-\dotlineEX{18}
+\dotlineEX{16}
 `;
 
-  const fallbackDotted2 = hasLoigiai2
-    ? ''
-    : String.raw`\vspace{0.25cm}
-\noindent\textit{\textbf{Bài làm (tiếp theo):}}
-\dotlineEX{22}
-`;
+    const formattedQ = q.trim().startsWith('\\begin{ex}')
+      ? q.trim()
+      : String.raw`\begin{ex}
+${q.trim()}
+\end{ex}`;
+
+    return `${formattedQ}\n${fallbackDotted}`.trim();
+  }).join('\n\n');
 
   return String.raw`% ======================================================================
 % HỌC SINH: ${sName} | MÃ: ${sCode} | MÃ ĐỀ: ${eCode}
@@ -503,26 +514,9 @@ function generateStudentExamLatex(
 \noindent\textbf{\large ĐỀ BÀI (MÃ ĐỀ: ${eCode})}
 \vspace{0.1cm}
 
-% --- CÂU 1 (TRANG 1) ---
-\begin{ex}
-${exam.question1}
-\end{ex}
-${fallbackDotted1}
-\newpage
-% ----------------------------------------------------------------------
-% TRANG 2 (MẶT SAU) -- DÒNG KẺ TIẾP THEO
-% ----------------------------------------------------------------------
-\noindent
-\textbf{Học sinh:} ${sName} \quad -- \quad \textbf{Mã đề:} \fbox{\textbf{${eCode}}} \hfill \textit{Trang 2/2}\par
-\vspace{-0.1cm}
-\noindent\hrulefill
-\vspace{0.3cm}
+${questionsTex}
 
-% --- CÂU 2 (TRANG 2) ---
-\begin{ex}
-${exam.question2}
-\end{ex}
-${fallbackDotted2}
+\setcounterpageref{ex}{0}
 \newpage
 `;
 }
@@ -1211,12 +1205,12 @@ export default function LessonExamsPage() {
                         <span className="px-2 py-0.5 rounded-md text-xs font-extrabold bg-teal-600 text-white shadow-sm">
                           Mã đề: {ex.code}
                         </span>
-                        <span className="text-[11px] font-semibold text-slate-500">
-                          {ex.question1 ? 'Câu 1 ✓' : 'Câu 1 ✗'} | {ex.question2 ? 'Câu 2 ✓' : 'Câu 2 ✗'}
+                        <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                          {ex.questions?.length || 0} bài tập
                         </span>
                       </div>
                       <div className="text-[11px] text-slate-600 line-clamp-2 font-mono bg-white p-1.5 rounded border border-slate-100">
-                        {ex.question1 || '(Chưa có nội dung câu 1)'}
+                        {ex.questions?.[0] || ex.question1 || '(Chưa có nội dung câu hỏi)'}
                       </div>
                     </div>
                   ))}
