@@ -47,6 +47,16 @@ const SAMPLE_10_EXAMS = String.raw`\textbf{Mã đề: 001}
 \begin{ex}
   Rút gọn biểu thức sau bằng cách sử dụng hằng đẳng thức:
   $A = (2x + 3)^2 - (2x - 3)^2$.
+  \loigiai{
+    Áp dụng hằng đẳng thức hiệu hai bình phương $a^2 - b^2 = (a - b)(a + b)$:\\
+    Ta có:
+    \begin{align*}
+      A &= [(2x + 3) - (2x - 3)][(2x + 3) + (2x - 3)] \\
+        &= (2x + 3 - 2x + 3)(2x + 3 + 2x - 3) \\
+        &= 6 \cdot 4x = 24x.
+    \end{align*}
+    Vậy $A = 24x$.
+  }
 \end{ex}
 \begin{ex}
   Cho tam giác $ABC$ vuông tại $A$, đường cao $AH$. Biết $AB = 6\text{ cm}$, $AC = 8\text{ cm}$.
@@ -54,12 +64,33 @@ const SAMPLE_10_EXAMS = String.raw`\textbf{Mã đề: 001}
     \item Tính độ dài cạnh huyền $BC$ và đường cao $AH$.
     \item Tính diện tích tam giác $ABH$.
   \end{enumerate}
+  \loigiai{
+    \begin{enumerate}[a)]
+      \item Áp dụng định lý Pythagore trong tam giác vuông $ABC$:
+      \[BC = \sqrt{AB^2 + AC^2} = \sqrt{6^2 + 8^2} = 10\text{ cm}.\]
+      Áp dụng hệ thức lượng $AH \cdot BC = AB \cdot AC$:
+      \[AH = \frac{AB \cdot AC}{BC} = \frac{6 \cdot 8}{10} = 4{,}8\text{ cm}.\]
+      \item Trong tam giác vuông $ABH$ vuông tại $H$:
+      \[BH = \sqrt{AB^2 - AH^2} = \sqrt{6^2 - 4{,}8^2} = 3{,}6\text{ cm}.\]
+      Diện tích tam giác $ABH$ là:
+      \[S_{ABH} = \frac{1}{2} AH \cdot BH = \frac{1}{2} \cdot 4{,}8 \cdot 3{,}6 = 8{,}64\text{ cm}^2.\]
+    \end{enumerate}
+  }
 \end{ex}
 
 \textbf{Mã đề: 002}
 \begin{ex}
   Phân tích đa thức sau thành nhân tử:
   $B = x^2 - 6x + 9 - y^2$.
+  \loigiai{
+    Nhóm ba số hạng đầu tiên thành bình phương của một hiệu:
+    \begin{align*}
+      B &= (x^2 - 6x + 9) - y^2 \\
+        &= (x - 3)^2 - y^2 \\
+        &= (x - 3 - y)(x - 3 + y).
+    \end{align*}
+    Vậy $B = (x - y - 3)(x + y - 3)$.
+  }
 \end{ex}
 \begin{ex}
   Cho tam giác $MNP$ vuông tại $M$, đường cao $MK$. Biết $MN = 9\text{ cm}$, $MP = 12\text{ cm}$.
@@ -67,11 +98,27 @@ const SAMPLE_10_EXAMS = String.raw`\textbf{Mã đề: 001}
     \item Tính độ dài cạnh $NP$ và đoạn thẳng $NK$.
     \item Tính tỉ số diện tích $\triangle MKN$ và $\triangle MKP$.
   \end{enumerate}
+  \loigiai{
+    \begin{enumerate}[a)]
+      \item Tam giác $MNP$ vuông tại $M$:
+      \[NP = \sqrt{MN^2 + MP^2} = \sqrt{9^2 + 12^2} = 15\text{ cm}.\]
+      Hệ thức lượng: $MN^2 = NK \cdot NP \implies NK = \frac{MN^2}{NP} = \frac{81}{15} = 5{,}4\text{ cm}$.
+      \item Ta có $KP = NP - NK = 15 - 5{,}4 = 9{,}6\text{ cm}$.\\
+      Tỉ số diện tích: $\frac{S_{MKN}}{S_{MKP}} = \frac{NK}{KP} = \frac{5{,}4}{9{,}6} = \frac{9}{16}$.
+    \end{enumerate}
+  }
 \end{ex}
 
 \textbf{Mã đề: 003}
 \begin{ex}
   Tính giá trị của biểu thức $C = x^3 - 3x^2 + 3x - 1$ tại $x = 101$.
+  \loigiai{
+    Nhận xét rằng biểu thức $C$ chính là hằng đẳng thức lập phương của một hiệu:
+    \[C = (x - 1)^3.\]
+    Thay $x = 101$ vào biểu thức, ta được:
+    \[C = (101 - 1)^3 = 100^3 = 1\,000\,000.\]
+    Vậy giá trị của $C$ tại $x = 101$ là $1\,000\,000$.
+  }
 \end{ex}
 \begin{ex}
   Cho tam giác $ABC$ vuông tại $A$ có $\widehat{B} = 30^\circ$ và $BC = 10\text{ cm}$.
@@ -79,11 +126,31 @@ const SAMPLE_10_EXAMS = String.raw`\textbf{Mã đề: 001}
     \item Tính các cạnh $AB, AC$.
     \item Kẻ trung tuyến $AM$. Tính diện tích $\triangle ABM$.
   \end{enumerate}
+  \loigiai{
+    \begin{enumerate}[a)]
+      \item Trong tam giác vuông có góc $30^\circ$:
+      \[AC = BC \cdot \sin 30^\circ = 10 \cdot \frac{1}{2} = 5\text{ cm}.\]
+      \[AB = BC \cdot \cos 30^\circ = 10 \cdot \frac{\sqrt{3}}{2} = 5\sqrt{3}\text{ cm}.\]
+      \item Trung tuyến $AM$ chia đôi diện tích tam giác $ABC$:
+      \[S_{ABC} = \frac{1}{2} AB \cdot AC = \frac{1}{2} \cdot 5\sqrt{3} \cdot 5 = \frac{25\sqrt{3}}{2}\text{ cm}^2.\]
+      \[S_{ABM} = \frac{1}{2} S_{ABC} = \frac{25\sqrt{3}}{4}\text{ cm}^2.\]
+    \end{enumerate}
+  }
 \end{ex}
 
 \textbf{Mã đề: 004}
 \begin{ex}
   Tìm $x$ biết: $(x - 2)^2 - (x - 1)(x + 1) = 9$.
+  \loigiai{
+    Khai triển vế trái bằng các hằng đẳng thức:
+    \begin{align*}
+      (x^2 - 4x + 4) - (x^2 - 1) &= 9 \\
+      x^2 - 4x + 4 - x^2 + 1 &= 9 \\
+      -4x + 5 &= 9 \\
+      -4x &= 4 \implies x = -1.
+    \end{align*}
+    Vậy $x = -1$.
+  }
 \end{ex}
 \begin{ex}
   Cho hình chữ nhật $ABCD$ có $AB = 8\text{ cm}$, $BC = 6\text{ cm}$. Kẻ $AH \perp BD$ tại $H$.
@@ -91,11 +158,32 @@ const SAMPLE_10_EXAMS = String.raw`\textbf{Mã đề: 001}
     \item Tính độ dài đường chéo $BD$ và đoạn $AH$.
     \item Tính diện tích tam giác $AHD$.
   \end{enumerate}
+  \loigiai{
+    \begin{enumerate}[a)]
+      \item Tam giác $ABD$ vuông tại $A$, có:
+      \[BD = \sqrt{AB^2 + AD^2} = \sqrt{8^2 + 6^2} = 10\text{ cm}.\]
+      Hệ thức lượng: $AH \cdot BD = AB \cdot AD \implies AH = \frac{8 \cdot 6}{10} = 4{,}8\text{ cm}$.
+      \item Trong tam giác vuông $AHD$:
+      \[HD = \sqrt{AD^2 - AH^2} = \sqrt{6^2 - 4{,}8^2} = 3{,}6\text{ cm}.\]
+      Diện tích tam giác $AHD$:
+      \[S_{AHD} = \frac{1}{2} AH \cdot HD = \frac{1}{2} \cdot 4{,}8 \cdot 3{,}6 = 8{,}64\text{ cm}^2.\]
+    \end{enumerate}
+  }
 \end{ex}
 
 \textbf{Mã đề: 005}
 \begin{ex}
   Rút gọn biểu thức: $D = (x + 1)^3 - (x - 1)^3 - 6x^2$.
+  \loigiai{
+    Khai triển lập phương của tổng và hiệu:
+    \begin{align*}
+      (x + 1)^3 &= x^3 + 3x^2 + 3x + 1 \\
+      (x - 1)^3 &= x^3 - 3x^2 + 3x - 1 \\
+      (x + 1)^3 - (x - 1)^3 &= 6x^2 + 2.
+    \end{align*}
+    Do đó: $D = (6x^2 + 2) - 6x^2 = 2$.\\
+    Vậy biểu thức $D$ có giá trị không phụ thuộc vào biến và bằng $2$.
+  }
 \end{ex}
 \begin{ex}
   Cho hình thang cân $ABCD$ ($AB \parallel CD$, $AB < CD$) có $AB = 4\text{ cm}$, $CD = 10\text{ cm}$, cạnh bên $AD = 5\text{ cm}$.
@@ -103,11 +191,29 @@ const SAMPLE_10_EXAMS = String.raw`\textbf{Mã đề: 001}
     \item Tính chiều cao của hình thang.
     \item Tính diện tích hình thang $ABCD$.
   \end{enumerate}
+  \loigiai{
+    \begin{enumerate}[a)]
+      \item Kẻ $AH \perp CD$ và $BK \perp CD$ ($H, K \in CD$).\\
+      Vì $ABCD$ là hình thang cân nên $DH = KC = \frac{CD - AB}{2} = \frac{10 - 4}{2} = 3\text{ cm}$.\\
+      Tam giác $ADH$ vuông tại $H$:
+      \[AH = \sqrt{AD^2 - DH^2} = \sqrt{5^2 - 3^2} = 4\text{ cm}.\]
+      Vậy chiều cao hình thang là $4\text{ cm}$.
+      \item Diện tích hình thang:
+      \[S_{ABCD} = \frac{(AB + CD) \cdot AH}{2} = \frac{(4 + 10) \cdot 4}{2} = 28\text{ cm}^2.\]
+    \end{enumerate}
+  }
 \end{ex}
 
 \textbf{Mã đề: 006}
 \begin{ex}
   Tìm giá trị nhỏ nhất của biểu thức: $E = x^2 - 4x + 7$.
+  \loigiai{
+    Biến đổi biểu thức về dạng bình phương một hiệu cộng một hằng số:
+    \[E = (x^2 - 4x + 4) + 3 = (x - 2)^2 + 3.\]
+    Vì $(x - 2)^2 \ge 0$ với mọi $x \in \mathbb{R}$, nên $E \ge 3$.\\
+    Dấu "=" xảy ra khi $x - 2 = 0 \iff x = 2$.\\
+    Vậy giá trị nhỏ nhất của $E$ là $3$ khi $x = 2$.
+  }
 \end{ex}
 \begin{ex}
   Cho tam giác $ABC$ vuông tại $A$, phân giác $AD$. Biết $AB = 3\text{ cm}$, $AC = 4\text{ cm}$.
@@ -115,11 +221,26 @@ const SAMPLE_10_EXAMS = String.raw`\textbf{Mã đề: 001}
     \item Tính độ dài cạnh $BC$ và các đoạn thẳng $DB, DC$.
     \item Tính độ dài đường phân giác $AD$.
   \end{enumerate}
+  \loigiai{
+    \begin{enumerate}[a)]
+      \item Cạnh huyền: $BC = \sqrt{AB^2 + AC^2} = 5\text{ cm}$.\\
+      Theo tính chất đường phân giác: $\frac{DB}{DC} = \frac{AB}{AC} = \frac{3}{4} \implies \frac{DB}{3} = \frac{DC}{4} = \frac{BC}{7} = \frac{5}{7}$.\\
+      Suy ra: $DB = \frac{15}{7}\text{ cm}$, $DC = \frac{20}{7}\text{ cm}$.
+      \item Công thức đường phân giác:
+      \[AD = \frac{2 AB \cdot AC \cdot \cos 45^\circ}{AB + AC} = \frac{2 \cdot 3 \cdot 4 \cdot \frac{\sqrt{2}}{2}}{3 + 4} = \frac{12\sqrt{2}}{7}\text{ cm}.\]
+    \end{enumerate}
+  }
 \end{ex}
 
 \textbf{Mã đề: 007}
 \begin{ex}
   Chứng minh rằng biểu thức $F = x^2 - 2x + 5 > 0$ với mọi số thực $x$.
+  \loigiai{
+    Ta có:
+    \[F = (x^2 - 2x + 1) + 4 = (x - 1)^2 + 4.\]
+    Vì $(x - 1)^2 \ge 0$ với mọi $x$, nên $(x - 1)^2 + 4 \ge 4 > 0$ với mọi số thực $x$.\\
+    Vậy $F > 0$ với mọi $x \in \mathbb{R}$.
+  }
 \end{ex}
 \begin{ex}
   Cho tam giác $ABC$ cân tại $A$, đường cao $AH = 8\text{ cm}$, cạnh đáy $BC = 12\text{ cm}$.
@@ -127,11 +248,30 @@ const SAMPLE_10_EXAMS = String.raw`\textbf{Mã đề: 001}
     \item Tính độ dài cạnh bên $AB$.
     \item Kẻ $HK \perp AB$ tại $K$. Tính độ dài $HK$.
   \end{enumerate}
+  \loigiai{
+    \begin{enumerate}[a)]
+      \item Tam giác $ABC$ cân tại $A$ nên đường cao $AH$ cũng là trung tuyến:
+      \[HB = HC = \frac{BC}{2} = 6\text{ cm}.\]
+      Tam giác $ABH$ vuông tại $H$:
+      \[AB = \sqrt{AH^2 + HB^2} = \sqrt{8^2 + 6^2} = 10\text{ cm}.\]
+      \item Hệ thức lượng trong tam giác vuông $ABH$ với đường cao $HK$:
+      \[HK \cdot AB = AH \cdot HB \implies HK = \frac{8 \cdot 6}{10} = 4{,}8\text{ cm}.\]
+    \end{enumerate}
+  }
 \end{ex}
 
 \textbf{Mã đề: 008}
 \begin{ex}
   Phân tích đa thức thành nhân tử: $G = x^3 + 8 + (x + 2)(x - 5)$.
+  \loigiai{
+    Áp dụng hằng đẳng thức tổng hai lập phương $x^3 + 8 = (x + 2)(x^2 - 2x + 4)$:\\
+    \begin{align*}
+      G &= (x + 2)(x^2 - 2x + 4) + (x + 2)(x - 5) \\
+        &= (x + 2)[(x^2 - 2x + 4) + (x - 5)] \\
+        &= (x + 2)(x^2 - x - 1).
+    \end{align*}
+    Vậy $G = (x + 2)(x^2 - x - 1)$.
+  }
 \end{ex}
 \begin{ex}
   Cho tam giác $ABC$ vuông tại $A$. Đường tròn đường kính $AB$ cắt $BC$ tại $D$. Biết $AB = 6$, $AC = 8$.
@@ -139,11 +279,30 @@ const SAMPLE_10_EXAMS = String.raw`\textbf{Mã đề: 001}
     \item Chứng minh $AD \perp BC$ và tính $BD$.
     \item Tính diện tích tam giác $ABD$.
   \end{enumerate}
+  \loigiai{
+    \begin{enumerate}[a)]
+      \item Điểm $D$ thuộc đường tròn đường kính $AB$ nên góc nội tiếp $\widehat{ADB} = 90^\circ$, do đó $AD \perp BC$.\\
+      Áp dụng hệ thức lượng trong tam giác vuông $ABC$:
+      \[BC = \sqrt{AB^2 + AC^2} = 10, \quad AB^2 = BD \cdot BC \implies BD = \frac{36}{10} = 3{,}6.\]
+      \item Ta có $AD = \sqrt{AB^2 - BD^2} = \sqrt{36 - 3{,}6^2} = 4{,}8$.\\
+      Diện tích: $S_{ABD} = \frac{1}{2} AD \cdot BD = \frac{1}{2} \cdot 4{,}8 \cdot 3{,}6 = 8{,}64$.
+    \end{enumerate}
+  }
 \end{ex}
 
 \textbf{Mã đề: 009}
 \begin{ex}
   Tính nhanh: $H = 2025^2 - 2024^2 + 2023^2 - 2022^2$.
+  \loigiai{
+    Nhóm từng cặp và áp dụng hằng đẳng thức hiệu hai bình phương:
+    \begin{align*}
+      H &= (2025^2 - 2024^2) + (2023^2 - 2022^2) \\
+        &= (2025 - 2024)(2025 + 2024) + (2023 - 2022)(2023 + 2022) \\
+        &= 1 \cdot 4049 + 1 \cdot 4045 \\
+        &= 4049 + 4045 = 8094.
+    \end{align*}
+    Vậy $H = 8094$.
+  }
 \end{ex}
 \begin{ex}
   Cho hình vuông $ABCD$ có cạnh bằng $6\text{ cm}$. Gọi $M$ là trung điểm của $BC$.
@@ -151,11 +310,30 @@ const SAMPLE_10_EXAMS = String.raw`\textbf{Mã đề: 001}
     \item Tính độ dài đoạn thẳng $AM$ và $DM$.
     \item Kẻ $AH \perp DM$. Chứng minh $\triangle AHM \backsim \triangle DCM$.
   \end{enumerate}
+  \loigiai{
+    \begin{enumerate}[a)]
+      \item Ta có $M$ là trung điểm $BC \implies BM = MC = 3\text{ cm}$.\\
+      Tam giác $ABM$ vuông tại $B$: $AM = \sqrt{AB^2 + BM^2} = \sqrt{36 + 9} = 3\sqrt{5}\text{ cm}$.\\
+      Tam giác $DCM$ vuông tại $C$: $DM = \sqrt{CD^2 + CM^2} = \sqrt{36 + 9} = 3\sqrt{5}\text{ cm}$.
+      \item Xét $\triangle ABM$ và $\triangle DCM$ bằng nhau (c-g-c) $\implies \widehat{BAM} = \widehat{CDM}$.\\
+      Vì $\widehat{AHM} = \widehat{DCM} = 90^\circ$ và $\widehat{AMH} = \widehat{DMC}$ (đối đỉnh/cùng phụ), suy ra $\triangle AHM \backsim \triangle DCM$ (g-g).
+    \end{enumerate}
+  }
 \end{ex}
 
 \textbf{Mã đề: 010}
 \begin{ex}
   Tìm $x, y$ thỏa mãn: $x^2 + y^2 - 4x + 6y + 13 = 0$.
+  \loigiai{
+    Tách các số hạng tạo thành tổng hai bình phương:
+    \begin{align*}
+      (x^2 - 4x + 4) + (y^2 + 6y + 9) &= 0 \\
+      (x - 2)^2 + (y + 3)^2 &= 0.
+    \end{align*}
+    Vì $(x - 2)^2 \ge 0$ và $(y + 3)^2 \ge 0$ với mọi $x, y$, nên tổng bằng $0$ khi và chỉ khi:
+    \[\begin{cases} x - 2 = 0 \\ y + 3 = 0 \end{cases} \iff \begin{cases} x = 2 \\ y = -3. \end{cases}\]
+    Vậy cặp số cần tìm là $(x; y) = (2; -3)$.
+  }
 \end{ex}
 \begin{ex}
   Cho tam giác $ABC$ nhọn có hai đường cao $BD$ và $CE$ cắt nhau tại $H$.
@@ -163,6 +341,16 @@ const SAMPLE_10_EXAMS = String.raw`\textbf{Mã đề: 001}
     \item Chứng minh bốn điểm $A, E, H, D$ cùng thuộc một đường tròn.
     \item Chứng minh $BD \cdot BH + CE \cdot CH = BC^2$.
   \end{enumerate}
+  \loigiai{
+    \begin{enumerate}[a)]
+      \item Tứ giác $AEHD$ có $\widehat{AEH} = 90^\circ$ và $\widehat{ADH} = 90^\circ \implies \widehat{AEH} + \widehat{ADH} = 180^\circ$.\\
+      Do đó bốn điểm $A, E, H, D$ cùng thuộc đường tròn đường kính $AH$.
+      \item Kẻ đường cao $AK \perp BC$ đi qua trực tâm $H$.\\
+      Ta có $\triangle BDH \backsim \triangle BKC$ (g-g) $\implies \frac{BD}{BK} = \frac{BC}{BH} \implies BD \cdot BH = BK \cdot BC$.\\
+      Tương tự $\triangle CEH \backsim \triangle CKB \implies CE \cdot CH = CK \cdot BC$.\\
+      Cộng vế theo vế: $BD \cdot BH + CE \cdot CH = BC(BK + CK) = BC^2$.
+    \end{enumerate}
+  }
 \end{ex}`;
 
 // ─── Helpers: Parser LaTeX 10 Mã Đề ──────────────────────────────────────────
@@ -267,6 +455,26 @@ function generateStudentExamLatex(
   const sCode = student.student_code || student.id?.slice(0, 6) || 'HS-000';
   const eCode = exam.code || '001';
 
+  // Khi dùng \dotlinefull{ex}, nếu câu hỏi đã có \loigiai{...} thì ex_test sẽ tự động
+  // chuyển lời giải thành số dòng kẻ chấm tương ứng với độ dài lời giải.
+  // Nếu câu hỏi không có \loigiai{...}, ta thêm dòng kẻ dự phòng bằng \dotlineEX.
+  const hasLoigiai1 = exam.question1.includes('\\loigiai');
+  const hasLoigiai2 = exam.question2.includes('\\loigiai');
+
+  const fallbackDotted1 = hasLoigiai1
+    ? ''
+    : String.raw`\vspace{0.25cm}
+\noindent\textit{\textbf{Bài làm:}}
+\dotlineEX{18}
+`;
+
+  const fallbackDotted2 = hasLoigiai2
+    ? ''
+    : String.raw`\vspace{0.25cm}
+\noindent\textit{\textbf{Bài làm (tiếp theo):}}
+\dotlineEX{22}
+`;
+
   return String.raw`% ======================================================================
 % HỌC SINH: ${sName} | MÃ: ${sCode} | MÃ ĐỀ: ${eCode}
 % ======================================================================
@@ -299,11 +507,7 @@ function generateStudentExamLatex(
 \begin{ex}
 ${exam.question1}
 \end{ex}
-
-\vspace{0.25cm}
-\noindent\textit{\textbf{Bài làm:}}
-\dotlineEX{18}
-
+${fallbackDotted1}
 \newpage
 % ----------------------------------------------------------------------
 % TRANG 2 (MẶT SAU) -- DÒNG KẺ TIẾP THEO
@@ -318,11 +522,7 @@ ${exam.question1}
 \begin{ex}
 ${exam.question2}
 \end{ex}
-
-\vspace{0.25cm}
-\noindent\textit{\textbf{Bài làm (tiếp theo):}}
-\dotlineEX{22}
-
+${fallbackDotted2}
 \newpage
 `;
 }
@@ -355,6 +555,8 @@ function generateFullCau1Tex(
 % In 2 mặt (Duplex) để mỗi học sinh là 1 tờ A4 (Trang 1: Mặt trước, Trang 2: Mặt sau)
 % ==============================================================================
 
+\dotlinefull{ex}
+
 `;
 
   return headerNotice + sections.join('\n');
@@ -371,6 +573,8 @@ function buildStandaloneTexForPreview(bodyTex: string): string {
 \usepackage[dethi]{ex_test}
 \usepackage{tikz}
 \usepackage{xcolor}
+
+\dotlinefull{ex}
 
 \def\mau{teal}
 \def\colorEX{\color{blue}}
